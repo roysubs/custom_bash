@@ -1,4 +1,13 @@
 #!/bin/bash
+
+# - Add the loader line into .bashrc
+# - Add lines to .vimrc
+# - Add lines to .inputrc
+# - Option to make actions load system wide
+#   to /etc/bashrc, /etc/vimrc, /etc/inputrc
+#  :
+
+
 if [ -f ~/.custom ]; then
     if [[ $(find "~/.custom" -mtime +3 -print) ]]; then
         echo "File ~/.custom exists and is older than 3 days"

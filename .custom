@@ -3,11 +3,11 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 export LS_COLORS=$LS_COLORS:'di=0;36'   # dirs to cyan "0;36" instead of dark blue on black
 export PS1="[\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "33m"; fi)\]\u\[\033[00m\]@\h\[\033[01;31m\]:\[\033[01;36m\] \w\[\033[00m\]]\$ "   # non-root users in yellow, root user in red (by testing on 'id -u' = 0 for root
 alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
+alias ls='ls -Fh --color=auto --group-directories-first'
 alias l.='ls -Fhd .* --color=auto --group-directories-first'     # Just .* files
 alias ll.='ls -Fhdl .* --color=auto --group-directories-first'   # Just .* files, long format
-alias l='ls -Fhla --color=auto --group-directories-first'        # Will not show invisible files/directories (starting .)
-alias ll='ls -Fhld .* * --color=auto --group-directories-first'  # Everything including hidden files long format
-alias ls='ls -Fh --color=auto --group-directories-first'
+alias l='ls -Fhad .* * --color=auto --group-directories-first'   # Everything, including (.*), short format
+alias ll='ls -Fhadl .* * --color=auto --group-directories-first' # Everything, including (.*), long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"'  # ls+security (shows the octal code as well as normal ls security flags)
 alias g='git'; alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
@@ -23,7 +23,7 @@ alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines abo
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
 alias def='command -V'                 # Show definitions: command -v, type <aliasname>, bash -xl
 dusort() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n"; }
-# dusort() { du -hsc $(ls -AF) | sort -h | sed '$p; \@/$@!d'; } # du on each item in ls (including hidden). To only get larger than 1 GB, add:   | grep -E ^[0-9]+?\.?[0-9]+G
+dusortsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; su du -hsc */ | sort -h; eval $dotglob; printf "\n$(su ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Could find only folders bigger than 1 GB with: | grep -E ^[0-9]+?\.?[0-9]+G
 # Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias c 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
@@ -52,4 +52,3 @@ fignow() { figlet -w $(tput cols) -f small $(date +"%b %d, Week %V"); [ -f /usr/
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 if [ -z "$TMUX" ]; then ver; sys; [ -f /usr/bin/figlet ] && fignow; fi   # Only run this if not in a tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # if using 'tmux' can use this to always start tmux
-

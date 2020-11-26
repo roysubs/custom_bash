@@ -3,9 +3,10 @@ Will automate a consistent customised bash environment and make that available i
 **1. `.custom`**. This is the set of custom tools to only apply within interactive shells. Note also that this should apply in both login shells (i.e. an ssh session directly onto the host) *and* to terminal shells inside window manager sessions, as discussed here: https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679
 
 **2. `custom_loader.sh`**. If this is run on a new system, it will a) download the latest `.custom`, b) update the loader line at the end of `~/.bashrc`, and c) run (dotsource) `.custom` into the current environment:
+
 `curl -i https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
-In every future *interactive* shell, `.custom` will now be checked for and dotsourced (at the end of `~/.bashrc`) if it exists.
-If `custom_loader.sh` is run when the `.custom` is present, it will just download the latest `.custom` version and dotsource it into the current shell.
+
+In every future *interactive* shell, `.custom` will now be checked for and dotsourced (at the end of `~/.bashrc`) if it exists. If `custom_loader.sh` is run when the `.custom` is present, it will simply download the latest `.custom` version and then dotsource it into the current shell.
 
 The line that `custom_loader.sh` injects into `~/.bashrc` is:
 `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl`

@@ -12,13 +12,12 @@ In every future *interactive* shell, `.custom` will now be checked for and dotso
 
 `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl`
 
-
 Running `custom_loader.sh` should also check and apply some generically useful basic custom changes for `~/.vimrc`, `~/.inputrc` (and possibly other core settings?).
 
 **ToDo** (possibly by switch?, however, it might not be possible to invoke a script *with switches* via `curl`, so could use the existence of a local file to check if the change should be made. i.e. if `.custom_load_system_wide` exists then do the changes and delete that file): Make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.
 
 **ToDo** (also possibly by switch, or by a flag file, `.custom_load_coreapps`): Install various various core apps. e.g.
-`sudo apt install git vim openssh-server`
+`sudo apt install git vim curl openssh-server`
 `sudo apt install libsecret-1-0 libsecret-1-dev`
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
 

@@ -8,8 +8,10 @@ Will automate a consistent customised bash environment and make that available i
 
 In every future *interactive* shell, `.custom` will now be checked for and dotsourced (at the end of `~/.bashrc`) if it exists. If `custom_loader.sh` is run when the `.custom` is present, it will simply download the latest `.custom` version and then dotsource it into the current shell.
 
-The line that `custom_loader.sh` injects into `~/.bashrc` is:
+`custom_loader.sh` achieves this by using `sed` to find and remove any lines that start `[ -f ~/.custom ]`, remove *all* lines like that (as `.custom` is only for this function so that test is enough), then append `>>` the latest test line to the end of `~/.bashrc`. The line that `custom_loader.sh` injects into `~/.bashrc` is:
+
 `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl`
+
 
 Running `custom_loader.sh` should also check and apply some generically useful basic custom changes for `~/.vimrc`, `~/.inputrc` (and possibly other core settings?).
 

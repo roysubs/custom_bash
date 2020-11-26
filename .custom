@@ -50,5 +50,5 @@ figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}
 figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { figlet -w $(tput cols) -f small $(date +"%b %d, Week %V"); [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; figlet -w $(tput cols) $opts $(date +"%H:%M"); }
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
-if [ -z "$TMUX" ]; then ver; sys; [ -f /usr/bin/figlet ] && fignow; fi   # Only run this if not in a tmux session
+if [ -z "$TMUX" ]; then printf "\n#####\n$(ver)\n#####\n$(sys)\n#####\n"; [ -f /usr/bin/figlet ] && fignow; fi   # Only run this if not in a tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # if using 'tmux' can use this to always start tmux

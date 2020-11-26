@@ -20,8 +20,11 @@
 #
 ####################
 # First remove any loader lines from .bashrc
-sed 's/^\[ ! -f ~\/.custom ] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
-sed 's/^\[ -f ~\/.custom ] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the dotsource .custom line
+sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc > ~/.bashrc1   # remove the curl loader line
+sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc > ~/.bashrc2   # remove the dotsource .custom line
+
+cat ~/.bashrc
+pause
 
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
 # echo '[ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y' >> ~/.bashrc

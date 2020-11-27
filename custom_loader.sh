@@ -4,6 +4,11 @@
 # [[ $- == *"i"* ]] && [ -f ~/.custom ] && . ~/.custom
 # which curl &> /dev/null || sudo apt install curl
 
+### Using 'exe' function to display command before running it
+# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+exe sudo apt install curl wget -y
+
 ####################
 #
 # Update .bashrc to load .custom in every interactive login session
@@ -33,13 +38,11 @@ echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
 # Debian based: apt / snap
 # if distro => sudo yum install else sudo apt install
 
-### curl wget git figlet cowsay figlet + figlet-fonts-setup
-
 ### Using 'exe' function to display command before running it
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+# exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 
-exe sudo apt install dpkg curl wget git figlet cowsay -y
+exe sudo apt install dpkg git figlet cowsay -y
 
 # Configure figlet fonts as sudo
 exe sudo bash -c '

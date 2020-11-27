@@ -12,6 +12,7 @@ alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"'  # ls+security (
 alias g='git'; alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
 alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
+gacp() { if [ ! -d .git ]; then echo "^Crrent folder is not a git repository"; else echo "About to 'git add *', then 'git commit -m \"Update\"', then 'git push -u origin master'."; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n\n"; git add *; git commit -m "Update"; git push -u origin master; fi; }
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 # Maybe do these as functions: pki(install), pkr(remove), pkh(history), pks(search) => find OS and use tool for that OS
 # Maybe a single function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist)
@@ -23,7 +24,7 @@ alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines abo
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
 alias def='command -V'                 # Show definitions: command -v, type <aliasname>, bash -xl
 dusort() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n"; }
-dusortsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; su du -hsc */ | sort -h; eval $dotglob; printf "\n$(su ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Could find only folders bigger than 1 GB with: | grep -E ^[0-9]+?\.?[0-9]+G
+dusortsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Could find only folders bigger than 1 GB with: | grep -E ^[0-9]+?\.?[0-9]+G
 # Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias c 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled

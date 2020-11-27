@@ -6,26 +6,20 @@
 
 ####################
 #
-# Load .custom, download if required
-#
-####################
-# Get the file from GitHub if not present (using curl)   # sudo apt install curl -y
-# [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y   # Don't need this line, as must have curl already to do initial run
-[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
-
-####################
-#
 # Update .bashrc to load .custom in every interactive login session
 #
 ####################
 # First remove any loader lines from .bashrc
-sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
-sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
+cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc while testing
+grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
+grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
+mv .bashrc.tmp2 .bashrc
+rm .bashrc.tmp1
+# sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
+# sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
 
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
 # echo '[ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y' >> ~/.bashrc
-cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc while testing
 echo '[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom' >> ~/.bashrc
 echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
 
@@ -148,10 +142,10 @@ exe locale
 # LC_IDENTIFICATION=nl_NL.UTF-8
 # LC_ALL=
 echo ""
-echo "Can set each environment separately. e.g."
-echo "# sudo update-locale LANG=en_GB.UTF-8 LANGUAGE"
-echo "# sudo localectl set-locale LAND=en_GB.UTF-8"
-echo "But easier to just set the LC_ALL to change all variables:"
+echo "Has to set LANG, LANGUAGE, and all LC variables (via LC_ALL)."
+echo "# sudo update-locale LANG=en_GB.UTF-8"
+echo "# sudo update-locale LANGUAGE=en_GB.UTF-8"
+echo "# sudo localectl set-locale LANG=en_GB.UTF-8"
 echo "# sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
 echo ""
 COLUMNS=12;
@@ -159,6 +153,8 @@ printf "Select new Locale:\n\n";
 select x in en_GB.UTF-8 nl_NL.UTF-8 "Do not change";
 do
     if [ "$x" == "Do not change" ]; then break; fi
+    exe sudo update-locale LANG=$x;
+    exe sudo update-locale LANGUAGE=$x;
     exe sudo update-locale LC_ALL=$x;
     echo ""
     echo "New locale environment settings:"
@@ -169,3 +165,12 @@ echo ""
 echo "If locale has changed, it will be applied only after a new login session starts."
 echo ""
 
+####################
+#
+# Load .custom, download if required
+#
+####################
+# Get the file from GitHub if not present (using curl)   # sudo apt install curl -y
+# [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y   # Don't need this line, as must have curl already to do initial run
+[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom

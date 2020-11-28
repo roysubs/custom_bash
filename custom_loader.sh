@@ -7,7 +7,9 @@
 ### Using 'exe' function to display command before running it
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-exe sudo apt install curl wget -y
+
+# Test for curl as using that to download
+which curl &> /dev/null || sudo apt install curl
 
 ####################
 #
@@ -41,8 +43,9 @@ echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
 ### Using 'exe' function to display command before running it
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
 # exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-
-exe sudo apt install dpkg git figlet cowsay -y
+# Just install all core packages without prompt
+exe sudo apt install curl wget dpkg net-tools git vim -y
+exe sudo apt install figlet cowsay fortune-mod -y   # All tiny so no big deal
 
 # Configure figlet fonts as sudo
 exe sudo bash -c '

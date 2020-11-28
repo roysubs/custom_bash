@@ -178,5 +178,10 @@ echo ""
 ####################
 # Get the file from GitHub if not present (using curl)   # sudo apt install curl -y
 # [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y   # Don't need this line, as must have curl already to do initial run
+
+# MYPATH="`dirname \"$0\"`"
+# [ -f $MYPATH/.custom ] %% cp $MYPATH/.custom ~/.custom
+
+
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom

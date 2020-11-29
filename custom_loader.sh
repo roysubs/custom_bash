@@ -11,6 +11,8 @@ exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 # Test for curl as using that to download
 which curl &> /dev/null || sudo apt install curl
 
+
+
 ####################
 #
 # Update .bashrc to load .custom in every interactive login session
@@ -30,9 +32,17 @@ rm .bashrc.tmp1
 echo '[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom' >> ~/.bashrc
 echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
 
+mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")
+curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+
+sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
+sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
+
+
+
 ####################
 #
-# Install Apps
+# Check and install basic packages
 #
 ####################
 # Define the package manager to use:
@@ -65,21 +75,23 @@ exe sudo dpkg -i /tmp/bat_0.15.4_amd64.deb   # extracts 'bat' to /usr/bin
 # Could install on Debian/Ubuntu as below, but this is 48 MB and entire Backup Software
 # sudo apt install bacula-console-qt
 
-
 # Upgrade
 exe sudo apt upgrade -y
 exe sudo apt autoremove -y
 
+####################
+#
+# Common changes to .vimrc, .inputrc, and /etc/sudoers (this is dangerous)
+#
+####################
+
 # update .vimrc
+
 # update .inputrc
+
 # update visudo (very careful with this one, can break system)
-
-
-
-
-
-
-
+sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
+sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
 
 
 
@@ -124,6 +136,8 @@ exe sudo apt autoremove -y
 # [ -f ~/.custom ] && [[ $- == *"i"* ]] && . .custom
 # [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y
 # [ ! -f ~/.custom ] && { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom; . ~/.custom; }
+
+
 
 ####################
 #
@@ -185,3 +199,4 @@ echo ""
 
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
+

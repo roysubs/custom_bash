@@ -1,15 +1,57 @@
 #!/bin/bash
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-# Test in ~/.bashrc if the shell is 'interactive'
-# [[ $- == *"i"* ]] && [ -f ~/.custom ] && . ~/.custom
-# which curl &> /dev/null || sudo apt install curl
 
-### Using 'exe' function to display command before running it
+# To test if the shell is 'interactive'
+#    [[ $- == *"i"* ]] && [ -f ~/.custom ] && . ~/.custom
+# To manually copy .custom from the repository
+#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+
+# exe() function to display a command and then run it
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 
+
+####################
+#
+# Check and install basic packages
+#
+####################
+# Define the package manager to use:
+# CentOS/RHEL : yum / dnf
+# Debian based: apt / snap
+# if distro => sudo yum install else sudo apt install
+
 # Test for curl as using that to download
-which curl &> /dev/null || sudo apt install curl
+which git &> /dev/null || sudo apt install git -y
+which vim &> /dev/null || sudo apt install vim -y
+which curl &> /dev/null || sudo apt install curl -y
+which wget &> /dev/null || sudo apt install wget -y
+which dpkg &> /dev/null || sudo apt install dpkg -y
+which ifconfig &> /dev/null || sudo apt install net-tools -y
+which figlet &> /dev/null || sudo apt install figlet -y
+which fortune &> /dev/null || sudo apt install fortune-mod -y
+# exe sudo apt install curl wget dpkg net-tools git vim -y
+# exe sudo apt install figlet cowsay fortune-mod -y   # All tiny so no big deal
+
+# Download and setup figlet fonts to /usr/share/figlet (so requires sudo)
+exe sudo bash -c '
+apt install figlet cowsay -y
+# http://www.jave.de/figlet/fonts.html
+# http://www.figlet.org/examples.html
+wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
+unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
+mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+rmdir /usr/share/figlet/fonts'
+# Note that various of the fonts cannot show parts of the time output
+
+# Download and setup 'bat' to replace 'cat'
+[ ! -f /tmp/bat_0.15.4_amd64.deb ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/bat_0.15.4_amd64.deb   # 64-bit version
+exe sudo dpkg -i /tmp/bat_0.15.4_amd64.deb   # extracts 'bat' to /usr/bin
+# sudo dpkg -r bat   # to remove after install
+# Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
+
+# Upgrade
+exe sudo apt upgrade -y
+exe sudo apt autoremove -y
 
 
 
@@ -32,52 +74,10 @@ rm .bashrc.tmp1
 echo '[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom' >> ~/.bashrc
 echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
 
-mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")
-curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-
-sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
-sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
+exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")
+exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
 
-
-####################
-#
-# Check and install basic packages
-#
-####################
-# Define the package manager to use:
-# CentOS/RHEL : yum / dnf
-# Debian based: apt / snap
-# if distro => sudo yum install else sudo apt install
-
-### Using 'exe' function to display command before running it
-# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
-# exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-# Just install all core packages without prompt
-exe sudo apt install curl wget dpkg net-tools git vim -y
-exe sudo apt install figlet cowsay fortune-mod -y   # All tiny so no big deal
-
-# Configure figlet fonts as sudo
-exe sudo bash -c '
-apt install figlet cowsay -y
-# http://www.jave.de/figlet/fonts.html
-# http://www.figlet.org/examples.html
-wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
-unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
-mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-rmdir /usr/share/figlet/fonts'
-# Note that various of the fonts cannot show parts of the time output
-
-# install bat and aliases
-[ ! -f /tmp/bat_0.15.4_amd64.deb ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/bat_0.15.4_amd64.deb   # 64-bit version
-exe sudo dpkg -i /tmp/bat_0.15.4_amd64.deb   # extracts 'bat' to /usr/bin
-# sudo dpkg -r bat   # to remove after install
-# Could install on Debian/Ubuntu as below, but this is 48 MB and entire Backup Software
-# sudo apt install bacula-console-qt
-
-# Upgrade
-exe sudo apt upgrade -y
-exe sudo apt autoremove -y
 
 ####################
 #
@@ -86,12 +86,14 @@ exe sudo apt autoremove -y
 ####################
 
 # update .vimrc
+echo "\" No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars" >> ~/.vimrc
+echo "set expandtab tabstop=4 shiftwidth=4" >> ~/.vimrc
 
 # update .inputrc
 
 # update visudo (very careful with this one, can break system)
-sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
-sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
+exe sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
+exe sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
 
 
 
@@ -117,25 +119,16 @@ sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
 #   echo "File ~/.custom exists and is older than 3 days"
 #
 # fi
-# Another is to use GNU date to do the math:
-#
-# # collect both times in seconds-since-the-epoch
-# hundred_days_ago=$(date -d 'now - 100 days' +%s)
-# file_time=$(date -r "$filename" +%s)
-#
-# # ...and then just use integer math:
+
+# Find if file is older than 3 days using date to do the math ...
+# Collect both times in seconds-since-the-epoch
+#    hundred_days_ago=$(date -d 'now - 100 days' +%s)
+#    file_time=$(date -r "$filename" +%s)
+
+# Find using integer math:
 # if (( file_time <= hundred_days_ago )); then
 #   echo "$filename is older than 100 days"
 # fi
-
-##### .vimrc
-# " No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars
-# set expandtab tabstop=4 shiftwidth=4
-
-
-# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . .custom
-# [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y
-# [ ! -f ~/.custom ] && { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom; . ~/.custom; }
 
 
 

@@ -1,12 +1,11 @@
-Will automate a consistent customised bash environment and make that available in any interactive shell (without affecting non-interactive shells, i.e. will not bloat the load times for scripts invoked to run non-interactively). This is done using two scripts:
+# Automated Bash Customisation
 
-**1. `.custom`**. This is the set of custom tools to only apply within interactive shells. Note also that this should apply in both login shells (i.e. an ssh session directly onto the host) *and* to terminal shells inside window manager sessions, as discussed here: https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679
+Create a consistent bash environment with various standard changes. Called from `~/.bashrc` but in such a way as to apply *only* to interactive shells (ssh login or a terminal windows) and will not load during non-interactive shells (such as when a script is invoked.
 
-**2. `custom_loader.sh`**. If this is run on a new system, it will a) download the latest `.custom`, b) update the loader line at the end of `~/.bashrc`, and c) run (dotsource) `.custom` into the current environment:
-
+**`custom_loader.sh`**. Configures `~/.bashrc` and creates `~/.custom` (which loads the bash configuration). Additionally, will ensure that certain simple tools are installed (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod`). Will then make generically useful changes to `~/.vimrc`, and `~/.inputrc`. Finally, `~/.custom` will be dotsourced into the currently running environment. Can run `custom_loader.sh` at any time with:
 `curl -i https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
 
-In every future *interactive* shell, `.custom` will now be checked for and dotsourced (at the end of `~/.bashrc`) if it exists. If `custom_loader.sh` is run when the `.custom` is present, it will simply download the latest `.custom` version and then dotsource it into the current shell.
+**`.custom`**. Common configuration and compatible with Debian/Ubuntu/RHEL/Fedora/CentOS variants, but only for interactive shells, as discussed here: https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679
 
 `custom_loader.sh` achieves this by using `sed` to find and remove any lines that start `[ -f ~/.custom ]`, remove *all* lines like that (as `.custom` is only for this function so that test is enough), then append `>>` the latest test line to the end of `~/.bashrc`. The line that `custom_loader.sh` injects into `~/.bashrc` is:
 
@@ -22,3 +21,4 @@ Running `custom_loader.sh` should also check and apply some generically useful b
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
 
 https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117
+

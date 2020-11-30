@@ -1,13 +1,21 @@
 #!/bin/bash
 
-# To test if the shell is 'interactive'
-#    [[ $- == *"i"* ]] && [ -f ~/.custom ] && . ~/.custom
+# Must remember tools:
+# Ctrl-V is paste, but not in a Terminal, must use Ctrl-Shift-V for that (or in Putty, Shift-Insert)
+# https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
+
+# To test if the shell is 'interactive' 
+#    [[ $- == *"i"* ]] && [ -f ~/.custom ] && . ~/.custom 
 # To manually copy .custom from the repository
 #    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
 # exe() function to display a command and then run it
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
+# By default, 'exe' will work unattended
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
+# If "y" is chosen, each 'exe' use will display the command before running it
+[[ "$(read -e -p 'Step through each setup option? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }
 
 
 ####################
@@ -20,28 +28,30 @@ exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 # Debian based: apt / snap
 # if distro => sudo yum install else sudo apt install
 
-# Test for curl as using that to download
-which git &> /dev/null || sudo apt install git -y
-which vim &> /dev/null || sudo apt install vim -y
-which curl &> /dev/null || sudo apt install curl -y
-which wget &> /dev/null || sudo apt install wget -y
-which dpkg &> /dev/null || sudo apt install dpkg -y
-which ifconfig &> /dev/null || sudo apt install net-tools -y
-which figlet &> /dev/null || sudo apt install figlet -y
-which fortune &> /dev/null || sudo apt install fortune-mod -y
+### Console Tools ###
+exe which git &> /dev/null || sudo apt install git -y
+exe which vim &> /dev/null || sudo apt install vim -y
+exe which curl &> /dev/null || sudo apt install curl -y
+exe which wget &> /dev/null || sudo apt install wget -y
+exe which dpkg &> /dev/null || sudo apt install dpkg -y
+exe which ifconfig &> /dev/null || sudo apt install net-tools -y
+exe which cifs &> /dev/null || sudo apt install cifs-utils -y
+exe which neofetch &> /dev/null || sudo apt install neofetch -y
+exe which fortune &> /dev/null || sudo apt install fortune-mod -y
+exe which cowsay &> /dev/null || sudo apt install figlet -y
+exe which figlet &> /dev/null || sudo apt install figlet -y
 # exe sudo apt install curl wget dpkg net-tools git vim -y
 # exe sudo apt install figlet cowsay fortune-mod -y   # All tiny so no big deal
 
 # Download and setup figlet fonts to /usr/share/figlet (so requires sudo)
-exe sudo bash -c '
-apt install figlet cowsay -y
 # http://www.jave.de/figlet/fonts.html
 # http://www.figlet.org/examples.html
+# Note that some of these fonts cannot show parts of the time output
+exe sudo bash -c '
 wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
 unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
 mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 rmdir /usr/share/figlet/fonts'
-# Note that various of the fonts cannot show parts of the time output
 
 # Download and setup 'bat' to replace 'cat'
 [ ! -f /tmp/bat_0.15.4_amd64.deb ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/bat_0.15.4_amd64.deb   # 64-bit version
@@ -50,6 +60,7 @@ exe sudo dpkg -i /tmp/bat_0.15.4_amd64.deb   # extracts 'bat' to /usr/bin
 # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
 
 # Upgrade
+exe sudo apt update -y
 exe sudo apt upgrade -y
 exe sudo apt autoremove -y
 
@@ -92,11 +103,14 @@ echo "set expandtab tabstop=4 shiftwidth=4" >> ~/.vimrc
 # update .inputrc
 
 # update visudo (very careful with this one, can break system)
-exe sudo mv /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
-exe sudo sed 's/env_reset/env_xxx/g' /etc/sudoers
-
-
-
+exe sudo cp /etc/sudoers /etc/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")
+exe sudo sed 's/env_reset$/env_reset, timestamp_timeout=600/g' /etc/sudoers > /etc/sudoers.1
+# On a modern Ubuntu system (and many other GNU/Linux distributions), fixing a corrupted sudoers file is actually quite easy, and doesn't require rebooting, using a live CD, or physical access to the machine. To do this via SSH, log in to the machine and run the command pkexec visudo. If you have physical access to the machine, SSH is unnecessary; just open a Terminal window and run that pkexec command. Assuming you (or some other user) are authorized to run programs as root with PolicyKit, you can enter your password, and then it will run visudo as root, and you can fix your /etc/sudoers:
+#   pkexec visudo
+# If you need to edit one of the configuration files in /etc/sudoers.d (which is uncommon in this situation, but possible), use:
+#   pkexec visudo -f /etc/sudoers.d/filename.
+# If you have a related situation where you have to perform additional system administration commands as root to fix the problem (also uncommon in this circumstance, but common in others), you can start an interactive root shell with pkexec bash. Generally speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
+# (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those actions, you'll be asked to select which one you want to use, before being asked for your password.)
 
 # Test code on downloading file if older than 3 days
 # if [[ $(find "~/.custom" -mtime +3 -print) ]]; then

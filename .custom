@@ -22,17 +22,20 @@ alias gc='git config'; alias gcg='git config --global'; alias gcname='git config
 alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Crrent folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status  =>  git add .  [add all files]  =>  git status  [pause to check]\n=>  git commit -m \"Update\"  =>  git status  =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "Ctrl-C to quit, or any key to  push up to remote repository ..."; git push -u origin master; fi; }
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 
 # ToDo: Functions pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 # ToDo: Function patch() to patch correctly per OS. 'upgrade' = 'update' + 'remove obsolete packages' + 'autoremove', etc
 # ToDo: Single function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool per OS.
-alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; dh='dnf history'   # dnf
-alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; yh='yum history'   # yum
-alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; ah='apt history'   # apt
+if [ which dnf &? /dev/null ]; then alias di='sudo dnf install';   alias dr='sudo dnf remove';   alias ds='dnf search';   alias dh='dnf history'; fi   # dnf
+if [ which yum &? /dev/null ]; then alias yi='sudo yum install';   alias yr='sudo yum remove';   alias ys='yum search';   alias yh='yum history'; fi   # yum
+if [ which apt &? /dev/null ]; then alias ai='sudo apt install';   alias ar='sudo apt remove';   alias as='apt search';   alias ah='apt history';   alias au='sudo apt update && sudo apt upgrade'; fi   # apt
+if [ which dpkg &? /dev/null ]; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
+if [ which snap &? /dev/null ]; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
+if [ which flatpak &? /dev/null ]; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
+if [ which appimage &? /dev/null ]; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
 dusort() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n"; } # Fixed du
-dusudo() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Could find only folders bigger than 1 GB with: | grep -E ^[0-9]+?\.?[0-9]+G
+dusudo() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Add following to find only folders bigger than 1 GB: | grep -E ^[0-9]+?\.?[0-9]+G
 
 # Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
@@ -53,6 +56,7 @@ export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-termin
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' + 'cd'
 # rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"
 
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 viconf() { COLUMNS=12; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.inputrc ~/.vimrc; do vim $x; break; done; }
 viconfsu() { COLUMNS=12; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }

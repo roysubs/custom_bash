@@ -4,11 +4,6 @@
 #
 ####################
 
-copyq
-clipboardfusion
-gufw
-
-
 # Keep only essential packages, how to completely debloat a Linux installation
 # https://askubuntu.com/questions/79665/keep-only-essential-packages
 # https://ostechnix.com/debfoster-keep-only-essential-packages-in-debian-and-ubuntu/
@@ -45,9 +40,60 @@ https://forums.linuxmint.com/viewtopic.php?t=322404 Samba and Mint20
 
 
 
+# Enable snap (if needed) on distros that do not have it (Linux Mint deem it a backdoor).
+# https://linuxmint-user-guide.readthedocs.io/en/latest/snap.html
+# Even though Ubuntu is pushing to use Snap more than ever, the Linux Mint team is against it. Hence, it forbids APT to use snapd.
+# So, you won’t have the support for snap out-of-the-box. However, sooner or later, you’ll realize that some software is packaged only in Snap format. In such cases, you’ll have to enable snap support on Linux Mint 20.
+# Just because Linux Mint forbids the use of it, you will have to follow the commands below to successfully install snap:
+
+sudo rm /etc/apt/preferences.d/nosnap.pref
+sudo apt update
+sudo apt install snapd
+
+
+
+
 # Remember the "alternativeto" site when trying to find apps
 # Trawled some lists to find these:
 # https://www.omgubuntu.co.uk/2016/12/21-must-have-apps-ubuntu
+# https://itsfoss.com/best-ubuntu-apps/
+# https://www.fossmint.com/best-ubuntu-apps/
+
+https://itsfoss.com/things-to-do-after-installing-ubuntu-18-04/
+sudo apt install ubuntu-restricted-extras   # Additional codes for Ubuntu
+sudo apt install mint-meta-codecs           # Additional codecs for Mint
+
+Install Notepad++ with WINE
+
+
+# System Resource Monitoring
+https://itsfoss.com/linux-system-monitoring-tools/
+# Note that for "top", press "z" if you want colour
+
+sudo apt install htop   # Note the vim patches
+sudo apt install atop
+sudo apt install ytop   # similar to glances only written in Rust and supports themes like Monokai
+sudo apt install bpytop
+sudo apt install nmon
+sudo apt install glances
+sudo apt install ksysguard
+sudo apt install gkrellm
+sudo apt search gkrellm   # Tons of plugins for gkrellm
+
+sudo apt install cargo   # # Note that this was 360 MB download (entire Go and Rust I think)
+cargo install -f --git https://github.com/cjbassi/ytop ytop   
+wget https://github.com/cjbassi/ytop/releases/download/0.5.1/ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
+tar zxvf ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
+./ytop
+
+sudo add-apt-repository ppa:bashtop-monitor/bashtop
+sudo apt update
+sudo apt install bashtop
+
+sudo apt install nodejs
+sudo apt install npm
+sudo npm install -g vtop
+sudo npm install -g gtop
 
 
 # exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }
@@ -55,10 +101,17 @@ exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 
 # Apt
 exe which chromium &> /dev/null || sudo apt install chromium -y  # Chromium, alternatively Chrome or Brave
+
 exe which gimp &> /dev/null || sudo apt install gimp -y          # GIMP Image Editor
 exe which kdenlive &> /dev/null || sudo apt install kdenlive -y  # Kdenlive Video Editor
+exe which krita &> /dev/null || sudo apt install krita -y  # Krita
+exe which blender &> /dev/null || sudo apt install blender -y  # Blender
+exe which darktable &> /dev/null || sudo apt install darktable -y  # Dark Table
+
+
 exe which vlc &> /dev/null || sudo apt install vlc -y            # VLC Video Player
 exe which celluloid &> /dev/null || sudo apt install celluloid -y   # Celluloid Video Player
+
 exe which calibre &> /dev/null || sudo apt install calibre -y    # Calibre eBook management tool
 exe which zathura &> /dev/null || sudo apt install zathura -y    # Zathur Document Reader, PDF, ePub, Mobi, etc
 exe which caffeine &> /dev/null || sudo apt install caffeine -y  # Caffeine Keep-Alive Tool
@@ -66,9 +119,6 @@ exe which etcher &> /dev/null || sudo apt install etcher -y      # Etcher ISO Im
 exe which timeshift &> /dev/null || sudo apt install timeshift -y   # TimeShift Backup / Snapshots with rsync / btrfs
 exe which syncthing &> /dev/null || sudo apt install syncthing -y   # Syncthing, sync across network
 exe which baobab &> /dev/null || sudo apt install baobab -y      # baobab, Disk Usage Analyzer
-exe which steam &> /dev/null || sudo apt install steam -y        # Steam
-exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implementation for Windows games https://www.playonlinux.com/en
-exe which retroarch &> /dev/null || sudo apt get retroarch       # Simple frontend for the libretro library
 sudo add-apt-repository ppa:peek-developers/stable
 exe which peek &> /dev/null || sudo apt install peek             # Screen Recording
 sudo add-apt-repository ppa:kasra-mp/ubuntu-indicator-weather
@@ -174,11 +224,65 @@ git clone https://github.com/pacha/vem.git
 cd vem
 sudo make install
 
+# https://www.fossmint.com/best-bittorrent-clients-for-linux/
+
+# https://getharmony.xyz/download   # Cross-platform music player
+
+# https://www.microsoftedgeinsider.com/en-us/?form=MO12HB&OCID=MO12HB
+
+copyq
+clipboardfusion
+gufw
+WhatsApp Desktop App
+libreoffice
+openoffice
+
+
+c
 ####################
 #
 # Ganes
 #
 ####################
+# https://archive.org/details/internetarcade   # Play old games in browser
+# https://www.fossmint.com/best-linux-games-of-2018/
+
+exe which steam &> /dev/null || sudo apt install steam -y        # Steam
+# https://www.fossmint.com/best-steam-games-for-linux/
+
+# Lutris
+# Lutris is an open source gaming platform for GNU/Linux. It allows you to gather and manage (install, configure and launch) all your games acquired from any source, in a...
+sudo add-apt-repository ppa:lutris-team/lutris
+sudo apt update
+sudo apt install lutris
+# Make sure to install Wine and drivers!
+# If you plan on playing games for Windows, to ensure a smooth experience, install a recent version of Wine on your system.
+# This will provide all necessary dependency as Lutris cannot ship with every component in its runtime.
+# When playing games lutris will use a custom version of Wine optimized for games.
+
+# https://github.com/lutris/docs/blob/master/InstallingDrivers.md
+# For Intel HD graphics:
+# sudo add-apt-repository ppa:kisak/kisak-mesa
+# Enable 32 bit architecture (if you haven't already):
+# sudo dpkg --add-architecture i386 
+# Upgrade your system:
+# sudo apt update && sudo apt upgrade
+# Install support for 32-bit games:
+# sudo apt install libgl1-mesa-dri:i386
+# Install support for Vulkan API (will be functional only if you have a Vulkan capable GPU):
+# sudo apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386
+
+
+
+
+# GameHub   # Games library manager. Supports: Steam, GOG, Humble Bundle, Humble Trove, Wine and RetroArch .
+sudo apt install --no-install-recommends software-properties-common
+sudo add-apt-repository ppa:tkashkin/gamehub
+sudo apt update
+sudo apt install com.github.tkashkin.gamehub
+# Free Open Source Linux AppImageHub Flatpak
+# Flatpak Gameboy emulation Import from GoG Import from Steam ...
+
 # RetroArch
 # RetroArch is a graphical frontend for emulators, game engines, and media players. Created by libretro
 # What systems does it play?
@@ -186,14 +290,18 @@ sudo make install
 # - Atari 2600 (emulator: Stella)
 # - Atari Lynx (emulator: Handy)
 # - Nintendo Entertainment System... More Info »
-
-# Lutris
-# Lutris is an open source gaming platform for GNU/Linux. It allows you to gather and manage (install, configure and launch) all your games acquired from any source, in a...
+exe which retroarch &> /dev/null || sudo apt get retroarch       # Simple frontend for the libretro library
 
 # PlayOnLinux
 # PlayOnLinux (PlayOnMac at http://www.playonmac.com ) is a tool to help Linux (and Mac) users run games and programs for Windows on Linux (or Mac, FreeBSD), via the use...
 # Free Open Source Mac Linux BSD Wine FreeBSD
 # Run Windows software Ad-free Games Add a feature
+exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implementation for Windows games https://www.playonlinux.com/en
+
+
+
+
+
 
 # Snes9x
 # Snes9x is a portable, Super Nintendo Entertainment System (SNES) emulator. It allows you to play most games designed for the SNES and Super Famicom Nintendo game systems...
@@ -253,16 +361,8 @@ sudo make install
 # Jailbreak required Add a feature
 # 
 # PPSSPP icon
-# 52
-# GameHub
 # 
-# Games library manager. Supports: Steam, GOG, Humble Bundle, Humble Trove, Wine and RetroArch .
-# 
-# Free Open Source Linux AppImageHub Flatpak
-# Flatpak Gameboy emulation Import from GoG Import from Steam ...
-# 
-# GameHub icon
-# 18
+
 # ScummVM
 # 
 # ScummVM is a program which allows you to run certain classic graphical point-and-click adventure games, provided you already have their data files.

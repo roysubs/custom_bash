@@ -1,29 +1,52 @@
 #!/bin/bash
 
-# Must remember tools:
-# Ctrl-V is paste, but not in a Terminal, remember Ctrl-Shift-V to paste into a Linux terminal, or Shift-Insert in Putty.
-# Also note Middle-mouse button to paste selected text onto the console.
+# Some points to remember:
+# To paste into a Terminal (in Linux, not via Putty), use Ctrl+Shift+V. In Putty, use  Shift+Insert.
+# Also can use the middle mouse button to paste selected text onto a Linux Terminal.
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
 # To test if the shell is 'interactive':   [[ $- == *"i"* ]] 
 # To manually copy .custom from the repository:   curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
-# Check that script has root priveleges
+# Check that a script has root priveleges
 # if [ "$(id -u)" -ne 0 ]; then
 #     echo 'This script must be run with root privileges' >&2
 #     return
 # fi
 
+####################
+#
+# exe() function
+#
+####################
+# Used to display a command and then run it
+# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
+# By default, the following 'exe' will run unattended
+# If "y" is chosen, 'exe' is altered to display the command before running it
+# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+if [ "$(read -e -p 'Step through each configuration option? [y/N]> '; echo $REPLY)" == [Yy]* ]; then exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }; fi
+
+####################
+#
+# Find package manager, run update and upgrade, then check if any reboots are pending
+#
+####################
 MANAGER=
 which apt &> /dev/null && MANAGER=apt 
-which dnf &> /dev/null && MANAGER=yum 
+which dnf &> /dev/null && MANAGER=dnf
 which yum &> /dev/null && MANAGER=yum 
-if [ -z $MANAGER ]; then echo "No manager available"; return; fi
+if [ -z $MANAGER ]; then
+    echo "No manager available"
+    return
+else
+    echo -e "\n\n>>> Using $MANAGER package manager <<<\n\n"
+fi
 
-echo "Using $MANAGER package manager"
 # Need to reboot script if pending
-
-sudo $MANAGER update && sudo $MANAGER upgrade -y
+exe sudo $MANAGER update -y
+exe sudo $MANAGER upgrade -y
+exe sudo $MANAGER autoremove -y
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required in order to proceed with the install." >&2
     echo "Please reboot and re-run this script to finish the install." >&2
@@ -32,42 +55,34 @@ fi
 
 read -p "123"
 
-# exe() function is used to display a command and then run it
-# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
-# By default, the following 'exe' will run unattended
-# If "y" is chosen, 'exe' is altered to display the command before running it
-# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-if [ "$(read -e -p 'Step through each setup option? [y/N]> '; echo $REPLY)" == [Yy]* ]; then exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }; fi
-
-
-
 ####################
 #
 # Check and install some very basic packages to make available on all systems
 #
 ####################
-
 # Define the package manager to use:
 # CentOS/RHEL : yum / dnf
 # Debian based: apt / snap
 # if distro => sudo yum install else sudo apt install
 
-### Console Tools ###
-which git &> /dev/null || exe sudo apt install git -y
-which vim &> /dev/null || exe sudo apt install vim -y
-which curl &> /dev/null || exe sudo apt install curl -y
-which wget &> /dev/null || exe sudo apt install wget -y
-which dpkg &> /dev/null || exe sudo apt install dpkg -y
-which ifconfig &> /dev/null || exe sudo apt install net-tools -y
-which cifs &> /dev/null || exe sudo apt install cifs-utils -y
-which neofetch &> /dev/null || exe sudo apt install neofetch -y
-which fortune &> /dev/null || exe sudo apt install fortune-mod -y
-which cowsay &> /dev/null || exe sudo apt install figlet -y
-which figlet &> /dev/null || exe sudo apt install figlet -y
-# exe sudo apt install curl wget dpkg net-tools git vim -y
-# exe sudo apt install figlet cowsay fortune-mod -y   # All tiny so no big deal
+### Console Tools ### All tiny so no problem
+which git &> /dev/null || exe sudo $MANAGER install git -y
+which vim &> /dev/null || exe sudo $MANAGER install vim -y
+which curl &> /dev/null || exe sudo $MANAGER install curl -y
+which wget &> /dev/null || exe sudo $MANAGER install wget -y
+which dpkg &> /dev/null || exe sudo $MANAGER install dpkg -y
+which ifconfig &> /dev/null || exe sudo $MANAGER install net-tools -y
+which cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
+which neofetch &> /dev/null || exe sudo $MANAGER install neofetch -y
+which fortune &> /dev/null || exe sudo $MANAGER install fortune-mod -y
+which cowsay &> /dev/null || exe sudo $MANAGER install figlet -y
+which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 
+####################
+#
+# Setup figlet and bat and brightside (for Peppermint)
+#
+####################
 # Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
 # http://www.jave.de/figlet/fonts.html
 # http://www.figlet.org/examples.html
@@ -77,26 +92,24 @@ which figlet &> /dev/null || exe sudo apt install figlet -y
 # unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
 # mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 # rmdir /usr/share/figlet/fonts'
-exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+[ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
 [ ! -f /tmp/figletfonts40.zip ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
 exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 exe sudo rmdir /usr/share/figlet/fonts
 
 # Download and setup 'bat' as a better replacement for 'cat'
-[ ! -f /tmp/bat_0.15.4_amd64.deb ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/bat_0.15.4_amd64.deb   # 64-bit version
-exe which bat &> /dev/null && exe sudo dpkg -i /tmp/bat_0.15.4_amd64.deb   # extracts 'bat' to /usr/bin
+BAT=bat_0.15.4_amd64.deb
+[ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/$BAT   # 64-bit version
+which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
 # sudo dpkg -r bat   # to remove after install
 # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
 
+# Check if Peppermint
 # https://launchpad.net/ubuntu/+source/brightside
 # https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
-[ ! -f /tmp/brightside_1.4.0-4.1ubuntu3_amd64.deb ] && exe wget -P https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/brightside_1.4.0-4.1ubuntu3_amd64.deb   # 64-bit version
-which brightside &> /dev/null && exe sudo dpkg -i /tmp/brightside_1.4.0-4.1ubuntu3_amd64.deb
-
-# Upgrade
-exe sudo apt update -y
-exe sudo apt upgrade -y
-exe sudo apt autoremove -y
+BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
+[ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
+which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
 ####################
 #
@@ -111,10 +124,10 @@ exe sudo apt autoremove -y
 # cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc while testing
 
 # Remove any loader lines from .bashrc
-CUSTOMGET='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
-CUSTOMSET='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
-grep -qxF $CUSTOMGET ~/.bashrc || echo $CUSTOMGET | sudo tee --append ~/.bashrc
-grep -qxF $CUSTOMSET ~/.bashrc || echo $CUSTOMSET | sudo tee --append ~/.bashrc
+GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
+RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
+grep -qxF '$GETCUSTOM' ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
+grep -qxF '$SETCUSTOM' ~/.bashrc || echo $SETCUSTOM | sudo tee --append ~/.bashrc
 
 # grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
 # grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
@@ -139,11 +152,11 @@ exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 
 # update .vimrc
 VIMCOLOR='color industry'
-grep -qxF $VIMCOLOR ~/.vimrc || echo $VIMCOLOR | sudo tee --append ~/.vimrc
+grep -qxF '$VIMCOLOR' ~/.vimrc || echo $VIMCOLOR | sudo tee --append ~/.vimrc
 VIMTABCOMMENT='" No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars'
-grep -qxF $VIMTABCOMMENT ~/.vimrc || echo $VIMTABCOMMENT | sudo tee --append ~/.vimrc
+grep -qxF '$VIMTABCOMMENT' ~/.vimrc || echo $VIMTABCOMMENT | sudo tee --append ~/.vimrc
 VIMTAB='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF $VIMTAB ~/.vimrc || echo $VIMTAB | sudo tee --append ~/.vimrc
+grep -qxF '$VIMTAB' ~/.vimrc || echo $VIMTAB | sudo tee --append ~/.vimrc
 
 ####################
 #

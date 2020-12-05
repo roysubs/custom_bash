@@ -26,13 +26,13 @@ git-push() { if [ ! -d .git ]; then echo "Crrent folder is not a git repository 
 # ToDo: Functions pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 # ToDo: Function patch() to patch correctly per OS. 'upgrade' = 'update' + 'remove obsolete packages' + 'autoremove', etc
 # ToDo: Single function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool per OS.
-if [ which dnf &? /dev/null ]; then alias di='sudo dnf install';   alias dr='sudo dnf remove';   alias ds='dnf search';   alias dh='dnf history'; fi   # dnf
-if [ which yum &? /dev/null ]; then alias yi='sudo yum install';   alias yr='sudo yum remove';   alias ys='yum search';   alias yh='yum history'; fi   # yum
-if [ which apt &? /dev/null ]; then alias ai='sudo apt install';   alias ar='sudo apt remove';   alias as='apt search';   alias ah='apt history';   alias au='sudo apt update && sudo apt upgrade'; fi   # apt
-if [ which dpkg &? /dev/null ]; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
-if [ which snap &? /dev/null ]; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
-if [ which flatpak &? /dev/null ]; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
-if [ which appimage &? /dev/null ]; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
+if which dnf &> /dev/null; then alias di='sudo dnf install';   alias dr='sudo dnf remove';   alias ds='dnf search';   alias dh='dnf history'; fi   # dnf
+if which yum &> /dev/null; then alias yi='sudo yum install';   alias yr='sudo yum remove';   alias ys='yum search';   alias yh='yum history'; fi   # yum
+if which apt &> /dev/null; then alias ai='sudo apt install';   alias ar='sudo apt remove';   alias as='apt search';   alias ah='apt history';   alias au='sudo apt update && sudo apt upgrade'; fi   # apt
+if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
+if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
+if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
+if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
 dusort() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n"; } # Fixed du
 dusudo() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Add following to find only folders bigger than 1 GB: | grep -E ^[0-9]+?\.?[0-9]+G
@@ -63,7 +63,7 @@ ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
 color256() { curl -s https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 
-cowall() { for f in /usr/share/cowsay/cows/*.cow; do figlet -f basic "cowsay -f $f"; fortune | cowsay -f $f; printf "\n\n\n"; done; }
+cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }

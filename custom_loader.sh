@@ -72,11 +72,15 @@ which figlet &> /dev/null || exe sudo apt install figlet -y
 # http://www.jave.de/figlet/fonts.html
 # http://www.figlet.org/examples.html
 # Note that some of these fonts cannot show parts of the time output
-exe sudo bash -c '
-wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
-unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
-mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-rmdir /usr/share/figlet/fonts'
+# exe sudo bash -c '
+# wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
+# unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
+# mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+# rmdir /usr/share/figlet/fonts'
+exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+[ ! -f /tmp/figletfonts40.zip ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
+exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+exe sudo rmdir /usr/share/figlet/fonts
 
 # Download and setup 'bat' as a better replacement for 'cat'
 [ ! -f /tmp/bat_0.15.4_amd64.deb ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/bat_0.15.4_amd64.deb   # 64-bit version
@@ -104,8 +108,8 @@ exe sudo apt autoremove -y
 # use "tee" instead of ">>", as ">>" will not permit updating protected files
 # https://linux.die.net/man/1/grep
 # https://stackoverflow.com/questions/3557037/appending-a-line-to-a-file-only-if-it-does-not-already-exist
+# cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc while testing
 
-cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc while testing
 # Remove any loader lines from .bashrc
 CUSTOMGET='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 CUSTOMSET='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
@@ -134,8 +138,12 @@ exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 # If there, do nothing, then check the ~ version, only add if not there
 
 # update .vimrc
-echo "\" No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars" >> ~/.vimrc
-echo "set expandtab tabstop=4 shiftwidth=4" >> ~/.vimrc
+VIMCOLOR='color industry'
+grep -qxF $VIMCOLOR ~/.vimrc || echo $VIMCOLOR | sudo tee --append ~/.vimrc
+VIMTABCOMMENT='" No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars'
+grep -qxF $VIMTABCOMMENT ~/.vimrc || echo $VIMTABCOMMENT | sudo tee --append ~/.vimrc
+VIMTAB='set expandtab tabstop=4 shiftwidth=4'
+grep -qxF $VIMTAB ~/.vimrc || echo $VIMTAB | sudo tee --append ~/.vimrc
 
 ####################
 #
@@ -146,7 +154,7 @@ echo "set expandtab tabstop=4 shiftwidth=4" >> ~/.vimrc
 # update /etc/samba/smb.conf
 # Add an entry for the home folder so that is always available
 # Restart the samba service
-sudo 
+# sudo 
 
 ####################
 #
@@ -255,24 +263,23 @@ echo ""
 echo "If locale has changed, it will be applied only after a new login session starts."
 echo ""
 
+
+
 ####################
 #
-# Load .custom, download if required
+# Download and dotsource new .custom
 #
 ####################
-# Get the file from GitHub if not present (using curl)   # sudo apt install curl -y
-# [ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y   # Don't need this line, as must have curl already to do initial run
-
-# MYPATH="`dirname \"$0\"`"
-# [ -f $MYPATH/.custom ] %% cp $MYPATH/.custom ~/.custom
-
-
-[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
+cp ~/.custom ~/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
+[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 
 
-# Test code on downloading file if older than 3 days
+
+
+
+# Test code: update getting new file if it is older than 3 days
 # if [[ $(find "~/.custom" -mtime +3 -print) ]]; then
 #     echo "File ~/.custom exists and is older than 3 days"
 #     echo "Backing up old .custom then downloading and dot sourcing new version"
@@ -288,13 +295,12 @@ echo ""
 #     . ~/.custom
 # fi
 
-# Find if file is older than 3 days ...
+# Alternative: Find if file is older than 3 days ...
 # if [[ $(find "~/.custom" -mtime +100 -print) ]]; then
 #   echo "File ~/.custom exists and is older than 3 days"
-#
 # fi
 
-# Find if file is older than 3 days using date to do the math ...
+# Alternative: Find if file is older than 3 days using date to do the math ...
 # Collect both times in seconds-since-the-epoch
 #    hundred_days_ago=$(date -d 'now - 100 days' +%s)
 #    file_time=$(date -r "$filename" +%s)

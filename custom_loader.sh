@@ -1,12 +1,20 @@
 #!/bin/bash
+####################
+#
+# Configure consistent bash environemtn
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+#
+# It is not in general obvious which file to put profile configuration into to only make that
+# availabel to *interactive* sessions (i.e. user invoked consoles, be that from opening a 
+# Terminal, or from logging in remotely with SSH. We use [[ $- == *"i"* ]] in .bashrc to test
+# if the shell is interactive, and call .custom only if that condition is met.
+#
+####################
 
-# Some points to remember:
+# Some random points:
 # To paste into a Terminal (in Linux, not via Putty), use Ctrl+Shift+V. In Putty, use  Shift+Insert.
 # Also can use the middle mouse button to paste selected text onto a Linux Terminal.
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
-
-# To test if the shell is 'interactive':   [[ $- == *"i"* ]] 
-# To manually copy .custom from the repository:   curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
 # Check that a script has root priveleges
 # if [ "$(id -u)" -ne 0 ]; then
@@ -33,9 +41,11 @@ if [ "$(read -e -p 'Step through each configuration option? [y/N]> '; echo $REPL
 #
 ####################
 MANAGER=
-which apt &> /dev/null && MANAGER=apt 
-which dnf &> /dev/null && MANAGER=dnf
-which yum &> /dev/null && MANAGER=yum 
+which apt &> /dev/null && MANAGER=apt   # Debian/Ubuntu 
+which dnf &> /dev/null && MANAGER=dnf   # RHEL/Fedora/CentOS
+which yum &> /dev/null && MANAGER=yum   # RHEL/Fedora/CentOS
+which zypper &> /dev/null && MANAGER=zypper   # SLES
+
 if [ -z $MANAGER ]; then
     echo "No manager available"
     return
@@ -60,12 +70,7 @@ read -p "123"
 # Check and install some very basic packages to make available on all systems
 #
 ####################
-# Define the package manager to use:
-# CentOS/RHEL : yum / dnf
-# Debian based: apt / snap
-# if distro => sudo yum install else sudo apt install
-
-### Console Tools ### All tiny so no problem
+### Console Tools ### Only install each if not already installed
 which git &> /dev/null || exe sudo $MANAGER install git -y
 which vim &> /dev/null || exe sudo $MANAGER install vim -y
 which curl &> /dev/null || exe sudo $MANAGER install curl -y
@@ -121,9 +126,9 @@ which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, 
 # use "tee" instead of ">>", as ">>" will not permit updating protected files
 # https://linux.die.net/man/1/grep
 # https://stackoverflow.com/questions/3557037/appending-a-line-to-a-file-only-if-it-does-not-already-exist
-# cp ~/.bashrc ~/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc while testing
 
 # Remove any loader lines from .bashrc
+cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 grep -qxF '$GETCUSTOM' ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
@@ -135,10 +140,7 @@ grep -qxF '$SETCUSTOM' ~/.bashrc || echo $SETCUSTOM | sudo tee --append ~/.bashr
 # sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
 
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
-# echo '[ ! -f /usr/bin/curl ] && [[ $- == *"i"* ]] && sudo apt install curl -y' >> ~/.bashrc
-# echo '[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom' >> ~/.bashrc
-# echo '[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom' >> ~/.bashrc
-exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")
+exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to 'mv' this to make way for the new downloaded file
 exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
 ####################
@@ -151,12 +153,37 @@ exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 # If there, do nothing, then check the ~ version, only add if not there
 
 # update .vimrc
-VIMCOLOR='color industry'
-grep -qxF '$VIMCOLOR' ~/.vimrc || echo $VIMCOLOR | sudo tee --append ~/.vimrc
-VIMTABCOMMENT='" No tabs (Ctrl-V<Tab> to get a tab), tab stops are 4 chars, indents are 4 chars'
-grep -qxF '$VIMTABCOMMENT' ~/.vimrc || echo $VIMTABCOMMENT | sudo tee --append ~/.vimrc
-VIMTAB='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF '$VIMTAB' ~/.vimrc || echo $VIMTAB | sudo tee --append ~/.vimrc
+VIMLINE='color industry'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='set expandtab tabstop=4 shiftwidth=4'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
+VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
+VIMLINE="cnoremap w!! execute \'silent! write !sudo tee % >/dev/null\' <bar> edit"
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='" Set F3 to toggle line numbers on/off'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='noremap <F3> :set invnumber<CR>'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+VIMLINE='inoremap <F3> <C-O>:set invnumber<CR>'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+
+# " To control the number of space characters that will be inserted when the tab key is pressed, set the 'tabstop' option. For example, to insert 4 spaces for a tab, use:
+# set tabstop=4
+# [boss@hp2: ~]$ cat .inputrc
+# "\e[A": history-search-backward
+# "\e[B": history-search-forward
+# "\eOD": backward-word
+# "\eOC": forward-word
+# "\e[1~": beginning-of-line
+# "\e[4~": end-of-line
+# 
+# "\C-i": menu-complete
+# set show-all-if-ambiguous on
+
+
 
 ####################
 #
@@ -283,7 +310,7 @@ echo ""
 # Download and dotsource new .custom
 #
 ####################
-cp ~/.custom ~/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
+mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 

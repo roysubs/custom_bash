@@ -3,7 +3,7 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
 export LS_COLORS=$LS_COLORS:'di=0;94'   # dirs to cyan "0;36" instead of dark blue on black
 # export PS1="[\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "33m"; fi)\]\u\[\033[00m\]@\h\[\033[01;31m\]:\[\033[01;36m\] \w\[\033[00m\]]\$ "   # non-root users in yellow, root user in red (by testing on 'id -u' = 0 for root
-export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "33m"; fi)\]\u\[\033[00m\]@\h\[\033[01;31m\]:\[\033[01;36m\] \w\[\033[00m\]\$ "   # non-root users in yellow, root user in red (by testing on 'id -u' = 0 for root
+export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\h\[\033[00m\]:\[\033[01;33m\] \w\[\033[00m\]\$ "   # non-root users in yellow, root user in red (by testing on 'id -u' = 0 for root
 alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
 alias def='command -V'                 # Show command definition, note also: command -v, type <aliasname>, bash -xl
@@ -17,9 +17,8 @@ alias l='ls -Fhad .* * --color=auto --group-directories-first'   # Everything, i
 alias ll='ls -Fhadl .* * --color=auto --group-directories-first' # Everything, including (.*), long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"'  # ls+security (shows the octal code as well as normal ls security flags)
 
-alias g='git'; alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
+alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
-alias gst='git status'; alias gcm='git commit -m'; alias gcl='git clone'; alias gst='git stash'; alias glog='git log'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Crrent folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status  =>  git add .  [add all files]  =>  git status  [pause to check]\n=>  git commit -m \"Update\"  =>  git status  =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "Ctrl-C to quit, or any key to  push up to remote repository ..."; git push -u origin master; fi; }
 
@@ -34,8 +33,8 @@ if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo 
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-dusort() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n"; } # Fixed du
-dusudo() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n"; }   # Add following to find only folders bigger than 1 GB: | grep -E ^[0-9]+?\.?[0-9]+G
+dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fix du. Add following to find only folders bigger than 1 GB: | grep -E ^[0-9]+?\.?[0-9]+G
+dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fix du and inaccessible permissions
 
 # Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed

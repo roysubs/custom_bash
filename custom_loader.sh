@@ -24,7 +24,7 @@
 
 ####################
 #
-# exe() function
+# print_header() and exe() functions
 #
 ####################
 # Used to display a command and then run it
@@ -33,13 +33,19 @@
 # If "y" is chosen, 'exe' is altered to display the command before running it
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-if [ "$(read -e -p 'Step through each configuration option? [y/N]> '; echo $REPLY)" == [Yy]* ]; then exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }; fi
+[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue...\n"; "$@"; } || echo Stopping
 
-####################
-#
-# Find package manager, run update and upgrade, then check if any reboots are pending
-#
-####################
+
+print_header() {
+    printf "\n\n####################\n"
+    printf "#\n"
+    printf "# $1\n"
+    printf "#\n"
+    printf "####################\n\n"
+}
+
+print_header "Get package manager and run update / upgrade"
+
 MANAGER=
 which apt &> /dev/null && MANAGER=apt   # Debian/Ubuntu 
 which dnf &> /dev/null && MANAGER=dnf   # RHEL/Fedora/CentOS
@@ -56,6 +62,7 @@ fi
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
 exe sudo $MANAGER upgrade -y
+exe sudo $MANAGER install ca-certificates -y   # to allow SSL-based applications to check for the authenticity of SSL connections
 exe sudo $MANAGER autoremove -y
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required in order to proceed with the install." >&2
@@ -63,13 +70,10 @@ if [ -f /var/run/reboot-required ]; then
     return
 fi
 
-read -p "123"
 
-####################
-#
-# Check and install some very basic packages to make available on all systems
-#
-####################
+
+print_header "Check and install basic/small packages"
+
 ### Console Tools ### Only install each if not already installed
 which git &> /dev/null || exe sudo $MANAGER install git -y
 which vim &> /dev/null || exe sudo $MANAGER install vim -y
@@ -77,17 +81,16 @@ which curl &> /dev/null || exe sudo $MANAGER install curl -y
 which wget &> /dev/null || exe sudo $MANAGER install wget -y
 which dpkg &> /dev/null || exe sudo $MANAGER install dpkg -y
 which ifconfig &> /dev/null || exe sudo $MANAGER install net-tools -y
-which cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
+which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
 which neofetch &> /dev/null || exe sudo $MANAGER install neofetch -y
 which fortune &> /dev/null || exe sudo $MANAGER install fortune-mod -y
 which cowsay &> /dev/null || exe sudo $MANAGER install figlet -y
 which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 
-####################
-#
-# Setup figlet and bat and brightside (for Peppermint)
-#
-####################
+
+
+print_header "Setup figlet and bat and brightside (for Peppermint)"
+
 # Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
 # http://www.jave.de/figlet/fonts.html
 # http://www.figlet.org/examples.html
@@ -97,12 +100,13 @@ which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 # unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
 # mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 # rmdir /usr/share/figlet/fonts'
+echo "# Download and setup figlet extended fonts"
 [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
-[ ! -f /tmp/figletfonts40.zip ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
-exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-exe sudo rmdir /usr/share/figlet/fonts
+[ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
+[ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+[ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
 
-# Download and setup 'bat' as a better replacement for 'cat'
+echo "# Download and setup 'bat' as a better replacement for 'cat'"
 BAT=bat_0.15.4_amd64.deb
 [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/$BAT   # 64-bit version
 which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
@@ -116,11 +120,10 @@ BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
 [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
 which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
-####################
-#
-# Update .bashrc to load .custom in every interactive login session
-#
-####################
+
+
+print_header "Update .bashrc to load .custom in every interactive login session"
+
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
 # -q be quiet, -x match the whole line, -F pattern is a plain string
 # use "tee" instead of ">>", as ">>" will not permit updating protected files
@@ -143,11 +146,9 @@ grep -qxF '$SETCUSTOM' ~/.bashrc || echo $SETCUSTOM | sudo tee --append ~/.bashr
 exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to 'mv' this to make way for the new downloaded file
 exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
-####################
-#
-# Common changes to .vimrc
-#
-####################
+
+
+print_header "Common changes to .vimrc"
 
 # First, check if the item is already in the /etc/xxx file
 # If there, do nothing, then check the ~ version, only add if not there
@@ -185,22 +186,16 @@ grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 
 
 
-####################
-#
-# Common changes to /etc/samba/smb.conf
-#
-####################
+print_header "Common changes to /etc/samba/smb.conf"
 
 # update /etc/samba/smb.conf
 # Add an entry for the home folder so that is always available
 # Restart the samba service
 # sudo 
 
-####################
-#
-# Common changes to .inputrc
-#
-####################
+
+
+print_header "Common changes to .inputrc"
 
 if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
@@ -238,11 +233,9 @@ echo 'set completion-ignore-case On' >> ~/.inputrc
 # "\e\e[C": forward-word
 # "\e\e[D": backward-word
 
-####################
-#
-# Common changes to /etc/sudoers
-#
-####################
+
+
+print_header "Common changes to /etc/sudoers"
 
 # update visudo (have to be very careful with this one, can break system)
 # Test if system admin account is active, if not display warning
@@ -257,11 +250,9 @@ echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in he
 # If you have a related situation where you have to perform additional system administration commands as root to fix the problem (also uncommon in this circumstance, but common in others), you can start an interactive root shell with pkexec bash. Generally speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
 # (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those actions, you'll be asked to select which one you want to use, before being asked for your password.)
 
-####################
-#
-# Update Locale
-#
-####################
+
+
+print_header "Update Locale"
 
 exe locale
 # LANG=en_US.UTF-8
@@ -305,11 +296,8 @@ echo ""
 
 
 
-####################
-#
-# Download and dotsource new .custom
-#
-####################
+print_header "Download and dotsource new .custom"
+
 mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom

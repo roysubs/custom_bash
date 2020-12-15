@@ -123,6 +123,18 @@ which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, 
 
 
 print_header "Update .bashrc to load .custom in every interactive login session"
+# Note: have to be careful with this as if '.bash_profile' is ever created, it will override and .bashrc will never load(!)
+# Just one of the many crazy features of bash. To avoid this need to have logic to check.
+# Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
+# If .bash_profile is not zero length, load a line to dotsource .bashrc
+
+if [ ! - ~/.bash_profile ]; then
+    echo "zero-size file"
+    rm ~/.bash_profile &> /dev/null
+else
+    FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
+    grep -qxF '$FIXBASHPROFLIE' ~/.bash_profile || echo '$FIXBASHPROFILE' | sudo tee --append ~/.bash_profile
+fi
 
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
 # -q be quiet, -x match the whole line, -F pattern is a plain string
@@ -135,7 +147,7 @@ cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 grep -qxF '$GETCUSTOM' ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
-grep -qxF '$SETCUSTOM' ~/.bashrc || echo $SETCUSTOM | sudo tee --append ~/.bashrc
+grep -qxF '$RUNCUSTOM' ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
 # grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
 # grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file

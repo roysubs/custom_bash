@@ -29,6 +29,7 @@ git-push() { if [ ! -d .git ]; then echo "Crrent folder is not a git repository 
 if which dnf &> /dev/null; then alias di='sudo dnf install';   alias dr='sudo dnf remove';   alias ds='dnf search';   alias dh='dnf history'; fi   # dnf
 if which yum &> /dev/null; then alias yi='sudo yum install';   alias yr='sudo yum remove';   alias ys='yum search';   alias yh='yum history'; fi   # yum
 if which apt &> /dev/null; then alias ai='sudo apt install';   alias ar='sudo apt remove';   alias as='apt search';   alias ah='apt history';   alias au='sudo apt update && sudo apt upgrade'; fi   # apt
+if which zypper &> /dev/null; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
 if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak

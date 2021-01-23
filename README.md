@@ -4,6 +4,10 @@ Create a consistent bash environment with various standard changes. Called from 
 
 **`custom_loader.sh`**. Adds lines to `~/.bashrc` to dotsource `~/.custom` into environment (which is where the additional bash configuration is) whenever a new shell starts. Installs selected core tools (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod`). Enable generic settings in `~/.vimrc` and `~/.inputrc`. Finally, dotsource `~/.custom` into the currently running session. Can run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
+Alternatively, to clone the entire repository, use:
+`git clone https://github.com/roysubs/custom_bash`
+Then cd into that folder and run:
+`. ./custom_loader.sh   # The dotsource is required to load into the current session`
 
 **`.custom`**. Common configuration and compatible with Debian/Ubuntu/RHEL/Fedora/CentOS variants, but only for interactive shells, as discussed here: https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679
 

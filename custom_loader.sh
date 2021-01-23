@@ -172,8 +172,9 @@ VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, inde
 grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='set expandtab tabstop=4 shiftwidth=4'
 grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
-VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
+VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'   # Variant for elevating Vim, not using for now
 VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
+grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE="cnoremap w!! execute \'silent! write !sudo tee % >/dev/null\' <bar> edit"
 grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Set F3 to toggle line numbers on/off'

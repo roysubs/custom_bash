@@ -2,7 +2,7 @@
 
 Create a consistent bash environment with various standard changes. Called from `~/.bashrc` but in such a way as to apply *only* to interactive shells (ssh login or a terminal windows) and will not load during non-interactive shells (such as when a script is invoked.
 
-**`custom_loader.sh`**. Configures `~/.bashrc` and creates `~/.custom` (which loads the bash configuration). Additionally, will ensure that certain simple tools are installed (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod`). Will then make generically useful changes to `~/.vimrc`, and `~/.inputrc`. Finally, `~/.custom` will be dotsourced into the currently running environment. Can run `custom_loader.sh` at any time with:
+**`custom_loader.sh`**. Adds two linus to `~/.bashrc` that point to `~/.custom` (which is where the additional bash configuration is), and also checks for certain basic small core tools and installs if required (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod`). Some generically useful settings are enabled in `~/.vimrc`, and `~/.inputrc`. Finally, `~/.custom` will be dotsourced into the currently running environment so that it is immediately available. Can run `custom_loader.sh` at any time with:
 `curl -i https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
 
 **`.custom`**. Common configuration and compatible with Debian/Ubuntu/RHEL/Fedora/CentOS variants, but only for interactive shells, as discussed here: https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679

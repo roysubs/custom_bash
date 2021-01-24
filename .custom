@@ -4,19 +4,19 @@ alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines abo
 export LS_COLORS=$LS_COLORS:'di=0;94'   # dirs to cyan "0;36" instead of dark blue on black
 # \[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u   # if root, then red name, else green
 # \[\033[00m\]@ (white), [\033[01;36m\]\h (cyan hostname), [\033[01;33m\] \w (yellow directory)
-export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;36m\]\h\[\033[00m\]:\[\033[01;33m\] \w\[\033[00m\] \$ "
+export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[33m\]@\[\033[01;36m\]\h\[\033[00m\]:\[\033[01;33m\] \w\[\033[00m\] \$ "
 alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
 alias def='command -V'                 # Show command definition, note also: command -v, type <aliasname>, bash -xl
 alias q='exit'                         # Quit immediately
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd if bash ver 4+, i.e. type a directory name to cd into it
 
-alias ls='ls -Fh --color=auto --group-directories-first'
-alias l.='ls -Fhd .* --color=auto --group-directories-first'     # Just .* files
-alias ll.='ls -Fhdl .* --color=auto --group-directories-first'   # Just .* files, long format
-alias l='ls -Fhad .* * --color=auto --group-directories-first'   # Everything, including (.*), short format
-alias ll='ls -Fhadl .* * --color=auto --group-directories-first' # Everything, including (.*), long format
-alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"'  # ls+security (shows the octal code as well as normal ls security flags)
+alias ls='ls -FhA --color=auto --group-directories-first'       # ls => include 'almost all' A (ignores ./ and ../)
+alias l='ls -Fh --color=auto --group-directories-first'         # l  => do NOT include hidden (.*) (this is more traditional 'ls' output but using 'l' here)
+alias ll='ls -Fhal --color=auto --group-directories-first'      # Everything, including (.*), long format
+alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"' # ls+security (shows the octal code as well as normal ls security flags) using stat
+alias l.='ls -Fhd .* --color=auto --group-directories-first'    # Just list .* files, which are normally hidden
+alias ll.='ls -Fhdl .* -color=auto --group-directories-first'   # Just list .* files, which are normally hidden, long format
 
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
@@ -35,8 +35,8 @@ if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo 
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fix du. Add following to find only folders bigger than 1 GB: | grep -E ^[0-9]+?\.?[0-9]+G
-dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fix du and inaccessible permissions
+dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
+dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fixed du for current folder, including for inaccessible folders
 
 # Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
@@ -76,3 +76,9 @@ runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; the
 # Only display banner if this is not in a new tmux session
 if [ -z "$TMUX" ]; then printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; fi
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # if using 'tmux' can use this to always start tmux
+
+# WSL aliases (using "x" prefix to denote executables)
+alias xchrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Open Chrome from WSL
+alias xnotepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
+alias xcode="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
+

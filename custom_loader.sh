@@ -62,7 +62,8 @@ if [ -z $MANAGER ]; then
     echo "No manager available"
     return
 else
-    echo -e "\n\n>>> $DISTRO variant found, will use the '$MANAGER' package manager <<<\n\n"
+    echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
+    echo -e ">>>>>   Will use the '$MANAGER' package manager for setup.\n\n"
 fi
 
 ### Check for and fix any outstanding broken installs
@@ -76,7 +77,6 @@ exe sudo $MANAGER autoremove -y
 
 ### Check for and fix any outstanding broken installs
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Do 'fix-broken' check before and after update/upgrade/autoremove
-
 
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required in order to proceed with the install." >&2
@@ -98,14 +98,29 @@ which vim &> /dev/null || exe sudo $MANAGER install vim -y
 which curl &> /dev/null || exe sudo $MANAGER install curl -y
 which wget &> /dev/null || exe sudo $MANAGER install wget -y
 which dpkg &> /dev/null || exe sudo $MANAGER install dpkg -y
+which unzip &> /dev/null || exe sudo $MANAGER install unzip -y
 which ifconfig &> /dev/null || exe sudo $MANAGER install net-tools -y
 which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
 which neofetch &> /dev/null || exe sudo $MANAGER install neofetch -y
 which fortune &> /dev/null || exe sudo $MANAGER install fortune-mod -y
-which cowsay &> /dev/null || exe sudo $MANAGER install figlet -y
+which cowsay &> /dev/null || exe sudo $MANAGER install cowsay -y
 which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 
-
+# https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
+# exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
+# exe sudo $MANAGER install toilet -y     # pipe text or figlet/cowsay for coloured output
+# exe sudo $MANAGER install boxes -y      # ascii boxes around text (cowsay variant)
+# exe sudo $MANAGER install lolcat -y     # pipe figlet/cowsay for rainbow
+# exe sudo $MANAGER install nms -y        # no more secrets
+# exe sudo $MANAGER install chafa -y      # chafa
+# exe sudo $MANAGER install cmatrix -y    # cmatrix
+# exe sudo $MANAGER install trash-cli -y  # trash-cli
+# exe sudo $MANAGER install wikit-cli -y  # wikit
+# exe sudo $MANAGER install googler -y    # googler
+# exe sudo $MANAGER install browsh -y     # browsh
+# toilet -f mono9 -F metal $(date)
+# while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done
+# Fork Bomb (do not ever run)   :   :(){ :|:& }:
 
 ####################
 #
@@ -153,13 +168,13 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 #
 ####################
 
-# Note: have to be careful with this as if '.bash_profile' is ever created, it will override and .bashrc will never load(!)
-# Just one of the many crazy features of bash. To avoid this need to have logic to check.
+# Note: have to be careful with this as if ".bash_profile" is ever created, it will take precedence  and .bashrc will
+# *never* load. # Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
 # If .bash_profile is not zero length, load a line to dotsource .bashrc
 
-if [ ! - ~/.bash_profile ]; then
-    echo "zero-size file"
+if [ -z ~/.bash_profile ]; then   # or could use "! -s", -s "size greater than zero"
+    echo "Deleting zero-size ~/.bash_profile"
     rm ~/.bash_profile &> /dev/null
 else
     FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
@@ -173,7 +188,7 @@ fi
 # https://stackoverflow.com/questions/3557037/appending-a-line-to-a-file-only-if-it-does-not-already-exist
 
 # Remove any loader lines from .bashrc
-cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Debug line, backup .bashrc
+cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc in case of issues
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 grep -qxF '$GETCUSTOM' ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
@@ -240,9 +255,8 @@ print_header "Common changes to /etc/samba/smb.conf"
 ####################
 
 # update /etc/samba/smb.conf
-# Add an entry for the home folder so that is always available
+# Add an entry for the home folder on this environment so that is always available
 # Restart the samba service
-# sudo 
 
 
 
@@ -356,6 +370,21 @@ echo ""
 echo "If locale has changed, it will be applied only after a new login session starts."
 echo ""
 
+# Changing the default locale is a little different on Ubuntu compared to most Linux distros, these are the steps we needed to go through to get it changed:
+# Add the locale to the list of 'supported locales', by editing /var/lib/locales/supported.d/local and add the following line:
+# en_GB ISO-8859-1
+# The above does not work for me on current Ubuntu
+echo "Note en_GB.UTF-8 vs en_GB.ISO-8859-1, though this might be old/fixed now"
+echo "https://blog.andrewbeacock.com/2007/01/how-to-change-your-default-locale-on.html"
+echo "https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server#89983"
+echo "For Ubuntu, easiest option is to reconfigure locale, select en_GB.UTF-8 (or other):"
+echo ""
+echo "# sudo dpkg-reconfigure locales"
+echo ""
+echo "The new locale will not be applied until a new shell is started"
+echo ""
+read -e -p "Any key to continue ..."; "$@"
+
 
 
 ####################
@@ -365,9 +394,20 @@ print_header "Download and dotsource new .custom"
 ####################
 read -e -p "Any key to continue ..."; "$@"
 
-mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
-[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
+if [ -f ./.custom ] && [[ $- == *"i"* ]]
+then
+    cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+elseif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]
+then
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
+
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
+
+# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 
 

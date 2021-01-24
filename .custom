@@ -78,7 +78,12 @@ if [ -z "$TMUX" ]; then printf "\n##########\n$(ver)\n##########\n$(sys)\n######
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # if using 'tmux' can use this to always start tmux
 
 # WSL aliases (using "x" prefix to denote executables)
-alias xchrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Open Chrome from WSL
-alias xnotepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
-alias xcode="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
+alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Open Chrome from WSL
+alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
+alias vscode="\"/mnt/c/ProgramData/chocolatey/bin/code.exe\""            # Open Notepad++
+
+alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Open Notepad++
+alias n='notepad++'
+alias c='vscode'
+alias v='vim'
 

@@ -33,8 +33,8 @@
 # If "y" is chosen, 'exe' is altered to display the command before running it
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue...\n"; "$@"; } || echo Stopping
-
+printf "\n"
+[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue..."; "$@"; } || echo Stopping
 
 print_header() {
     printf "\n\n####################\n"
@@ -44,26 +44,40 @@ print_header() {
     printf "####################\n\n"
 }
 
+
+
+####################
+#
 print_header "Get package manager and run update / upgrade"
+#
+####################
 
 MANAGER=
-which apt &> /dev/null && MANAGER=apt   # Debian/Ubuntu 
-which dnf &> /dev/null && MANAGER=dnf   # RHEL/Fedora/CentOS
-which yum &> /dev/null && MANAGER=yum   # RHEL/Fedora/CentOS
-which zypper &> /dev/null && MANAGER=zypper   # SLES
+which apt &> /dev/null && MANAGER=apt && DISTRO="Debian/Ubuntu"
+which dnf &> /dev/null && MANAGER=dnf && DISTRO="RHEL/Fedora/CentOS"
+which yum &> /dev/null && MANAGER=yum && DISTRO="RHEL/Fedora/CentOS"
+which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 
 if [ -z $MANAGER ]; then
     echo "No manager available"
     return
 else
-    echo -e "\n\n>>> Using $MANAGER package manager <<<\n\n"
+    echo -e "\n\n>>> $DISTRO variant found, will use the '$MANAGER' package manager <<<\n\n"
 fi
+
+### Check for and fix any outstanding broken installs
+if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
 exe sudo $MANAGER upgrade -y
 exe sudo $MANAGER install ca-certificates -y   # to allow SSL-based applications to check for the authenticity of SSL connections
 exe sudo $MANAGER autoremove -y
+
+### Check for and fix any outstanding broken installs
+if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Do 'fix-broken' check before and after update/upgrade/autoremove
+
+
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required in order to proceed with the install." >&2
     echo "Please reboot and re-run this script to finish the install." >&2
@@ -72,7 +86,11 @@ fi
 
 
 
+####################
+#
 print_header "Check and install basic/small packages"
+#
+####################
 
 ### Console Tools ### Only install each if not already installed
 which git &> /dev/null || exe sudo $MANAGER install git -y
@@ -89,7 +107,11 @@ which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 
 
 
-print_header "Setup figlet and bat and brightside (for Peppermint)"
+####################
+#
+print_header "Setup figlet and bat"
+#
+####################
 
 # Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
 # http://www.jave.de/figlet/fonts.html
@@ -113,16 +135,24 @@ which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, el
 # sudo dpkg -r bat   # to remove after install
 # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
 
+
+
+### Deprecate this, should go to more advanced installers
 # Check if Peppermint
 # https://launchpad.net/ubuntu/+source/brightside
 # https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
-BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
-[ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
-which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
+# BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
+# [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
+# which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
 
 
+####################
+#
 print_header "Update .bashrc to load .custom in every interactive login session"
+#
+####################
+
 # Note: have to be careful with this as if '.bash_profile' is ever created, it will override and .bashrc will never load(!)
 # Just one of the many crazy features of bash. To avoid this need to have logic to check.
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
@@ -160,7 +190,11 @@ exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 
 
 
+####################
+#
 print_header "Common changes to .vimrc"
+#
+####################
 
 # First, check if the item is already in the /etc/xxx file
 # If there, do nothing, then check the ~ version, only add if not there
@@ -199,7 +233,11 @@ grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 
 
 
+####################
+#
 print_header "Common changes to /etc/samba/smb.conf"
+#
+####################
 
 # update /etc/samba/smb.conf
 # Add an entry for the home folder so that is always available
@@ -208,7 +246,11 @@ print_header "Common changes to /etc/samba/smb.conf"
 
 
 
+####################
+#
 print_header "Common changes to .inputrc"
+#
+####################
 
 if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
@@ -248,7 +290,11 @@ echo 'set completion-ignore-case On' >> ~/.inputrc
 
 
 
+####################
+#
 print_header "Common changes to /etc/sudoers"
+#
+####################
 
 # update visudo (have to be very careful with this one, can break system)
 # Test if system admin account is active, if not display warning
@@ -264,8 +310,11 @@ echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in he
 # (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those actions, you'll be asked to select which one you want to use, before being asked for your password.)
 
 
-
+####################
+#
 print_header "Update Locale"
+#
+####################
 
 exe locale
 # LANG=en_US.UTF-8
@@ -309,7 +358,12 @@ echo ""
 
 
 
+####################
+#
 print_header "Download and dotsource new .custom"
+#
+####################
+read -e -p "Any key to continue ..."; "$@"
 
 mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom 
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom

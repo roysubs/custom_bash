@@ -9,21 +9,27 @@ Alternatively, to clone the entire repository, use: `git clone https://github.co
 
 `custom_loader.sh` setup uses `sed` to find and remove all lines that start `[ -f ~/.custom ]` from `.bashrc`and then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl` so that `.bashrc` will then always load `~/.custom` correctly.
 
-**WSL Notes** A big focus was to get all of this working seamlessly with WSL so have compiled some notes relating to that. This project works with Debian/RedHat based WSL images. WSL images run in Hyper-V images controlled by the `LxssManager` service. Restart all WSL instances with `Get-Service LxssManager | Restart-Service`. To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), `explorer.exe .`
-Some aliases to make WSL `<=>` Windows usage easier
-`alias start=explorer.exe                                                          # "start ." to open Explorer at current folder`
-`alias xchrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""     # Open Chrome from WSL`
-`alias xnotepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""               # Open Notepad++. To edit .bashrc, use:  xnotepad++ ~/.bashrc`
-Note that opening this way will use the hidden `*\\wsl$` share, so opens `*\\wsl$\Ubuntu-20.04\home\boss\.bashrc`
-The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`.
-Run `bash.exe` from a cmd prompt to launch in current working directory. `bash.exe ~` will launch in the user's home directory.
-Write up on differences between the /mnt/ drive mounts and the Linux filesystem [here](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251).
-`wsl -l -v`
-`  NAME            STATE           VERSION`
-`* fedoraremix     Running         1`
-`  Ubuntu-20.04    Running         1`
-In the above, change default distro with: `wsl -s Ubuntu-20.04`
-How to reset a WSL distro to initial state: Settings > Apps > Apps & features > select the Linux Distro Name
+**WSL Notes** A focus of this project was to get a repeatable WSL setup so following are notes on that. WSL images run in Hyper-V images via the `LxssManager` service. Restart all WSL instances with:  
+`Get-Service LxssManager | Restart-Service`.  
+To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), `explorer.exe .`  
+Some aliases to make WSL `<=>` Windows usage easier:  
+```
+alias start=explorer.exe                                                          # "start ." to open Explorer at current folder
+alias xchrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""     # Open Chrome from WSL
+alias xnotepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""               # Open Notepad++. To edit .bashrc, use:  xnotepad++ ~/.bashrc
+```  
+Opening a file in this way uses the hidden `\\wsl$` share. i.e. opens `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
+The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`.  
+Run `bash.exe` from a cmd prompt to launch in current working directory. `bash.exe ~` will launch in the user's home directory.  
+A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251). on differences between the /mnt/ drive mounts and the Linux filesystem.  
+```  
+wsl -l -v
+  NAME            STATE           VERSION
+* fedoraremix     Running         1
+  Ubuntu-20.04    Running         1
+```
+To change the default distro that starts with `wsl.exe`, use: `wsl -s Ubuntu-20.04`
+To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)
 

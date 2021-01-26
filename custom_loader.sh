@@ -121,6 +121,37 @@ which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 # toilet -f mono9 -F metal $(date)
 # while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done
 # Fork Bomb (do not ever run)   :   :(){ :|:& }:
+# bashtop 
+# bpytop : https://www.osradar.com/install-bpytop-on-ubuntu-debian-a-terminal-monitoring-tool/
+# Very good guide of random tips for Linux to review
+# https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/
+
+### AsciiAquarium
+#apt-get install libcurses-perl
+# cd /tmp 
+# wget http://search.cpan.org/CPAN/authors/id/K/KB/KBAUCOM/Term-Animation-2.4.tar.gz
+# tar -zxvf Term-Animation-2.4.tar.gz
+# cd Term-Animation-2.4/
+# perl Makefile.PL &&  make &&   make test
+# make install
+# Now Download and Install ASCIIquarium.
+# cd /tmp
+# wget http://www.robobunny.com/projects/asciiquarium/asciiquarium.tar.gz
+# tar -zxvf asciiquarium.tar.gz
+# cd asciiquarium_1.1/
+# cp asciiquarium /usr/local/bin
+# chmod 0755 /usr/local/bin/asciiquarium
+
+### Deprecate this installer, it's for Peppermint UI to havve hot corners.
+# This should not be here - move to advanced installers
+# Check if Peppermint
+# https://launchpad.net/ubuntu/+source/brightside
+# https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
+# BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
+# [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
+# which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
+
+
 
 ####################
 #
@@ -149,16 +180,6 @@ BAT=bat_0.15.4_amd64.deb
 which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
 # sudo dpkg -r bat   # to remove after install
 # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
-
-
-
-### Deprecate this, should go to more advanced installers
-# Check if Peppermint
-# https://launchpad.net/ubuntu/+source/brightside
-# https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
-# BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
-# [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
-# which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
 
 

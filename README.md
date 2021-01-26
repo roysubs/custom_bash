@@ -32,7 +32,17 @@ To change the default distro that starts with `wsl.exe`, use: `wsl -s Ubuntu-20.
 To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
-To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).	 
+To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
+
+**WSL Usage Examples**  
+From PowerShell, pipe to use tools from multiple different WSL instances:  
+    `Write-Output "Hello`nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay`  
+
+**WSL Links**  
+[WSL: The Ultimate Guide](https://adamtheautomator.com/windows-subsystem-for-linux/)  
+[Linux Graphical Apps coming to WSL](https://www.zdnet.com/article/linux-graphical-apps-coming-to-windows-subsystem-for-linux/)  
+[Target WSL from Visual Studio](https://devblogs.microsoft.com/cppblog/targeting-windows-subsystem-for-linux-from-visual-studio/)  
+[Fun with WSL (older page, some info is out of date)](https://blogs.windows.com/windowsdeveloper/2016/07/22/fun-with-the-windows-subsystem-for-linux/)  
 
 **ToDo** Looks like it is not possible to invoke a script *with switches* via `curl`, so could use a local file to check if specific changes need to be made. e.g. overwriting `.custom`, or to load everything to `/etc` instead of `/home` maybe have a `.custom_install_system_wide` flag then delete that file after the change. Make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.
 
@@ -43,4 +53,3 @@ To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable t
 
 https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117
 [Interesting Vim & Terminal colour notes](https://medium.com/@gillicarmon/create-color-scheme-for-vim-335e842e29ea)
-Write-Output "Hello from Windows`nHello from Linux!" | wsl -d Ubuntu-20.04 grep -i linux | wsl -d Ubuntu-20.04 cowsay

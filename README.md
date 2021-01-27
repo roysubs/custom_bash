@@ -8,22 +8,33 @@ The toolkit configures a set of standard modifications (aliases, functions, .vim
 
 Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash`, then cd into that folder and run: `. ./custom_loader.sh` (use dotsource to run when the script has no permissions set).
 
-**Notes** `custom_loader.sh` setup uses `sed` to find and remove all lines that start `[ -f ~/.custom ]` from `.bashrc`and then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl` so that `.bashrc` will then always load `~/.custom` correctly.
+**Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
 
 # WSL Notes
-A focus of this project was to get a repeatable WSL setup so following are notes on that. WSL images run in Hyper-V images via the `LxssManager` service. Restart all WSL instances with:  
-`Get-Service LxssManager | Restart-Service`.  
-To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), `explorer.exe .`  
-Some aliases to make WSL `<=>` Windows usage easier:  
+A focus of this project was to get a repeatable WSL setup and to be able to fully use all of the WSL capabilities within Windows.
+
+**WSL Basics**. Setup WSL with:  
+`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
+`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
+You must reboot after this, then set defaults to WSL2: `wsl --set-default-version 2`  
+Show current images with `wsl -l -v` (`wsl --list --verbose`)  
+WSL images run in Hyper-V images via the `LxssManager` service. Therefore, restart all WSL instances by restarting the service `Get-Service LxssManager | Restart-Service` from PowerShell.  
+You can switch WSL VMs from version 1 to version 2 with `wsl --set-version Ubuntu 2`
+Set default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` is invoked from DOS/PowerShell).  
+  
+To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
+Some aliases can make working with WSL in Windows easier (some templates have been added to `.custom`):  
 ```
-alias start=explorer.exe                                                          # "start ." to open Explorer at current folder
-alias xchrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""     # Open Chrome from WSL
-alias xnotepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""               # Open Notepad++. To edit .bashrc, use:  xnotepad++ ~/.bashrc
+alias start=explorer.exe   # "start ." will now open Explorer at current folder, same as "start ." in DOS/PowerShell
+alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""   # Chrome. Can use with URL:       chrome www.google.com
+alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""             # Notepad++. Can use with files:  notepad++ ~/.bashrc
 ```  
-Opening a file in this way uses a share called `\\wsl$` that is only visible when a distro is up. In the above example, it opens `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
+  
+Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. in the above example, it displays as `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`.  
+Therefore, `\\wsl$` maps to `%localappdata%\lxss\home`
 Run `bash.exe` from a cmd prompt to launch in current working directory. `bash.exe ~` will launch in the user's home directory.  
-A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251). on differences between the /mnt/ drive mounts and the Linux filesystem.  
+A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
 ```  
 wsl -l -v
   NAME            STATE           VERSION
@@ -33,6 +44,19 @@ wsl -l -v
 To change the default distro that starts with `wsl.exe`, use: `wsl -s Ubuntu-20.04`
 To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
+
+
+**WSL Backup/Restore and moving to other drives**
+Linux disk images install by default to the C: drive.  
+In Windows Powershell, run `wsl --list` to view Linux distros.  
+Export current distro: `wsl --export Ubuntu D:\Backups\Ubuntu.tar`  
+Unregister this distro: `wsl --unregister Ubuntu`  
+Run `wsl --list` to verify the distribution has been removed.  
+Import backup to new WSL distro at new location: `wsl --import Ubuntu D:\WSL\ D:\Backups\Ubuntu.tar`  
+Run `wsl --list` to verify that it has been created and registered.  
+Launch the distro as normal from the Start menu.  
+Unfortunately, Ubuntu will now use root as the default user. To go back to your own account `ubuntu config --default-user <yourname>` where `<yourname>` is the username you defined during installation.  
+
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 

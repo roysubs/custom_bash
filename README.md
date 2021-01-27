@@ -1,4 +1,31 @@
 # Automated Bash Customisation & WSL Usage
+
+**Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
+Enable the Windows Optional Feature for WSL from an Admin PowerShell console:
+```
+    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+>>> Must reboot here <<<
+Install distro from App Store: 
+Install distro from [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)
+```
+    choco install choco install wsl-ubuntu-2004    # Do not need Add-AppxPackage, this sets up everything
+Package parameters:   /InstallRoot:true - whether to set the default user as root. Defaults to false
+    choco install wsl-ubuntu-2004 --params "/InstallRoot:true"
+```
+Install distro from [curl / wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):
+```
+    iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # PowerShell Invoke-WebRequest
+    curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe
+    Add-AppxPackage .\Ubuntu.appx
+```
+Start distro from Start Menu or from `wsl.exe` or `bash.exe`  
+Setup Bash Customisations: `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
+Setup 'Quick access' link to Linux home folder: Open explorer, navigate to `\\wsl$\Ubuntu\home\<user>` and drag into 'Quick access'.
+Other setup for WSL, see `~/.custom`
+
+**Bash CustomisationQuick Setup for WSL (focus on Ubuntu 2004 LTS)**  
 Working across different distros has awkward rules on priority for `.bash_profile` or `.bashrc` and interactive / non-interactive sessions. This project aims to create a maintainable bash environment that is compatible across as many distro's as possible. A focus is on WSL distros and includes specific tools for that (which only load if WSL is detected, so this setup works perfectly on WSL or non-WSL environments). All Debian and Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc) are supported. These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.
 
 The toolkit configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).
@@ -54,7 +81,6 @@ However, you could use multiple different WSL instances on a single command:
 To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
 
-
 **WSL Backup/Restore and moving to other drives**  
 Linux disk images install by default to the C: drive.  
 In Windows Powershell, run `wsl --list` to view Linux distros.  
@@ -68,8 +94,6 @@ Unfortunately, Ubuntu will now use root as the default user. To go back to your 
 
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
-
-**WSL Usage Examples**  
 
 **WSL Links**  
 [WSL: The Ultimate Guide](https://adamtheautomator.com/windows-subsystem-for-linux/)  
@@ -85,7 +109,6 @@ To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable t
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
 
 # Useful One-Liners etc
-
 [Large list](https://onceupon.github.io/Bash-Oneliner/)
 [6 useful one-liners](https://www.thegeekstuff.com/2010/09/linux-one-liners/)
 [10 useful one-liners for system](https://www.reddit.com/r/sysadmin/comments/31oucc/10_useful_linux_oneliners_for_system/)

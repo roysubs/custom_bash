@@ -1,29 +1,24 @@
 # Automated Bash Customisation & WSL Usage
 
 **Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
-Enable the Windows Optional Feature for WSL from an Admin PowerShell console:
-```
-    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-```
->>> Must reboot here <<<
-Install distro from App Store: 
-Install distro from [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)
-```
-    choco install choco install wsl-ubuntu-2004    # Do not need Add-AppxPackage, this sets up everything
-Package parameters:   /InstallRoot:true - whether to set the default user as root. Defaults to false
-    choco install wsl-ubuntu-2004 --params "/InstallRoot:true"
-```
-Install distro from [curl / wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):
-```
-    iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # PowerShell Invoke-WebRequest
-    curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe
-    Add-AppxPackage .\Ubuntu.appx
-```
+Enable the Windows Optional Feature for WSL from an Admin PowerShell console:  
+`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
+`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
+*>>> Must reboot here <<<*  
+Install distro from App Store:  
+Install distro from [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
+`choco install choco install wsl-ubuntu-2004    # Do not need Add-AppxPackage, this sets up everything`  
+Package parameters:   /InstallRoot:true - whether to set the default user as root. Defaults to false  
+`choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
+Install distro from [curl / wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):  
+`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # PowerShell Invoke-WebRequest`  
+`curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe`  
+`Add-AppxPackage .\Ubuntu.appx`  
+
 Start distro from Start Menu or from `wsl.exe` or `bash.exe`  
 Setup Bash Customisations: `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-Setup 'Quick access' link to Linux home folder: Open explorer, navigate to `\\wsl$\Ubuntu\home\<user>` and drag into 'Quick access'.
-Other setup for WSL, see `~/.custom`
+Setup 'Quick access' link to Linux home folder: Open explorer, navigate to `\\wsl$\Ubuntu\home\<user>` and drag into 'Quick access'.  
+Other setup for WSL, see `~/.custom`  
 
 **Bash CustomisationQuick Setup for WSL (focus on Ubuntu 2004 LTS)**  
 Working across different distros has awkward rules on priority for `.bash_profile` or `.bashrc` and interactive / non-interactive sessions. This project aims to create a maintainable bash environment that is compatible across as many distro's as possible. A focus is on WSL distros and includes specific tools for that (which only load if WSL is detected, so this setup works perfectly on WSL or non-WSL environments). All Debian and Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc) are supported. These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.
@@ -109,24 +104,21 @@ To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable t
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
 
 # Useful One-Liners etc
-[Large list](https://onceupon.github.io/Bash-Oneliner/)
-[6 useful one-liners](https://www.thegeekstuff.com/2010/09/linux-one-liners/)
-[10 useful one-liners for system](https://www.reddit.com/r/sysadmin/comments/31oucc/10_useful_linux_oneliners_for_system/)
-[Large list of lesser known commands](https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/)
-[Linux Complex Bash One-Liner Examples](https://linuxconfig.org/linux-complex-bash-one-liner-examples)
-[Random](https://angrysysadmins.tech/index.php/2019/04/bailey/useful-bash-one-liners/)
-[Random](https://colinpaice.blog/2021/01/21/useful-linux-commands/)
-[Interesting Vim & Terminal colour notes](https://medium.com/@gillicarmon/create-color-scheme-for-vim-335e842e29ea)
+[Large list](https://onceupon.github.io/Bash-Oneliner/)  
+[6 useful one-liners](https://www.thegeekstuff.com/2010/09/linux-one-liners/)  
+[10 useful one-liners for system](https://www.reddit.com/r/sysadmin/comments/31oucc/10_useful_linux_oneliners_for_system/)  
+[Large list of lesser known commands](https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/)  
+[Linux Complex Bash One-Liner Examples](https://linuxconfig.org/linux-complex-bash-one-liner-examples)  
+[Random](https://angrysysadmins.tech/index.php/2019/04/bailey/useful-bash-one-liners/)  
+[Random](https://colinpaice.blog/2021/01/21/useful-linux-commands/)  
+[Interesting Vim & Terminal colour notes](https://medium.com/@gillicarmon/create-color-scheme-for-vim-335e842e29ea)  
 
-[Uses of the ! command](https://www.tecmint.com/mysterious-uses-of-symbol-or-operator-in-linux-commands/)
-[Fun Stuff 1](https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/)
-[Fun Commands I](https://www.tecmint.com/20-funny-commands-of-linux-or-linux-is-fun-in-terminal/)
-[Fun Commands II](https://www.tecmint.com/linux-funny-commands/)
-[Fun with Character Counts](https://www.tecmint.com/play-with-word-and-character-counts-in-linux/)
+[Uses of the ! command](https://www.tecmint.com/mysterious-uses-of-symbol-or-operator-in-linux-commands/)  
+[Fun Stuff 1](https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/)  
+[Fun Commands I](https://www.tecmint.com/20-funny-commands-of-linux-or-linux-is-fun-in-terminal/)  
+[Fun Commands II](https://www.tecmint.com/linux-funny-commands/)  
+[Fun with Character Counts](https://www.tecmint.com/play-with-word-and-character-counts-in-linux/)  
+https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117  
 
-https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117
-
-```
-netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1
+`netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1`  
 Above command will give the sorted list of IP’s with number of connections to the port 80.
-```

@@ -72,6 +72,7 @@ if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
 exe sudo $MANAGER upgrade -y
+exe sudo $MANAGER distupgrade -y
 exe sudo $MANAGER install ca-certificates -y   # to allow SSL-based applications to check for the authenticity of SSL connections
 exe sudo $MANAGER autoremove -y
 

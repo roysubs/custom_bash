@@ -56,8 +56,8 @@ export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-termin
 
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
 # rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty
-
 # Some useful functions and to demonstrate some function syntax
+psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n }
 dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
 dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fixed du for current folder, including for inaccessible folders
 viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }

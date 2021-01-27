@@ -63,7 +63,7 @@ if [ -z $MANAGER ]; then
     return
 else
     echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
-    echo -e ">>>>>   Will use the '$MANAGER' package manager for setup.\n\n"
+    echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 fi
 
 ### Check for and fix any outstanding broken installs
@@ -126,6 +126,8 @@ which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 # bpytop : https://www.osradar.com/install-bpytop-on-ubuntu-debian-a-terminal-monitoring-tool/
 # Very good guide of random tips for Linux to review
 # https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/
+# sudo apt install python3-pip ; # pip3 install bpytop
+
 
 ### AsciiAquarium
 #apt-get install libcurses-perl
@@ -156,7 +158,7 @@ which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
 
 ####################
 #
-print_header "Setup figlet and bat"
+print_header "Setup 'figlet' and 'bat' (syntax highlighted replacement for 'cat')"
 #
 ####################
 
@@ -213,8 +215,8 @@ fi
 cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc in case of issues
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
-grep -qxF '$GETCUSTOM' ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
-grep -qxF '$RUNCUSTOM' ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
+grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
+grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
 # grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
 # grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
@@ -238,22 +240,22 @@ print_header "Common changes to .vimrc"
 
 # update .vimrc
 VIMLINE='color industry'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'   # Variant for elevating Vim, not using for now
 VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE="cnoremap w!! execute \'silent! write !sudo tee % >/dev/null\' <bar> edit"
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Set F3 to toggle line numbers on/off'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='noremap <F3> :set invnumber<CR>'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='inoremap <F3> <C-O>:set invnumber<CR>'
-grep -qxF '$VIMLINE' ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 
 # " To control the number of space characters that will be inserted when the tab key is pressed, set the 'tabstop' option. For example, to insert 4 spaces for a tab, use:
 # set tabstop=4
@@ -288,9 +290,12 @@ print_header "Common changes to .inputrc"
 #
 ####################
 
+#
 if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
-echo 'set completion-ignore-case On' >> ~/.inputrc
+echo  >> ~/.inputrc
+INPUTRC='set completion-ignore-case On'
+grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
 # To Make the changes systemwide:
 # add option to /etc/inputrc to enable case-insensitive tab completion for all users

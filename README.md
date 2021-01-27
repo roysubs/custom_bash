@@ -1,5 +1,4 @@
 # Automated Bash Customisation
-
 Working across different distros can be awkward and the rules on priority for `.bash_profile` or `.bashrc` varies between distros so it's hard to have a consistent setup. This project aims to to create a maintainable bash environment that is consistent across as many core distro's as possible (including specific support for WSL distros by only including those parts if WSL is detected), so all Debian/Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc). These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.
 
 The toolkit configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).
@@ -11,7 +10,8 @@ Alternatively, clone the repository with: `git clone https://github.com/roysubs/
 
 **Notes** `custom_loader.sh` setup uses `sed` to find and remove all lines that start `[ -f ~/.custom ]` from `.bashrc`and then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl` so that `.bashrc` will then always load `~/.custom` correctly.
 
-***WSL Notes*** A focus of this project was to get a repeatable WSL setup so following are notes on that. WSL images run in Hyper-V images via the `LxssManager` service. Restart all WSL instances with:  
+# WSL Notes
+A focus of this project was to get a repeatable WSL setup so following are notes on that. WSL images run in Hyper-V images via the `LxssManager` service. Restart all WSL instances with:  
 `Get-Service LxssManager | Restart-Service`.  
 To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), `explorer.exe .`  
 Some aliases to make WSL `<=>` Windows usage easier:  

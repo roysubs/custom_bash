@@ -5,15 +5,16 @@ Enable the Windows Optional Feature for WSL from an Admin PowerShell console:
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
 `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
 *>>> Must reboot here <<<*  
-Install distro from App Store:  
-Install distro from [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
-`choco install choco install wsl-ubuntu-2004    # Do not need Add-AppxPackage, this sets up everything`  
-Package parameters:   /InstallRoot:true - whether to set the default user as root. Defaults to false  
+**Install a distro from App Store or Chocolatey or manually with iwr/curl**
+• From App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
+• From [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
+`choco install choco install wsl-ubuntu-2004`  
+Following optionally sets default user as root (default is false)  
 `choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
-Install distro from [curl / wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):  
-`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # PowerShell Invoke-WebRequest`  
+• From [iwr/wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):  
+`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # Invoke-WebRequest`  
 `curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe`  
-`Add-AppxPackage .\Ubuntu.appx`  
+Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx             # To install the AppX package`  
 
 Start distro from Start Menu or from `wsl.exe` or `bash.exe`  
 Setup Bash Customisations: `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
@@ -122,3 +123,6 @@ https://stackoverflow.com/questions/36585496/error-when-using-git-credential-hel
 
 `netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1`  
 Above command will give the sorted list of IP’s with number of connections to the port 80.
+
+`https://aka.ms/wsl`  
+`https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  

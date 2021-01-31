@@ -2,14 +2,12 @@
 ####################
 #
 # Configure consistent bash environemtn
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/custom_loader.sh
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 #
-# It is not in general obvious which file to put profile configuration into to only make that
-# availabel to *interactive* sessions (i.e. user invoked consoles, be that from opening a 
-# Terminal, or from logging in remotely with SSH. We use [[ $- == *"i"* ]] in .bashrc to test
-# if the shell is interactive, and call .custom only if that condition is met.
-#
 ####################
+
+# What is the .vscode folder in ~ ?
 
 # Some random points:
 # To paste into a Terminal (in Linux, not via Putty), use Ctrl+Shift+V. In Putty, use  Shift+Insert.
@@ -27,22 +25,26 @@
 # print_header() and exe() functions
 #
 ####################
-# Used to display a command and then run it
-# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
-# By default, the following 'exe' will run unattended
-# If "y" is chosen, 'exe' is altered to display the command before running it
-# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-printf "\n"
-[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue..."; "$@"; } || echo Stopping
-
+# print_header() is used to create a simple section banner to output during execution
 print_header() {
-    printf "\n\n####################\n"
+    printf "\n####################\n"
     printf "#\n"
     printf "# $1\n"
     printf "#\n"
-    printf "####################\n\n"
+    printf "####################\n"
 }
+
+# exe() is used to display a command and then run it, so you can see what the script is about to run
+# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
+# By default, the following exe() will run run unattended, i.e. will show the command and then execute immediately
+# Howeve, if "y" is chosen, the exe() function is altered to display the command, then display a pause before running
+# the command so the user can control what runs and what does not.
+# ToDo: modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
+# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+printf "\n"
+[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue..."; "$@"; } 
+# This "OR echo Stopping" was at the end, not sure why, removing it...    || echo Stopping
 
 
 
@@ -94,18 +96,22 @@ print_header "Check and install basic/small packages"
 ####################
 
 ### Console Tools ### Only install each if not already installed
-which git &> /dev/null || exe sudo $MANAGER install git -y
-which vim &> /dev/null || exe sudo $MANAGER install vim -y
-which curl &> /dev/null || exe sudo $MANAGER install curl -y
-which wget &> /dev/null || exe sudo $MANAGER install wget -y
-which dpkg &> /dev/null || exe sudo $MANAGER install dpkg -y
-which unzip &> /dev/null || exe sudo $MANAGER install unzip -y
-which ifconfig &> /dev/null || exe sudo $MANAGER install net-tools -y
+which git        &> /dev/null || exe sudo $MANAGER install git -y
+which vim        &> /dev/null || exe sudo $MANAGER install vim -y
+which curl       &> /dev/null || exe sudo $MANAGER install curl -y
+which wget       &> /dev/null || exe sudo $MANAGER install wget -y
+which dpkg       &> /dev/null || exe sudo $MANAGER install dpkg -y
+which unzip      &> /dev/null || exe sudo $MANAGER install unzip -y
+which ifconfig   &> /dev/null || exe sudo $MANAGER install net-tools -y
 which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
-which neofetch &> /dev/null || exe sudo $MANAGER install neofetch -y
-which fortune &> /dev/null || exe sudo $MANAGER install fortune-mod -y
-which cowsay &> /dev/null || exe sudo $MANAGER install cowsay -y
-which figlet &> /dev/null || exe sudo $MANAGER install figlet -y
+which neofetch   &> /dev/null || exe sudo $MANAGER install neofetch -y
+which fortune    &> /dev/null || exe sudo $MANAGER install fortune-mod -y
+which cowsay     &> /dev/null || exe sudo $MANAGER install cowsay -y
+which figlet     &> /dev/null || exe sudo $MANAGER install figlet -y
+which tmux       &> /dev/null || exe sudo $MANAGER install tmux -y
+# which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
+# 
+
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -192,8 +198,8 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 #
 ####################
 
-# Note: have to be careful with this as if ".bash_profile" is ever created, it will take precedence  and .bashrc will
-# *never* load. # Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
+# Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
+# will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
 # If .bash_profile is not zero length, load a line to dotsource .bashrc
 
@@ -202,7 +208,7 @@ if [ -z ~/.bash_profile ]; then   # or could use "! -s", -s "size greater than z
     rm ~/.bash_profile &> /dev/null
 else
     FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
-    grep -qxF '$FIXBASHPROFLIE' ~/.bash_profile || echo '$FIXBASHPROFILE' | sudo tee --append ~/.bash_profile
+    grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
 fi
 
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
@@ -235,6 +241,9 @@ print_header "Common changes to .vimrc"
 #
 ####################
 
+# https://topic.alibabacloud.com/article/ubuntu-system-vimrc-configuration-file_3_12_513382.html
+# https://linuxhint.com/vimrc_tutorial/
+
 # First, check if the item is already in the /etc/xxx file
 # If there, do nothing, then check the ~ version, only add if not there
 
@@ -257,19 +266,6 @@ grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='inoremap <F3> <C-O>:set invnumber<CR>'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 
-# " To control the number of space characters that will be inserted when the tab key is pressed, set the 'tabstop' option. For example, to insert 4 spaces for a tab, use:
-# set tabstop=4
-# [boss@hp2: ~]$ cat .inputrc
-# "\e[A": history-search-backward
-# "\e[B": history-search-forward
-# "\eOD": backward-word
-# "\eOC": forward-word
-# "\e[1~": beginning-of-line
-# "\e[4~": end-of-line
-# 
-# "\C-i": menu-complete
-# set show-all-if-ambiguous on
-
 
 
 ####################
@@ -289,7 +285,8 @@ print_header "Common changes to /etc/samba/smb.conf"
 print_header "Common changes to .inputrc"
 #
 ####################
-
+# https://superuser.com/questions/241187/how-do-i-reload-inputrc
+# https://relentlesscoding.com/posts/readline-transformation/
 #
 if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
@@ -297,15 +294,28 @@ echo  >> ~/.inputrc
 INPUTRC='set completion-ignore-case On'
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
-# To Make the changes systemwide:
-# add option to /etc/inputrc to enable case-insensitive tab completion for all users
-# echo 'set completion-ignore-case On' >> /etc/inputrc
-# you may have to use this instead if you are not a superuser:
-# echo 'set completion-ignore-case On' | sudo tee -a /etc/inputrc
+# https://www.topbug.net/blog/2017/07/31/inputrc-for-humans/
+# $include /etc/inputrc
+# "\C-p":history-search-backward
+# "\C-n":history-search-forward
+# 
+# set colored-stats On
+# set completion-ignore-case On
+# set completion-prefix-display-length 3
+# set mark-symlinked-directories On
+# set show-all-if-ambiguous On
+# set show-all-if-unmodified On
+# set visible-stats On
 
-# testforline() { cat $1; cat $2; }
-# testforline /etc/inputrc ~/.inputrc "\"\\e\[1\~\": beginning-of-line"
-# check for the line in $1 and $2, and only add to $2 if not present in either
+# "\e[A": history-search-backward
+# "\e[B": history-search-forward
+# "\eOD": backward-word
+# "\eOC": forward-word
+# "\e[1~": beginning-of-line
+# "\e[4~": end-of-line
+# 
+# "\C-i": menu-complete
+# set show-all-if-ambiguous on
 
 # update .inputrc
 # allow the use of the Home/End keys
@@ -330,6 +340,17 @@ grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 # "\e\e[D": backward-word
 
 
+# To Make the changes systemwide:
+# add option to /etc/inputrc to enable case-insensitive tab completion for all users
+# echo 'set completion-ignore-case On' >> /etc/inputrc
+# you may have to use this instead if you are not a superuser:
+# echo 'set completion-ignore-case On' | sudo tee -a /etc/inputrc
+
+# testforline() { cat $1; cat $2; }
+# testforline /etc/inputrc ~/.inputrc "\"\\e\[1\~\": beginning-of-line"
+# check for the line in $1 and $2, and only add to $2 if not present in either
+
+
 
 ####################
 #
@@ -337,18 +358,42 @@ print_header "Common changes to /etc/sudoers"
 #
 ####################
 
-# update visudo (have to be very careful with this one, can break system)
-# Test if system admin account is active, if not display warning
-exe sudo cp /etc/sudoers /tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")   # save in /tmp so can edit
-exe sudo sed 's/env_reset$/env_reset, timestamp_timeout=600/g' /etc/sudoers > /etc/sudoers.1
-echo "In case editing of the sodoers file goes wrong, run:   pkexec visudo"
-echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save"  
-# On a modern Ubuntu system (and many other GNU/Linux distributions), fixing a corrupted sudoers file is actually quite easy, and doesn't require rebooting, using a live CD, or physical access to the machine. To do this via SSH, log in to the machine and run the command pkexec visudo. If you have physical access to the machine, SSH is unnecessary; just open a Terminal window and run that pkexec command. Assuming you (or some other user) are authorized to run programs as root with PolicyKit, you can enter your password, and then it will run visudo as root, and you can fix your /etc/sudoers:
-#   pkexec visudo
+# Here just adding a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
+# timestamp_timeout
+#     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
+#     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to
+#     a value less than 0 the user's time stamp will not expire until the system is rebooted.  This can be used to allow users to create
+#     or delete their own time stamps via “sudo -v” and “sudo -k” respectively.
+
+# Nornally, should only use visudo to update /etc/sudoers, so have to be very careful with this one, as can break system
+# However, on Ubuntu and many modern distros, fixing a corrupted sudoers file is actually quite easy, and doesn't require
+# rebooting or a live CD. To do this via SSH, log in to the machine and run the command pkexec visudo. If you have physical
+# access to the machine, SSH is unnecessary; just open a Terminal window and run that pkexec command. Assuming you (or some
+# other user) are authorized to run programs as root with PolicyKit, you can enter your password, and then it will run
+# visudo as root, and you can fix your /etc/sudoers by running:   pkexec visudo
 # If you need to edit one of the configuration files in /etc/sudoers.d (which is uncommon in this situation, but possible), use:
 #   pkexec visudo -f /etc/sudoers.d/filename.
-# If you have a related situation where you have to perform additional system administration commands as root to fix the problem (also uncommon in this circumstance, but common in others), you can start an interactive root shell with pkexec bash. Generally speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
-# (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those actions, you'll be asked to select which one you want to use, before being asked for your password.)
+# If you have a related situation where you have to perform additional system administration commands as root to fix the problem
+# (also uncommon in this circumstance, but common in others), you can start an interactive root shell with pkexec bash. Generally
+# speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
+# (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those
+# actions, you'll be asked to select which one you want to use, before being asked for your password.)
+
+# A note on the use of env_reset (Ubuntu uses, but CentOS restricts it with env_keep from what I can see)
+# https://unixhealthcheck.com/blog?id=363
+
+# First, check if this system has a line ending "env_reset" (seems to normally be there in all Ubuntu / CentOs systems)
+SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
+exe sudo cp /etc/sudoers $SUDOTMP
+exe sudo sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers | sudo tee /etc/sudoers
+# Require "sudo tee" as /etc/sudoers does not even have 'read' permissiong so "> sudoers.1" would not work
+# Can also use "--append" to tee, useful to adding to end of a file, but in this case we do not need
+
+echo "In case editing of the sodoers file goes wrong, run:   pkexec visudo"
+echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save"
+
+# Add option to view the sudoers file in case it is broken to offer to copy the backup back in
+
 
 
 ####################
@@ -421,12 +466,13 @@ print_header "Download and dotsource new .custom"
 ####################
 read -e -p "Any key to continue ..."; "$@"
 
-mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
-if [ -f ./.custom ] && [[ $- == *"i"* ]]
-then
+[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
+
+if [ -f ./.custom ] && [[ $- == *"i"* ]]; then   # and pwd is not ~ !!!
     cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-elseif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]
-then
+fi
+
+if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
@@ -438,6 +484,21 @@ fi
 
 
 
+# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
+# - Line endings being Windows instead of Unix.
+# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
+# - Another thing to check is to terminate bodies of single-line functions with semicolon.
+#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
+#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }
+# For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
+# Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
+# Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
+# https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
+#
+# Tip: use trap to debug (if your script is on the large side...)
+# e.g.
+# set -x
+# trap read debug
 
 
 
@@ -471,4 +532,3 @@ fi
 # if (( file_time <= hundred_days_ago )); then
 #   echo "$filename is older than 100 days"
 # fi
-

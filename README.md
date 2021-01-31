@@ -126,3 +126,13 @@ Above command will give the sorted list of IP’s with number of connections to 
 
 `https://aka.ms/wsl`  
 `https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  
+
+
+https://ubuntu.com/wsl
+
+**Managing WSL Distros**  
+Note that doing this will break all connections to open sessions, e.g. open VS Code editor sessions to scripts inside WSL.
+When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
+VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
+Terminate all WSL instances (optionally Start / Restart the service): `Get-Service LxssManager | Stop-Service    # | Start-Service   # | Restart-Service`  
+Terminate a WSL instance: `wsl -t <distro-name>   # --terminate`   

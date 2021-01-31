@@ -13,6 +13,8 @@ alias q='exit'                         # Quit immediately
 alias v='vim'                          # Short vim access
 alias cd..='cd ..'; alias cd.='cd /'   # Common typos
 
+# Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
+# ls shows all files including .*, l is the same but without .*, ll is as ls but -l long format, l. and ll. are for .* files only, lss shows both security views (drwxr-xr-x / 755)
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc, note "\ls" for "l", this ignores the alias "ls" to run raw to remove "A"
 alias ls='ls -FAh --color=auto --group-directories-first'  # A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)
 alias l='\ls --color=auto --group-directories-first'       # Do not show hidden (.*) (this is the more normal 'ls' alias output, but putting to 'l' as usually always want "A" flag
@@ -21,12 +23,16 @@ alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown,
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"' # ls+security (shows the octal code as well as normal ls security flags) using stat
 
+# git: g, gst, ga, gcm, gcl, gstash, glog
+# gc, gcg, gcname, gadu, gall, git-push
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
-# ToDo: Functions pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
+# Tired of typing out 'sudo apt install' a lot so abbreviated these. Just have to be careful to avoid standard commands like 'du'
+# di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup , etc
+# ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 # ToDo: Function patch() to patch correctly per OS. 'upgrade' = 'update' + 'remove obsolete packages' + 'autoremove', etc
 # ToDo: Single function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool per OS.
 if which dnf &> /dev/null; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # dnf
@@ -38,11 +44,11 @@ if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo 
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-# Only re-alias 'cat' if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
+# Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias c 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
 
-# Add simple colour to LESS/MAN pages, useful for visibility
+# Add simple colour to LESS/MAN pages, useful for visibility (CentOS in particular has no man highlighting)
 export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
 export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
 export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
@@ -53,11 +59,10 @@ export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
 
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd if bash ver 4+, i.e. type a directory name to cd into it
-
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
-# rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty
+# ToDo: rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty
 # Some useful functions and to demonstrate some function syntax
-psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n }
+psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
 dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fixed du for current folder, including for inaccessible folders
 viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }
@@ -74,15 +79,16 @@ figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; 
 figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }
+login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 
-# Only display banner if this is not in a new tmux session
-if [ -z "$TMUX" ]; then printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; fi
-# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # if using 'tmux' can use this to always start tmux
+# Only display the login banner if this is not a new tmux session
+if [ -z "$TMUX" ]; then login_banner; fi
+# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
 
 # WSL aliases to access Windows apps (these only get created if /proc/version contains "Microsoft", i.e. if this is a WSL instance)
 if [[ `cat /proc/version` == *"Microsoft"* ]]; then
-    # Due to case-sensitivity in Linux, we sometimes have to find a folder in Windows that we don't know the case-sensitivity of. e.g. user "John" in Windows might be "john" in WSL
-    winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)   # Find current users case-sensitive Windows home folder to use in WSL
+    # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
+    winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)
     alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Chrome, can use with URLs:       chrome www.google.com
     alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
     alias n='notepad++'                                                           # n C:\Temp\Test.txt
@@ -93,3 +99,29 @@ if [[ `cat /proc/version` == *"Microsoft"* ]]; then
     [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
     alias c='code'
 fi
+
+# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
+# - Line endings being Windows instead of Unix.
+# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
+#   For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
+#   Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
+#   Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
+#   https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
+# 
+# - Also check on the termination of single-line functions with semicolon.
+#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
+#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }
+#
+# Tip: use trap to debug (if your script is on the large side...)
+# e.g.
+# set -x
+# trap read debug
+# 
+# The 'trap' command is a way to debug your scripts by esentially breaking after every line.
+# A fuller discussion is here: 
+# hppts://stackoverflow.com/questions/951336/how-to-debug-a-bash-script/45096876#45096876 
+#
+# An alternative for handling line endings:
+# export SHELLOPTS
+# set -o igncr
+# Put into .bashrc or .bash_profile and then do not need to run unix2dos

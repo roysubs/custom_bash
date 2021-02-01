@@ -1,10 +1,13 @@
 # Automated Bash Customisation & WSL Usage
 
 **Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
+  
 Enable the Windows Optional Feature for WSL from an Admin PowerShell console:  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
 `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-*>>> Must reboot here <<<*  
+*Must reboot at this point before using a distro.*  
+Note: the above is the old way to do this. Microsoft are making `wsl.exe` a core component of Windows in newer releases, so you can ignore the above commands and instead just run `wsl --install` and it will go ahead and do the above steps (a reboot is still required afterwards however).
+  
 **Install a distro from App Store or Chocolatey or manually with iwr/curl**
 • From App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
 • From [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
@@ -136,39 +139,30 @@ VS Code (e.g. `code .`) against the same files, VS Code will reopen with a conne
 Terminate all WSL instances (optionally Start / Restart the service): `Get-Service LxssManager | Stop-Service    # | Start-Service   # | Restart-Service`  
 Terminate a WSL instance: `wsl -t <distro-name>   # --terminate`   
 
+You can upgrade distros from v1 to v2 easily:  
+`wsl --set-default-version 2`  
 
-You can upgrade distros from v1 to v2 easily:
+After this, new distros will install as v2:  
+To upgrade existing distros to v2:  
+`wsl --set-version <distro-name> 2`  
+`Conversion in progress, this may take a few minutes...`  
+`For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
 
-
-wsl --set-default-version 2 
-
-After this, new distros will install as v2
-
-To upgrade existing distros to v2:
-
-wsl --set-version <distro-name> 2
-Conversion in progress, this may take a few minutes...
-For information on key differences with WSL 2 please visit https://aka.ms/wsl2
-
-*Restarting a WSL instance*
-`sudo reboot`  
-This does not work and generates the errors:  
+**Restarting a WSL instance (or all WSL instances)**  
+`sudo reboot`  does not work and generates the following error:  
 `System has not been booted with systemd as init system (PID 1). Can't operate.`  
 `Failed to connect to bus: Host is down`  
 `Failed to talk to init daemon.`  
-This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc
-
-```  
-https://linuxhandbook.com/system-has-not-been-booted-with-systemd/
-Systemd command Sysvinit command
-systemctl start service_name    service service_name start
-systemctl stop service_name service service_name stop
-systemctl restart service_name  service service_name restart
-systemctl status service_name   service service_name status
-systemctl enable service_name   chkconfig service_name on
-systemctl disable service_name  chkconfig service_name off
-```  
-
+This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/).  
+  
+`Systemd command                 Sysvinit command`  
+`systemctl start service_name    service service_name start`  
+`systemctl stop service_name     service service_name stop`  
+`systemctl restart service_name  service service_name restart`  
+`systemctl status service_name   service service_name status`  
+`systemctl enable service_name   chkconfig service_name on`  
+`systemctl disable service_name  chkconfig service_name off`  
+  
 [You probably don't need systemd on WSL](https://dev.to/bowmanjd/you-probably-don-t-need-systemd-on-wsl-windows-subsystem-for-linux-49gn)  
 Most popular Linux distributions use systemd as the init system for startup, shutdown, service monitoring, etc.  
 
@@ -201,7 +195,7 @@ Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
 
 
-*SSH Server Setup (openssh-server)*  
+**SSH Server Setup (openssh-server)**  
 
 We need to make sure that OpenSSH Server is installed and a few settings are changed in the `/etc/ssh/sshd_config` file.  
 `sudo apt install openssh-server      # But it is probably already installed`  
@@ -232,7 +226,11 @@ Now, can connect via putty or other ssh client at 127.0.0.1 on port 2222 (rememb
  
 
 
-*Run Windows commands from WSL and vice-versa*  
-In the Windows 10 Creators Update (build 1703, April 2017), this is natively supported. So you can now run Windows binaries from Linux...
-alias putty="/mnt/c/ProgramData/chocolatey/bin/PUTTY.EXE"  # Run Windows commands form Linux
-bash -c "fortune | cowsay"                                 # Run Linux commands from Windows PowerShell
+**Run Windows commands from WSL and vice-versa**  
+In the Windows 10 Creators Update (build 1703, April 2017), this is natively supported. So you can now run Windows binaries from Linux...  
+`alias putty="/mnt/c/ProgramData/chocolatey/bin/PUTTY.EXE"  # Run Windows commands form Linux`  
+`bash -c "fortune | cowsay"                                 # Run Linux commands from Windows PowerShell`  
+
+
+**Quick summary**  
+`Reboot: 

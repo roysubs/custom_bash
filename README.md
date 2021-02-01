@@ -1,38 +1,45 @@
 # Automated Bash Customisation & WSL Usage
+[//]: <> (This is also a comment.)  
 
 **Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
   
-Enable the Windows Optional Feature for WSL from an Admin PowerShell console:  
+• Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
 `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
 *Must reboot at this point before using a distro.*  
-Note: the above is the old way to do this. Microsoft are making `wsl.exe` a core component of Windows in newer releases, so you can ignore the above commands and instead just run `wsl --install` and it will go ahead and do the above steps (a reboot is still required afterwards however).
+  
+Note: the above is deprecated. The `wsl.exe` binary is now built into Windows in newer releases, so simply run `wsl --install` to do the above steps. A reboot is still required afterwards however.  
   
 **Install a distro from App Store or Chocolatey or manually with iwr/curl**  
 • App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
 • Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
 `choco install choco install wsl-ubuntu-2004`  
-Following optionally sets default user as root (default is false)  
+This chocolatey package can set the default user as root (default is false):  
 `choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
 • Using [iwr/curl](https://docs.microsoft.com/en-us/windows/wsl/install-manual) (Invoke-WebRequest):  
 `iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
-`curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe`  
-Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx             # To install the AppX package`  
+`curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004            # curl.exe`  
+Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx  # To install the AppX package`  
+After doing this, `wsl -l -v` will show the registered distro.
 
-Start distro from Start Menu or from `wsl.exe` or `bash.exe`  
-Setup Bash Customisations: `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-Setup 'Quick access' link to Linux home folder: Open explorer, navigate to `\\wsl$\Ubuntu\home\<user>` and drag into 'Quick access'.  
-Other setup for WSL, see `~/.custom`  
+• **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
+  
+• **Setup the Bash Standard Customisations**   `curl https://git.io/Jt0fZ | bash`  (used `git.io` to shorten the github link).  
+  
+• **Setup a 'Quick access' link to the WSL distro's home folder** by opening Explorer, navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
 
-**Bash CustomisationQuick Setup for WSL (focus on Ubuntu 2004 LTS)**  
-Working across different distros has awkward rules on priority for `.bash_profile` or `.bashrc` and interactive / non-interactive sessions. This project aims to create a maintainable bash environment that is compatible across as many distro's as possible. A focus is on WSL distros and includes specific tools for that (which only load if WSL is detected, so this setup works perfectly on WSL or non-WSL environments). All Debian and Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc) are supported. These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.
-
+# Bash Customisation / Quick Setup for WSL (focus on Ubuntu 2004 LTS)  
+  
+Working across different distros has awkward rules on priority for `.bash_profile` or `.bashrc` and interactive / non-interactive sessions. This project aims to create a maintainable bash environment that is compatible across as many distro's as possible. A focus is on WSL distros and includes specific tools for that (which only load if WSL is detected, so this setup works perfectly on WSL or non-WSL environments). All Debian and Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc) are supported. These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.  
+  
 The toolkit configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).
 
-**`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances. This script also updates selected very small core tools (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod etc`) and some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):
-`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
-
-Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash`, then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
+**`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances. This script also updates selected very small core tools (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod etc`) and some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
+`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
+or  
+`curl https://git.io/Jt0fZ | bash`  # (shortened with `git.io`)
+  
+Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`), then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
 
 **Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
 
@@ -222,9 +229,18 @@ Now, we need to restart the ssh service, but need to remember that WSL does *not
 `sudo service ssh start       # This will fail if keys are not generated`  
 `sudo service --status-all    # Can now see that the serice is running`  
 
-Now, can connect via putty or other ssh client at 127.0.0.1 on port 2222 (remember that Windows now has a built in ssh.exe and ssh-keygen.exe etc).  
- 
+Can now connect LOCALLY via putty or other ssh client at 127.0.0.1 on port 2222 (remember that Windows now has a built in ssh.exe and ssh-keygen.exe etc).  
+  
+To connect from a REMOTE system to this instance of WSL:  
+  
 
+
+**[*Guide to using Linux GUI apps + ZSH + Docker on WSL 2](https://scottspence.com/2020/12/09/gui-with-wsl/#video-detailing-the-process)**  
+[Nicky Meuleman’s guide on Using Graphical User Interfaces like Cypress’ in WSL2](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)  
+[Nicky Meuleman’s guide on Linux on Windows WSL 2 + ZSH + Docker](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker)  
+[Notes on Zsh and Oh My Zsh](https://scottspence.com/2020/12/08/zsh-and-oh-my-zsh/)  
+[Nicky Meuleman’s guide on setting up ZSH](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker#zsh)  
+There is talk of the WSL team Adding Linux GUI app support to WSL but this is slated for an update around December 2020, but this will only be in the Insider's Build and probably not in the main release of Windows 10 until the Spring/Summer 2021 release.  
 
 **Run Windows commands from WSL and vice-versa**  
 In the Windows 10 Creators Update (build 1703, April 2017), this is natively supported. So you can now run Windows binaries from Linux...  
@@ -234,3 +250,11 @@ In the Windows 10 Creators Update (build 1703, April 2017), this is natively sup
 
 **Quick summary**  
 `Reboot: 
+
+**Support for Wayland GUI Apps in WSL 2**
+
+With the latest updates to WSL2, Linux GUI apps integrate with Windows 10 using Wayland display server protocol running inside of WSL. Wayland communicates with a Remote Desktop Protocol (RDP) client on the Windows host to run the GUI app.  
+  
+Microsoft is also bringing GPU hardware acceleration for Linux applications running in WSL2. It has pushed the first draft of the brand new GPU driver ‘Dxgkrnl’ for the Linux kernel.  
+
+

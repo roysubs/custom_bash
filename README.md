@@ -8,14 +8,14 @@ Enable the Windows Optional Feature for WSL from an Admin PowerShell console:
 *Must reboot at this point before using a distro.*  
 Note: the above is the old way to do this. Microsoft are making `wsl.exe` a core component of Windows in newer releases, so you can ignore the above commands and instead just run `wsl --install` and it will go ahead and do the above steps (a reboot is still required afterwards however).
   
-**Install a distro from App Store or Chocolatey or manually with iwr/curl**
-• From App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
-• From [Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
+**Install a distro from App Store or Chocolatey or manually with iwr/curl**  
+• App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
+• Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
 `choco install choco install wsl-ubuntu-2004`  
 Following optionally sets default user as root (default is false)  
 `choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
-• From [iwr/wget](https://docs.microsoft.com/en-us/windows/wsl/install-manual)):  
-`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing   # Invoke-WebRequest`  
+• Using [iwr/curl](https://docs.microsoft.com/en-us/windows/wsl/install-manual) (Invoke-WebRequest):  
+`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
 `curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004                       # curl.exe`  
 Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx             # To install the AppX package`  
 

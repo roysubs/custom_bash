@@ -127,7 +127,6 @@ Above command will give the sorted list of IP’s with number of connections to 
 `https://aka.ms/wsl`  
 `https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  
 
-
 https://ubuntu.com/wsl
 
 **Managing WSL Distros**  
@@ -136,3 +135,104 @@ When you restart the instance, VS Code sessions will not reconnect, but just clo
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
 Terminate all WSL instances (optionally Start / Restart the service): `Get-Service LxssManager | Stop-Service    # | Start-Service   # | Restart-Service`  
 Terminate a WSL instance: `wsl -t <distro-name>   # --terminate`   
+
+
+You can upgrade distros from v1 to v2 easily:
+
+
+wsl --set-default-version 2 
+
+After this, new distros will install as v2
+
+To upgrade existing distros to v2:
+
+wsl --set-version <distro-name> 2
+Conversion in progress, this may take a few minutes...
+For information on key differences with WSL 2 please visit https://aka.ms/wsl2
+
+*Restarting a WSL instance*
+`sudo reboot`  
+This does not work and generates the errors:  
+`System has not been booted with systemd as init system (PID 1). Can't operate.`  
+`Failed to connect to bus: Host is down`  
+`Failed to talk to init daemon.`  
+This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc
+
+```  
+https://linuxhandbook.com/system-has-not-been-booted-with-systemd/
+Systemd command Sysvinit command
+systemctl start service_name    service service_name start
+systemctl stop service_name service service_name stop
+systemctl restart service_name  service service_name restart
+systemctl status service_name   service service_name status
+systemctl enable service_name   chkconfig service_name on
+systemctl disable service_name  chkconfig service_name off
+```  
+
+[You probably don't need systemd on WSL](https://dev.to/bowmanjd/you-probably-don-t-need-systemd-on-wsl-windows-subsystem-for-linux-49gn)  
+Most popular Linux distributions use systemd as the init system for startup, shutdown, service monitoring, etc.  
+
+WSL has it's own initialization system, and so no WSL distros use systemd, and do not generally employ a traditional init system.  
+  
+Two skills in particular will yield more satisfaction with WSL:  
+  
+• A good understanding of how to launch services directly (unmanaged by an init system).  
+• Familiarity with running containers. Without docker. (If you use WSL version 2).  
+
+
+[How to install systemd snap packages on WSL 2](https://snapcraft.ninja/2020/07/29/systemd-snap-packages-wsl2/)
+```
+sudo apt update
+sudo apt install -yqq git
+git clone https://github.com/DamionGans/ubuntu-wsl2-systemd-script.git $HOME/ubuntu-wsl2-systemd-script
+$HOME/ubuntu-wsl2-systemd-script/ubuntu-wsl2-systemd-script.sh
+```
+```
+cd $HOME/ubuntu-wsl2-systemd-script
+git pull
+./ubuntu-wsl2-systemd-script.sh --force
+```
+
+How to install Fedora Remix 33 for WSL 2 ...  
+
+[Connect to WSL via SSH](https://superuser.com/questions/1123552/how-to-ssh-into-wsl)
+Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,then restart the ssh service by the commond sudo service ssh --full-restart,you will successfully login.But I don't know the reason.
+
+I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
+
+
+*SSH Server Setup (openssh-server)*  
+
+We need to make sure that OpenSSH Server is installed and a few settings are changed in the `/etc/ssh/sshd_config` file.  
+`sudo apt install openssh-server      # But it is probably already installed`  
+
+Now run `sudo vi /etc/ssh/sshd_config` :  
+
+```
+Port 2222                          # Default is '22', must change for WSL
+PermitRootLogin prohibit-password  # Change?
+PasswordAuthentication yes         # Default is 'no'
+AllowAgentForwarding yes
+X11Forwarding yes
+```
+
+We must make sure that key-pairs are generated (for root, these generate in `/etc/ssh` and for the current user, they generate in `/home/<username>/.ssh` by default):  
+
+`sudo ssh-keygen -A                   # Generate root keys`  
+`ssh-keygen -t rsa -b 4096            # Generate a 4096 bits SSH key pair for current user`  
+  
+Now, we need to restart the ssh service, but need to remember that WSL does *not* use systemd, so `sudo systemctl restart sshd.service` will not work (neither will `sudo reboot` etc for the same reason):  
+
+`sudo service --status-all    # Show all init.d service names (look for "ssh")`  
+`sudo /etc/init.d/ssh stop    # Stop/Start the ssh service after every change`  
+`sudo service ssh start       # This will fail if keys are not generated`  
+`sudo service --status-all    # Can now see that the serice is running`  
+
+Now, can connect via putty or other ssh client at 127.0.0.1 on port 2222 (remember that Windows now has a built in ssh.exe and ssh-keygen.exe etc).  
+ 
+
+
+*Run Windows commands from WSL and vice-versa*  
+In the Windows 10 Creators Update (build 1703, April 2017), this is natively supported. So you can now run Windows binaries from Linux...
+alias putty="/mnt/c/ProgramData/chocolatey/bin/PUTTY.EXE"  # Run Windows commands form Linux
+bash -c "fortune | cowsay"                                 # Run Linux commands from Windows PowerShell

@@ -74,7 +74,7 @@ if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
 exe sudo $MANAGER upgrade -y
-exe sudo $MANAGER distupgrade -y
+exe sudo $MANAGER dist-upgrade -y
 exe sudo $MANAGER install ca-certificates -y   # to allow SSL-based applications to check for the authenticity of SSL connections
 exe sudo $MANAGER autoremove -y
 
@@ -203,10 +203,12 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
 # If .bash_profile is not zero length, load a line to dotsource .bashrc
 
-if [ -z ~/.bash_profile ]; then   # or could use "! -s", -s "size greater than zero"
+if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
     echo "Deleting zero-size ~/.bash_profile"
     rm ~/.bash_profile &> /dev/null
-else
+fi
+
+if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size file exists
     FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
     grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
 fi
@@ -385,7 +387,10 @@ print_header "Common changes to /etc/sudoers"
 # First, check if this system has a line ending "env_reset" (seems to normally be there in all Ubuntu / CentOs systems)
 SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
 exe sudo cp /etc/sudoers $SUDOTMP
-exe sudo sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers | sudo tee /etc/sudoers
+
+# This completely broke my environment, had to reinstall ...
+# exe sudo sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers | sudo tee /etc/sudoers
+
 # Require "sudo tee" as /etc/sudoers does not even have 'read' permissiong so "> sudoers.1" would not work
 # Can also use "--append" to tee, useful to adding to end of a file, but in this case we do not need
 

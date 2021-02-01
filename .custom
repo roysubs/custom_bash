@@ -1,10 +1,10 @@
 #!/bin/bash
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
-export LS_COLORS=$LS_COLORS:'di=0;94'   # dirs to cyan "0;36" instead of dark blue on black
-# For PS1 (the prompt), root will be in red, non-root users in green
+export LS_COLORS=$LS_COLORS:'di=0;94'  # Various windows setups find it difficult to display dark blue on black, so change to cyan "0;36"
+# Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
-export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[36m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
+export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd function if bash ver 4+, i.e. type a directory name (without cd) to cd into that directory
 alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser

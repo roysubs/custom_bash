@@ -1,6 +1,10 @@
 # Automated Bash Customisation & WSL Usage
-[//]: <> (This is also a comment.)  
+[//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
+Setting up a new Linux environment, especially between different systems, can be awkward, modifying `~/.bashrc`, updating Vim settings in `~/.vimrc`, and getting the minimal tools that you want on each system that are not always installed on that variant of a system. This project intends to fix that by way of two scripts. The first script `custom_loader.sh` does the overall job of taking any system (CentOS, Ubuntu, Debian, including WSL specific settings if it detects the OS is running inside WSL) and updates all of those parts, including setting keyboard preferences and installing a selection of core (small) tools that are most often required on all systems that I'm working on. The second script `.custom` is called from `~/.bashrc` to setup a consistent set of login settings.  
+  
+The settings that I've chosen here are obviously my own customisations, but were always setup to be as generic and cross-platform as possible, meaning that I get a consistent environment no matter if I'm running on Debian or CentOS or Ubuntu, and including if those are inside WSL. The customisation for `~/.bashrc` can be immediately uninstalled simply by removing the two lines in `~/.bashrc` that call `~/.custom`.
+  
 **Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
   
 • Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
@@ -30,16 +34,14 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 # Bash Customisation / Quick Setup for WSL (focus on Ubuntu 2004 LTS)  
   
-Working across different distros has awkward rules on priority for `.bash_profile` or `.bashrc` and interactive / non-interactive sessions. This project aims to create a maintainable bash environment that is compatible across as many distro's as possible. A focus is on WSL distros and includes specific tools for that (which only load if WSL is detected, so this setup works perfectly on WSL or non-WSL environments). All Debian and Redhat variants (i.e. includes Ubuntu/Fedora/CentOS/LinuxMint/Peppermint etc) are supported. These tools can be uninstalled immediately simply by removing the calling lines in `~/.bashrc`.  
-  
-The toolkit configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).
-
 **`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances. This script also updates selected very small core tools (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod etc`) and some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
 or  
 `curl https://git.io/Jt0fZ | bash`  # (shortened with `git.io`)
   
 Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`), then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
+
+**`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
 **Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
 
@@ -101,12 +103,6 @@ Unfortunately, Ubuntu will now use root as the default user. To go back to your 
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
-**WSL Links**  
-[WSL: The Ultimate Guide](https://adamtheautomator.com/windows-subsystem-for-linux/)  
-[Linux Graphical Apps coming to WSL](https://www.zdnet.com/article/linux-graphical-apps-coming-to-windows-subsystem-for-linux/)  
-[Target WSL from Visual Studio](https://devblogs.microsoft.com/cppblog/targeting-windows-subsystem-for-linux-from-visual-studio/)  
-[Fun with WSL (older page, some info is out of date)](https://blogs.windows.com/windowsdeveloper/2016/07/22/fun-with-the-windows-subsystem-for-linux/)  
-
 **ToDo** Looks like it is not possible to invoke a script *with switches* via `curl`, so could use a local file to check if specific changes need to be made. e.g. overwriting `.custom`, or to load everything to `/etc` instead of `/home` maybe have a `.custom_install_system_wide` flag then delete that file after the change. Make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.
 
 **ToDo** If exist `.custom_install_coreapps`): Install various various core apps. e.g.
@@ -114,30 +110,6 @@ To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable t
 `sudo apt install libsecret-1-0 libsecret-1-dev`
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
 
-# Useful One-Liners etc
-[Large list](https://onceupon.github.io/Bash-Oneliner/)  
-[6 useful one-liners](https://www.thegeekstuff.com/2010/09/linux-one-liners/)  
-[10 useful one-liners for system](https://www.reddit.com/r/sysadmin/comments/31oucc/10_useful_linux_oneliners_for_system/)  
-[Large list of lesser known commands](https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/)  
-[Linux Complex Bash One-Liner Examples](https://linuxconfig.org/linux-complex-bash-one-liner-examples)  
-[Random](https://angrysysadmins.tech/index.php/2019/04/bailey/useful-bash-one-liners/)  
-[Random](https://colinpaice.blog/2021/01/21/useful-linux-commands/)  
-[Interesting Vim & Terminal colour notes](https://medium.com/@gillicarmon/create-color-scheme-for-vim-335e842e29ea)  
-
-[Uses of the ! command](https://www.tecmint.com/mysterious-uses-of-symbol-or-operator-in-linux-commands/)  
-[Fun Stuff 1](https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/)  
-[Fun Commands I](https://www.tecmint.com/20-funny-commands-of-linux-or-linux-is-fun-in-terminal/)  
-[Fun Commands II](https://www.tecmint.com/linux-funny-commands/)  
-[Fun with Character Counts](https://www.tecmint.com/play-with-word-and-character-counts-in-linux/)  
-https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117  
-
-`netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1`  
-Above command will give the sorted list of IP’s with number of connections to the port 80.
-
-`https://aka.ms/wsl`  
-`https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  
-
-https://ubuntu.com/wsl
 
 **Managing WSL Distros**  
 Note that doing this will break all connections to open sessions, e.g. open VS Code editor sessions to scripts inside WSL.
@@ -202,8 +174,11 @@ Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
 
 
-**SSH Server Setup (openssh-server)**  
 
+# SSH Server Setup (openssh-server)  
+  
+**Enable ability to connect to WSL locally on 127.0.0.1 (port 2222) or remotely from any system in the network**  
+  
 We need to make sure that OpenSSH Server is installed and a few settings are changed in the `/etc/ssh/sshd_config` file.  
 `sudo apt install openssh-server      # But it is probably already installed`  
 
@@ -231,10 +206,17 @@ Now, we need to restart the ssh service, but need to remember that WSL does *not
 
 Can now connect LOCALLY via putty or other ssh client at 127.0.0.1 on port 2222 (remember that Windows now has a built in ssh.exe and ssh-keygen.exe etc).  
   
-To connect from a REMOTE system to this instance of WSL:  
+To connect from a REMOTE system to this instance of WSL, follow this [guide](https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2):  
+# edit /etc/ssh/sshd_config with the following three changes
+Port 2222
+ListenAddress 0.0.0.0
+PasswordAuthentication yes
+
+We also need to edit /etc/sudoers.d/ in order to remove the requirement of a password for starting the ssh service, this will come handy later on in the automation section of the article, so add the following line:  
+`%sudo ALL=NOPASSWD: /usr/sbin/service ssh *`  
+After all this we can start the service:  
+`service ssh start`  
   
-
-
 **[*Guide to using Linux GUI apps + ZSH + Docker on WSL 2](https://scottspence.com/2020/12/09/gui-with-wsl/#video-detailing-the-process)**  
 [Nicky Meuleman’s guide on Using Graphical User Interfaces like Cypress’ in WSL2](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)  
 [Nicky Meuleman’s guide on Linux on Windows WSL 2 + ZSH + Docker](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker)  
@@ -247,14 +229,55 @@ In the Windows 10 Creators Update (build 1703, April 2017), this is natively sup
 `alias putty="/mnt/c/ProgramData/chocolatey/bin/PUTTY.EXE"  # Run Windows commands form Linux`  
 `bash -c "fortune | cowsay"                                 # Run Linux commands from Windows PowerShell`  
 
-
-**Quick summary**  
-`Reboot: 
-
 **Support for Wayland GUI Apps in WSL 2**
 
 With the latest updates to WSL2, Linux GUI apps integrate with Windows 10 using Wayland display server protocol running inside of WSL. Wayland communicates with a Remote Desktop Protocol (RDP) client on the Windows host to run the GUI app.  
   
 Microsoft is also bringing GPU hardware acceleration for Linux applications running in WSL2. It has pushed the first draft of the brand new GPU driver ‘Dxgkrnl’ for the Linux kernel.  
 
+**Default locations for WSL Distros**
 
+`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+
+**Quick summary**  
+Reboot: do not use `sudo reboot`, use `wsl -t <distro>`
+Shutdown all distros: `wsl -shutdown`
+
+**Using the Remote extension in VS Code**
+
+`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+
+# Useful Links and One-Liner Bash Functions etc
+
+**WSL Links**  
+[WSL: The Ultimate Guide](https://adamtheautomator.com/windows-subsystem-for-linux/)  
+[Linux Graphical Apps coming to WSL](https://www.zdnet.com/article/linux-graphical-apps-coming-to-windows-subsystem-for-linux/)  
+[Target WSL from Visual Studio](https://devblogs.microsoft.com/cppblog/targeting-windows-subsystem-for-linux-from-visual-studio/)  
+[Fun with WSL (older page, some info is out of date)](https://blogs.windows.com/windowsdeveloper/2016/07/22/fun-with-the-windows-subsystem-for-linux/)  
+
+**Custom Functions for Profiles**  
+[Large list](https://onceupon.github.io/Bash-Oneliner/)  
+[6 useful one-liners](https://www.thegeekstuff.com/2010/09/linux-one-liners/)  
+[10 useful one-liners for system](https://www.reddit.com/r/sysadmin/comments/31oucc/10_useful_linux_oneliners_for_system/)  
+[Large list of lesser known commands](https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/)  
+[Linux Complex Bash One-Liner Examples](https://linuxconfig.org/linux-complex-bash-one-liner-examples)  
+[Random](https://angrysysadmins.tech/index.php/2019/04/bailey/useful-bash-one-liners/)  
+[Random](https://colinpaice.blog/2021/01/21/useful-linux-commands/)  
+[Interesting Vim & Terminal colour notes](https://medium.com/@gillicarmon/create-color-scheme-for-vim-335e842e29ea)  
+
+[Uses of the ! command](https://www.tecmint.com/mysterious-uses-of-symbol-or-operator-in-linux-commands/)  
+[Fun Stuff 1](https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/)  
+[Fun Commands I](https://www.tecmint.com/20-funny-commands-of-linux-or-linux-is-fun-in-terminal/)  
+[Fun Commands II](https://www.tecmint.com/linux-funny-commands/)  
+[Fun with Character Counts](https://www.tecmint.com/play-with-word-and-character-counts-in-linux/)  
+https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117  
+
+`netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1`  
+Above command will give the sorted list of IP’s with number of connections to the port 80.
+
+`https://aka.ms/wsl`  
+`https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  
+
+https://ubuntu.com/wsl
+
+# Starting WSL with keyboard shortcut ...

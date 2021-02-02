@@ -1,7 +1,8 @@
 #!/bin/bash
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
-export LS_COLORS=$LS_COLORS:'di=0;94'  # Various windows setups find it difficult to display dark blue on black, so change to cyan "0;36"
+export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
+alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
@@ -31,10 +32,10 @@ alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in p
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
 # Tired of typing out 'sudo apt install' a lot so abbreviated these. Just have to be careful to avoid standard commands like 'du'
-# di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup , etc
+# di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptup = update + upgrade + dist-update
 # ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
-# ToDo: Function patch() to patch correctly per OS. 'upgrade' = 'update' + 'remove obsolete packages' + 'autoremove', etc
-# ToDo: Single function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool per OS.
+#    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
+#    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
 if which dnf &> /dev/null; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 if which yum &> /dev/null; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumup='sudo yum update && sudo yum upgrade'; fi   # yum
 if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias aptup='sudo apt update && sudo apt upgrade'; fi   # apt
@@ -48,7 +49,7 @@ if which appimage &> /dev/null; then alias api='sudo appimage install'; alias ap
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias c 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
 
-# Add simple colour to LESS/MAN pages, useful for visibility (CentOS in particular has no man highlighting)
+# Color for LESS/MAN pages, as some distros do not provide this by default (e.g. CentOS).
 export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
 export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
 export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
@@ -58,12 +59,11 @@ export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
 export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
 
-[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd if bash ver 4+, i.e. type a directory name to cd into it
+[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # if bash ver 4+, then autocd. i.e. if type a directory name to cd into it, without needing to type 'cd'
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
-# ToDo: rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty
-# Some useful functions and to demonstrate some function syntax
+# Some basic/useful functions (and to use as templates to demonstrate some function syntax)
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
-dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) (size of files in current directory only)\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
+dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) = size of all files in current directory only\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
 dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fixed du for current folder, including for inaccessible folders
 viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }
 viconfsu() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }
@@ -80,9 +80,7 @@ figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}
 figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }
 login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
-
-# Only display the login banner if this is not a new tmux session
-if [ -z "$TMUX" ]; then login_banner; fi
+if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
 
 # WSL aliases to access Windows apps (these only get created if /proc/version contains "Microsoft", i.e. if this is a WSL instance)
@@ -99,29 +97,3 @@ if [[ `cat /proc/version` == *"Microsoft"* ]]; then
     [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
     alias c='code'
 fi
-
-# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
-# - Line endings being Windows instead of Unix.
-# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
-#   For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
-#   Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
-#   Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
-#   https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
-# 
-# - Also check on the termination of single-line functions with semicolon.
-#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
-#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }
-#
-# Tip: use trap to debug (if your script is on the large side...)
-# e.g.
-# set -x
-# trap read debug
-# 
-# The 'trap' command is a way to debug your scripts by esentially breaking after every line.
-# A fuller discussion is here: 
-# hppts://stackoverflow.com/questions/951336/how-to-debug-a-bash-script/45096876#45096876 
-#
-# An alternative for handling line endings:
-# export SHELLOPTS
-# set -o igncr
-# Put into .bashrc or .bash_profile and then do not need to run unix2dos

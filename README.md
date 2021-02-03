@@ -1,11 +1,11 @@
 # Automated Bash Customisation & WSL Usage
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-Setting up a new Linux environment, especially between different systems, can be awkward, modifying `~/.bashrc`, updating Vim settings in `~/.vimrc`, and getting the minimal tools that you want on each system that are not always installed on that variant of a system. This project intends to fix that by way of two scripts. The first script `custom_loader.sh` does the overall job of taking any system (CentOS, Ubuntu, Debian, including WSL specific settings if it detects the OS is running inside WSL) and updates all of those parts, including setting keyboard preferences and installing a selection of core (small) tools that are most often required on all systems that I'm working on. The second script `.custom` is called from `~/.bashrc` to setup a consistent set of login settings.  
+Setting up Linux can be awkward, modifying `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, getting useful minimal tools that might not be default on a given distro etc. This project intends to fix that by way of two scripts. The first script `custom_loader.sh` does the overall job of taking any system (CentOS, Ubuntu, Debian, including WSL specific settings if it detects the OS is running inside WSL) and updates all of those parts, including setting keyboard preferences and installing a selection of core (small) tools that are most often required on all systems that I'm working on. The second script `.custom` is called from `~/.bashrc` to setup a consistent set of login settings.  
   
-The settings that I've chosen here are obviously my own customisations, but were always setup to be as generic and cross-platform as possible, meaning that I get a consistent environment no matter if I'm running on Debian or CentOS or Ubuntu, and including if those are inside WSL. The customisation for `~/.bashrc` can be immediately uninstalled simply by removing the two lines in `~/.bashrc` that call `~/.custom`.
+The settings here are my preferences, but provide a framework for adjusting (templates for how to easily automate the addition of settings to `~/.vimrc`, `~/.inputrc`, etc). Most settings here are agnostic and so will create a consistent environment across Debian / CentOS / Ubuntu etc, and including if inside WSL. As the profile settings are all in `~/.bashrc`, this can be immediately uninstalled simply by removing the two lines in `~/.bashrc` that call `~/.custom`.
   
-**Quick Setup for WSL (focus on Ubuntu 2004 LTS)**  
+**Quick Setup for WSL (with examples for Ubuntu)**  
   
 • Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
@@ -26,6 +26,25 @@ This chocolatey package can set the default user as root (default is false):
 Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx  # To install the AppX package`  
 After doing this, `wsl -l -v` will show the registered distro.
 
+My preferred setup method:  
+
+`wsl --set-default-version 2`  
+`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
+`Add-AppxPackage .\Ubuntu.appx`  
+`# Will install to:  C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+`# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL`  
+`md D:\WSL\Ubuntu`  
+`cd D:\WSL\Ubuntu`  
+`wsl -l -v`
+`wsl --export Ubuntu D:\WSL\Ubuntu.tar`  
+`wsl --unregister Ubuntu    # unregister the WSL image`  
+`wsl --list                 # verify the distribution has been removed.`  
+`wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
+`# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : `ubuntu config --default-user <yourname>` where `<yourname>` is the username you defined during installation.  
+
+[Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
+To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
+
 • **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
   
 • **Setup the Bash Standard Customisations**   `curl https://git.io/Jt0fZ | bash`  (used `git.io` to shorten the github link).  
@@ -34,11 +53,20 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 # Bash Customisation / Quick Setup for WSL (focus on Ubuntu 2004 LTS)  
   
-**`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances. This script also updates selected very small core tools (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod etc`) and some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
+**`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
 or  
 `curl https://git.io/Jt0fZ | bash`  # (shortened with `git.io`)
   
+**.inputrc changes**.  
+`set completion-ignore-case On`   really useful to prevent case-sensitivity taking over when trying to tab complete into folders
+
+**`.vimrc`**  
+
+**`sudoers`**  
+
+
+
 Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`), then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
 
 **`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
@@ -109,30 +137,33 @@ To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable t
 `sudo apt install git vim curl openssh-server`
 `sudo apt install libsecret-1-0 libsecret-1-dev`
 `sudo apt <xrdp core configuration for debian/red-hat variants>`
-
-
+  
 **Managing WSL Distros**  
 Note that doing this will break all connections to open sessions, e.g. open VS Code editor sessions to scripts inside WSL.
 When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
-Terminate all WSL instances (optionally Start / Restart the service): `Get-Service LxssManager | Stop-Service    # | Start-Service   # | Restart-Service`  
-Terminate a WSL instance: `wsl -t <distro-name>   # --terminate`   
+  
+Terminate a single WSL instance: `wsl -t <distro-name>   # or --terminate`   
+Does it restart immediately?
+Note that `sudo reboot` does not work and generates the following error:  
+`   System has not been booted with systemd as init system (PID 1). Can't operate.`  
+`   Failed to connect to bus: Host is down`  
+`   Failed to talk to init daemon.`  
+This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/).  
 
-You can upgrade distros from v1 to v2 easily:  
+Kill all WSL instances: `Get-Service LxssManager | Stop-Service`   (then same again but with ` | Start-Service` to start again)
+Restart all instances:  `Get-Service LxssManager | Restart-Service`
+
+To make all new distros install as v2:  
 `wsl --set-default-version 2`  
 
-After this, new distros will install as v2:  
-To upgrade existing distros to v2:  
+To upgrade an existing distro to v2:  
 `wsl --set-version <distro-name> 2`  
-`Conversion in progress, this may take a few minutes...`  
-`For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
-
-**Restarting a WSL instance (or all WSL instances)**  
-`sudo reboot`  does not work and generates the following error:  
-`System has not been booted with systemd as init system (PID 1). Can't operate.`  
-`Failed to connect to bus: Host is down`  
-`Failed to talk to init daemon.`  
-This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/).  
+`   Conversion in progress, this may take a few minutes...`  
+`   For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
+  
+# Systemd does not exist in WSL distros**  
+You cannot use `sudo reboot` or any similar systemd command:  
   
 `Systemd command                 Sysvinit command`  
 `systemctl start service_name    service service_name start`  
@@ -142,16 +173,12 @@ This is because WSL does not use systemd, and so this also applies to all system
 `systemctl enable service_name   chkconfig service_name on`  
 `systemctl disable service_name  chkconfig service_name off`  
   
-[You probably don't need systemd on WSL](https://dev.to/bowmanjd/you-probably-don-t-need-systemd-on-wsl-windows-subsystem-for-linux-49gn)  
-Most popular Linux distributions use systemd as the init system for startup, shutdown, service monitoring, etc.  
-
-WSL has it's own initialization system, and so no WSL distros use systemd, and do not generally employ a traditional init system.  
+[Why you probably don't need systemd on WSL](https://dev.to/bowmanjd/you-probably-don-t-need-systemd-on-wsl-windows-subsystem-for-linux-49gn)  
+Most popular Linux distributions use systemd as the init system for startup, shutdown, service monitoring, etc, but WSL has it's own initialization system, and so no WSL distros use systemd, and do not generally employ a traditional init system.  
   
 Two skills in particular will yield more satisfaction with WSL:  
-  
 • A good understanding of how to launch services directly (unmanaged by an init system).  
 • Familiarity with running containers. Without docker. (If you use WSL version 2).  
-
 
 [How to install systemd snap packages on WSL 2](https://snapcraft.ninja/2020/07/29/systemd-snap-packages-wsl2/)
 ```
@@ -281,3 +308,173 @@ Above command will give the sorted list of IP’s with number of connections to 
 https://ubuntu.com/wsl
 
 # Starting WSL with keyboard shortcut ...
+
+# [Compare WSL 1 and WSL 2](https://docs.microsoft.com/en-gb/windows/wsl/compare-versions)
+**WSL 2 architecture**  
+Traditional VMs are slow to boot up, isolated, and consume a lot of resources. WSL 2 does not have these attributes, and requires no VM configuration or management While WSL 2 does use a VM, it is managed and run behind the scenes, leaving you with the same user experience as WSL 1.  
+
+**Full Linux kernel**  
+The Linux kernel in WSL 2 is built by Microsoft from the latest stable branch, based on the source available at kernel.org. This kernel has been specially tuned for WSL 2, optimizing for size and performance, and will be serviced by Windows updates for latest security fixes and kernel improvements.  
+
+**Increased file IO performance**  
+File intensive operations like git clone, npm install, apt update, apt upgrade, and more are all noticeably faster with WSL 2. Initial versions of WSL 2 run up to 20x faster compared to WSL 1 when unpacking a zipped tarball, and around 2-5x faster when using git clone, npm install and cmake on various projects.  
+
+**Full system call compatibility**  
+Linux binaries use system calls to perform functions such as accessing files, requesting memory, creating processes, and more. Whereas WSL 1 used a translation layer that was built by the WSL team, WSL 2 includes its own Linux kernel with full system call compatibility. Benefits include:  
+• A whole new set of apps that you can run inside of WSL, such as Docker and more.
+• Updates to the Linux kernel are immediately ready for use (You don't have to wait for the WSL team to implement updates and add the changes).
+
+**VS Code Remote WSL Extension**  
+This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
+
+**Accessing network applications**  
+Accessing Linux networking apps from Windows (localhost)  
+If you are building a networking app (for example an app running on a NodeJS or SQL server) in your Linux distribution, you can access it from a Windows app (like your Edge or Chrome internet browser) using localhost (just like you normally would).  
+
+To find the IP address of the virtual machine powering your Linux distribution:
+
+From your WSL distribution (ie Ubuntu), run the command: ip addr
+Find and copy the address under the inet value of the eth0 interface.
+If you have the grep tool installed, find this more easily by filtering the output with the command: ip addr | grep eth0
+Connect to your Linux server using this IP address.
+The picture below shows an example of this by connecting to a Node.js server using the Edge browser.
+
+Connect to NodeJS server with Edge
+
+Accessing Windows networking apps from Linux (host IP)
+If you want to access a networking app running on Windows (for example an app running on a NodeJS or SQL server) from your Linux distribution (ie Ubuntu), then you need to use the IP address of your host machine. While this is not a common scenario, you can follow these steps to make it work.
+
+Obtain the IP address of your host machine by running this command from your Linux distribution: cat /etc/resolv.conf
+Copy the IP address following the term: nameserver.
+Connect to any Windows server using the copied IP address.
+The picture below shows an example of this by connecting to a Node.js server running in Windows via curl.
+
+Connect to NodeJS server in Windows via Curl
+
+Additional networking considerations
+Connecting via remote IP addresses
+When using remote IP addresses to connect to your applications, they will be treated as connections from the Local Area Network (LAN). This means that you will need to make sure your application can accept LAN connections.
+
+For example, you may need to bind your application to 0.0.0.0 instead of 127.0.0.1. In the example of a Python app using Flask, this can be done with the command: app.run(host='0.0.0.0'). Please keep security in mind when making these changes as this will allow connections from your LAN.
+
+Accessing a WSL 2 distribution from your local area network (LAN)
+When using a WSL 1 distribution, if your computer was set up to be accessed by your LAN, then applications run in WSL could be accessed on your LAN as well.
+
+This isn't the default case in WSL 2. WSL 2 has a virtualized ethernet adapter with its own unique IP address. Currently, to enable this workflow you will need to go through the same steps as you would for a regular virtual machine. (We are looking into ways to improve this experience.)
+
+Here's an example PowerShell command to add a port proxy that listens on port 4000 on the host and connects it to port 4000 to the WSL 2 VM with IP address 192.168.101.100.
+
+PowerShell
+
+Copy
+netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=192.168.101.100
+IPv6 access
+WSL 2 distributions currently cannot reach IPv6-only addresses. We are working on adding this feature.
+
+Expanding the size of your WSL 2 Virtual Hard Disk
+WSL 2 uses a Virtual Hard Disk (VHD) to store your Linux files. In WSL 2, a VHD is represented on your Windows hard drive as a .vhdx file.
+
+The WSL 2 VHD uses the ext4 file system. This VHD automatically resizes to meet your storage needs and has an initial maximum size of 256GB. If the storage space required by your Linux files exceeds this size you may need to expand it. If your distribution grows in size to be greater than 256GB, you will see errors stating that you've run out of disk space. You can fix this error by expanding the VHD size.
+
+To expand your maximum VHD size beyond 256GB:
+
+Terminate all WSL instances using the command: wsl --shutdown
+
+Find your distribution installation package name ('PackageFamilyName')
+
+Using PowerShell (where 'distro' is your distribution name) enter the command:
+Get-AppxPackage -Name "*<distro>*" | Select PackageFamilyName
+Locate the VHD file fullpath used by your WSL 2 installation, this will be your pathToVHD:
+
+%LOCALAPPDATA%\Packages\<PackageFamilyName>\LocalState\<disk>.vhdx
+Resize your WSL 2 VHD by completing the following commands:
+
+Open Windows Command Prompt with admin privileges and enter:
+
+PowerShell
+
+Copy
+diskpart
+DISKPART> Select vdisk file="<pathToVHD>"
+DISKPART> detail vdisk
+Examine the output of the detail command. The output will include a value for Virtual size. This is the current maximum. Convert this value to megabytes. The new value after resizing must be greater than this value. For example, if the detail output shows Virtual size: 256 GB, then you must specify a value greater than 256000. Once you have your new size in megabytes, enter the following command in diskpart:
+
+PowerShell
+
+Copy
+DISKPART> expand vdisk maximum=<sizeInMegaBytes>
+Exit diskpart
+
+PowerShell
+
+Copy
+DISKPART> exit
+Launch your WSL distribution (Ubuntu, for example).
+
+Make WSL aware that it can expand its file system's size by running these commands from your Linux distribution command line.
+
+ Note
+
+You may see this message in response to the first mount command: /dev: none already mounted on /dev. This message can safely be ignored.
+
+PowerShell
+
+Copy
+   sudo mount -t devtmpfs none /dev
+   mount | grep ext4
+Copy the name of this entry, which will look like: /dev/sdX (with the X representing any other character). In the following example the value of X is b:
+
+PowerShell
+
+Copy
+   sudo resize2fs /dev/sdb <sizeInMegabytes>M
+ Note
+
+You may need to install resize2fs. If so, you can use this command to install it: sudo apt install resize2fs.
+
+The output will look similar to the following:
+
+Bash
+
+Copy
+   resize2fs 1.44.1 (24-Mar-2018)
+   Filesystem at /dev/sdb is mounted on /; on-line resizing required
+   old_desc_blocks = 32, new_desc_blocks = 38
+   The filesystem on /dev/sdb is now 78643200 (4k) blocks long.
+ Note
+
+In general do not modify, move, or access the WSL related files located inside of your AppData folder using Windows tools or editors. Doing so could cause your Linux distribution to become corrupted.
+
+
+
+
+**Enable root user in various distros**  
+• For Ubuntu:  
+`ubuntu config --default-user <user_name>`  
+• For openSuse:  
+`opensuse-42 config --default-user <user_name>`  
+• For SUSE Linux Enterprise Server:  
+`sles-12 config --default-user <user_name>`
+
+Use root for a spcific task:
+`sudo -i`
+To enable the root account:
+`sudo -i passwd root`
+`su -`   (or `su - root`)
+To disable the root account:
+`sudo passwd -dl root`
+
+To enable the root account login through the graphical user interface, we need to edit the next two files:
+
+/etc/gdm3/custom.conf
+AllowRoot=true
+
+/etc/pam.d/gdm-password
+Comment out the line `auth   reuireqd   pam_succeed_if.so user != root quiet_access`
+
+
+# VS Code Remove Extesion and WSL
+
+https://code.visualstudio.com/docs/remote/wsl  
+https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode  
+https://ajeet.dev/developing-in-wsl-using-visual-studio-code/  

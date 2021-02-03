@@ -198,6 +198,29 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 #
 ####################
 
+####################
+#
+print_header "Download and dotsource new .custom"
+#
+####################
+# read -e -p "Any key to continue ..."; "$@"
+
+[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
+
+if [ -f ./.custom ] && [[ $- == *"i"* ]]; then   # and pwd is not ~ !!!
+    cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+fi
+
+if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
+
+# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
+
+read -e -p "1..."; "$@"
+
 # Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
 # will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
@@ -215,6 +238,8 @@ if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size fil
     grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
 fi
 
+read -e -p "2..."; "$@"
+
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
 # -q be quiet, -x match the whole line, -F pattern is a plain string
 # use "tee" instead of ">>", as ">>" will not permit updating protected files
@@ -228,7 +253,7 @@ GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.github
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 # Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
 sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file $
-"" | sudo tee --append ~/.bashrc   # Add an empty line
+echo "" | sudo tee --append ~/.bashrc   # Add an empty line
 grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
 grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
@@ -240,6 +265,8 @@ grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashr
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
 exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to 'mv' this to make way for the new downloaded file
 exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+
+read -e -p "3..."; "$@"
 
 
 
@@ -299,7 +326,7 @@ print_header "Common changes to .inputrc"
 if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
 echo  >> ~/.inputrc
-INPUTRC='set completion-ignore-case On'
+INPUTRC='set completion-ignore-case On'   # Set Tab completion to be non-case sensitive
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
 # https://www.topbug.net/blog/2017/07/31/inputrc-for-humans/
@@ -372,6 +399,11 @@ print_header "Common changes to /etc/sudoers"
 #     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to
 #     a value less than 0 the user's time stamp will not expire until the system is rebooted.  This can be used to allow users to create
 #     or delete their own time stamps via “sudo -v” and “sudo -k” respectively.
+# A note on the use of env_reset (Ubuntu and CentOS both use it, but CentOS restricts it with env_keep from what I can see)
+# https://unixhealthcheck.com/blog?id=363
+
+# This all must be overhauled. Need to be able programmatically automate changes to sudoers.
+# There are guides for this.
 
 # Nornally, should only use visudo to update /etc/sudoers, so have to be very careful with this one, as can break system
 # However, on Ubuntu and many modern distros, fixing a corrupted sudoers file is actually quite easy, and doesn't require
@@ -386,9 +418,6 @@ print_header "Common changes to /etc/sudoers"
 # speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
 # (If there is more than one user account on the system authorized to run programs as root with PolicyKit, then for any of those
 # actions, you'll be asked to select which one you want to use, before being asked for your password.)
-
-# A note on the use of env_reset (Ubuntu uses, but CentOS restricts it with env_keep from what I can see)
-# https://unixhealthcheck.com/blog?id=363
 
 # First, check if this system has a line ending "env_reset" (seems to normally be there in all Ubuntu / CentOs systems)
 SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
@@ -472,26 +501,11 @@ read -e -p "Any key to continue ..."; "$@"
 
 ####################
 #
-print_header "Download and dotsource new .custom"
+print_header "Dotsource ~/.custom into running session"
 #
 ####################
-read -e -p "Any key to continue ..."; "$@"
 
-[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
-
-if [ -f ./.custom ] && [[ $- == *"i"* ]]; then   # and pwd is not ~ !!!
-    cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-fi
-
-if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-fi
-
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
-
-# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 
 
 

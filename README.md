@@ -1,37 +1,19 @@
 # Automated Bash Customisation & WSL Usage
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-Setting up Linux can be awkward, modifying `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, getting useful minimal tools that might not be default on a given distro etc. This project intends to fix that by way of two scripts. The first script `custom_loader.sh` does the overall job of taking any system (CentOS, Ubuntu, Debian, including WSL specific settings if it detects the OS is running inside WSL) and updates all of those parts, including setting keyboard preferences and installing a selection of core (small) tools that are most often required on all systems that I'm working on. The second script `.custom` is called from `~/.bashrc` to setup a consistent set of login settings.  
+Configuring Linux can be awkward (`~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, getting useful tools that may not be default on a given distro etc) so this installer will do those tasks. The script `custom_loader.sh` sets things up (for most distros, CentOS/Ubuntu/Debian etc, including WSL specific settings if that is detected). It also sets up locale preferences. The second script `.custom` is simply called from `~/.bashrc` to setup a consistent set of login settings.  
   
-The settings here are my preferences, but provide a framework for adjusting (templates for how to easily automate the addition of settings to `~/.vimrc`, `~/.inputrc`, etc). Most settings here are agnostic and so will create a consistent environment across Debian / CentOS / Ubuntu etc, and including if inside WSL. As the profile settings are all in `~/.bashrc`, this can be immediately uninstalled simply by removing the two lines in `~/.bashrc` that call `~/.custom`.
+The settings here are my preferences, but also are a framework (templates for how to easily automate the addition of settings for `~/.vimrc`, `~/.inputrc`, etc). Everything is lightweight so will not mess up any system (`~/.custom` is just called from `~/.bashrc` so that can be turned off simply by removing the two lines in `~/.bashrc`.
   
-**Quick Setup for WSL (with examples for Ubuntu)**  
+**Quick WSL Setup (syntax examples for Ubuntu)**  
   
-• Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
 `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-*Must reboot at this point before using a distro.*  
-  
-Note: the above is deprecated. The `wsl.exe` binary is now built into Windows in newer releases, so simply run `wsl --install` to do the above steps. A reboot is still required afterwards however.  
-  
-**Install a distro from App Store or Chocolatey or manually with iwr/curl**  
-• App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
-• Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
-`choco install choco install wsl-ubuntu-2004`  
-This chocolatey package can set the default user as root (default is false):  
-`choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
-• Using [iwr/curl](https://docs.microsoft.com/en-us/windows/wsl/install-manual) (Invoke-WebRequest):  
-`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
-`curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004            # curl.exe`  
-Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx  # To install the AppX package`  
-After doing this, `wsl -l -v` will show the registered distro.
-
-My preferred setup method:  
-
+`# *Must reboot before using a distro*`
 `wsl --set-default-version 2`  
 `iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
 `Add-AppxPackage .\Ubuntu.appx`  
-`# Will install to:  C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+`# *Will install to:  C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc*`
 `# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL`  
 `md D:\WSL\Ubuntu`  
 `cd D:\WSL\Ubuntu`  
@@ -40,49 +22,30 @@ My preferred setup method:
 `wsl --unregister Ubuntu    # unregister the WSL image`  
 `wsl --list                 # verify the distribution has been removed.`  
 `wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
-`# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : `ubuntu config --default-user <yourname>` where `<yourname>` is the username you defined during installation.  
+`# *Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : ubuntu config --default-user <yourname> where <yourname> is the username you defined during installation.`  
 
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 • **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
   
-• **Setup the Bash Standard Customisations**   `curl https://git.io/Jt0fZ | bash`  (used `git.io` to shorten the github link).  
+• **Setup 'Quick access' link to the WSL distro's home folder** Open Explorer, then navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
+
+• **Setup Bash Customisations `custom_loader.sh`**   `curl https://git.io/Jt0fZ | bash`  (using `git.io` to shorten the github link).  
   
-• **Setup a 'Quick access' link to the WSL distro's home folder** by opening Explorer, navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
-
-# Bash Customisation / Quick Setup for WSL (focus on Ubuntu 2004 LTS)  
+**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
+`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  # or  
+`curl https://git.io/Jt0fZ | bash`
   
-**`custom_loader.sh`**. This script can be run directly from github. It will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
-`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-or  
-`curl https://git.io/Jt0fZ | bash`  # (shortened with `git.io`)
-  
-**.inputrc changes**.  
-`set completion-ignore-case On`   really useful to prevent case-sensitivity taking over when trying to tab complete into folders
-
-**`.vimrc`**  
-
-**`sudoers`**  
-
-
-
 Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`), then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
 
 **`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
-**Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
-
 # WSL Notes
-A focus of this project was to get a repeatable WSL and easy to maintain WSL setup and to be able to fully use all of the WSL capabilities within Windows.  
 Once up and running with WSL, everything can be completely seamless in accessing Windows filesystem from WSL and vice-versa, and for example, opening/editing files in WSL with Windows tools (like Notepad++ or VS Code) can be as simple as `notepad++ ~/.bashrc` etc.
 [Very good overview of WSL2](https://www.sitepoint.com/wsl2/)
 
 **WSL Basics**  
-Setup WSL with:  
-`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
-`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-You must reboot after this, then set defaults to WSL2: `wsl --set-default-version 2`  
 Show current images with `wsl -l -v` (`wsl --list --verbose`)  
 WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service` from PowerShell.  
 Switch a WSL distro image from WSL 1 to use WSL 2 with `wsl --set-version Ubuntu 2`
@@ -149,7 +112,10 @@ Note that `sudo reboot` does not work and generates the following error:
 `   System has not been booted with systemd as init system (PID 1). Can't operate.`  
 `   Failed to connect to bus: Host is down`  
 `   Failed to talk to init daemon.`  
-This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/).  
+This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/). 
+
+**[WSL2-Hacks](https://github.com/shayne/wsl2-hacks)**
+https://stackoverflow.com/questions/55579342/why-systemd-is-disabled-in-wsl
 
 Kill all WSL instances: `Get-Service LxssManager | Stop-Service`   (then same again but with ` | Start-Service` to start again)
 Restart all instances:  `Get-Service LxssManager | Restart-Service`
@@ -478,3 +444,36 @@ Comment out the line `auth   reuireqd   pam_succeed_if.so user != root quiet_acc
 https://code.visualstudio.com/docs/remote/wsl  
 https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode  
 https://ajeet.dev/developing-in-wsl-using-visual-studio-code/  
+
+
+
+• Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
+`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
+`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
+*Must reboot at this point before using a distro.*  
+  
+Note: the above is deprecated. The `wsl.exe` binary is now built into Windows in newer releases, so simply run `wsl --install` to do the above steps. A reboot is still required afterwards however.  
+  
+**Install a distro from App Store or Chocolatey or manually with iwr/curl**  
+• App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
+• Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
+`choco install choco install wsl-ubuntu-2004`  
+This chocolatey package can set the default user as root (default is false):  
+`choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
+• Using [iwr/curl](https://docs.microsoft.com/en-us/windows/wsl/install-manual) (Invoke-WebRequest):  
+`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
+`curl.exe -L -o Ubuntu.appx https://aka.ms/wslubuntu2004            # curl.exe`  
+Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx  # To install the AppX package`  
+After doing this, `wsl -l -v` will show the registered distro.
+
+**.inputrc changes**.  
+`set completion-ignore-case On`   really useful to prevent case-sensitivity taking over when trying to tab complete into folders
+
+**`.vimrc`**  
+
+**`sudoers`**  
+
+
+
+**Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
+

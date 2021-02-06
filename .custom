@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e   # Stop on first error https://stackoverflow.com/q/3474526/
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
@@ -9,10 +10,10 @@ export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m";
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd function if bash ver 4+, i.e. type a directory name (without cd) to cd into that directory
 alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
-alias def='command -V'                 # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl
 alias q='exit'                         # Quit immediately
 alias v='vim'                          # Short vim access
 alias cd..='cd ..'; alias cd.='cd /'   # Common typos
+alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
 
 # Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
 # ls shows all files including .*, l is the same but without .*, ll is as ls but -l long format, l. and ll. are for .* files only, lss shows both security views (drwxr-xr-x / 755)
@@ -29,21 +30,24 @@ alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"' # ls+security (s
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
-git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "About to upload repository to github\nCtrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
 # Tired of typing out 'sudo apt install' a lot so abbreviated these. Just have to be careful to avoid standard commands like 'du'
 # di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptup = update + upgrade + dist-update
 # ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
+if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias aptup='sudo apt update && sudo apt upgrade'; alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'; fi   # apt
+# sudo apt list --upgradable
 if which dnf &> /dev/null; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 if which yum &> /dev/null; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumup='sudo yum update && sudo yum upgrade'; fi   # yum
-if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias aptup='sudo apt update && sudo apt upgrade'; fi   # apt
 if which zypper &> /dev/null; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
 if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
+# An issue that I would 
+# 
 
 # Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
@@ -60,18 +64,20 @@ export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
 
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # if bash ver 4+, then autocd. i.e. if type a directory name to cd into it, without needing to type 'cd'
-md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
+
 # Some basic/useful functions (and to use as templates to demonstrate some function syntax)
+md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
+# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
-dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) = size of all files in current directory only\n\n"; } # Fixed du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
-dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }   # Fixed du for current folder, including for inaccessible folders
+dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) = size of all files in current directory only\n\n"; } # Fixes du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
+dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
 viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }
 viconfsu() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
-color256() { curl -s https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
+color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
@@ -79,14 +85,19 @@ figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; 
 figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }
+
 login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
 
-# WSL aliases to access Windows apps (these only get created if /proc/version contains "Microsoft", i.e. if this is a WSL instance)
-if [[ `cat /proc/version` == *"Microsoft"* ]]; then
+# Aliases for Windows apps (only runs if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL").   https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
     winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)
+    [ ! -d $winhome ] && mkdir "$winhome"
+    # $1 is name of the alias and $2 is the (escaped, i.e. spaces should be escaped) path to the target file
+    # winalias() { [ -f $2 ] && alias $1="$2" }   # Default Portable Edition location with Chocolatey package
+    # winalias chrome /mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe
     alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Chrome, can use with URLs:       chrome www.google.com
     alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
     alias n='notepad++'                                                           # n C:\Temp\Test.txt
@@ -96,4 +107,10 @@ if [[ `cat /proc/version` == *"Microsoft"* ]]; then
     [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="\"/mnt/c/Program Files/Microsoft VS Code/bin/code\""   # Default System Install location
     [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
     alias c='code'
+    alias clip_ip='hostname -I | clip.exe'
 fi
+
+# https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
+# The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
+# Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
+# Ctrl-R : (reverse-i-search)`':  Press once and type part of a command in history, Ctrl-R again to go back in the list

@@ -71,6 +71,8 @@ fi
 ### Check for and fix any outstanding broken installs
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 
+printf "\nCheck updates:\n\n- sudo $MANAGER update -y\n sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n\n"
+
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
 exe sudo $MANAGER upgrade -y
@@ -96,22 +98,35 @@ print_header "Check and install basic/small packages"
 ####################
 
 ### Console Tools ### Only install each if not already installed
-which git        &> /dev/null || exe sudo $MANAGER install git -y
-which vim        &> /dev/null || exe sudo $MANAGER install vim -y
-which curl       &> /dev/null || exe sudo $MANAGER install curl -y
-which wget       &> /dev/null || exe sudo $MANAGER install wget -y
-which dpkg       &> /dev/null || exe sudo $MANAGER install dpkg -y
-which unzip      &> /dev/null || exe sudo $MANAGER install unzip -y
-which ifconfig   &> /dev/null || exe sudo $MANAGER install net-tools -y
-which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
-which neofetch   &> /dev/null || exe sudo $MANAGER install neofetch -y
-which fortune    &> /dev/null || exe sudo $MANAGER install fortune-mod -y
-which cowsay     &> /dev/null || exe sudo $MANAGER install cowsay -y
-which figlet     &> /dev/null || exe sudo $MANAGER install figlet -y
-which tmux       &> /dev/null || exe sudo $MANAGER install tmux -y
+check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe sudo $MANAGER install $1 -y; }
+check_and_install git
+check_and_install vim
+check_and_install curl
+check_and_install wget
+check_and_install dpkg
+check_and_install unzip
+check_and_install ifconfig
+check_and_install mount.cifs
+check_and_install neofetch
+check_and_install fortune
+check_and_install cowsay
+check_and_install figlet
+check_and_install tmux
 # which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
-# 
 
+# which git        &> /dev/null || exe sudo $MANAGER install git -y
+# which vim        &> /dev/null || exe sudo $MANAGER install vim -y
+# which curl       &> /dev/null || exe sudo $MANAGER install curl -y
+# which wget       &> /dev/null || exe sudo $MANAGER install wget -y
+# which dpkg       &> /dev/null || exe sudo $MANAGER install dpkg -y
+# which unzip      &> /dev/null || exe sudo $MANAGER install unzip -y
+# which ifconfig   &> /dev/null || exe sudo $MANAGER install net-tools -y
+# which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
+# which neofetch   &> /dev/null || exe sudo $MANAGER install neofetch -y
+# which fortune    &> /dev/null || exe sudo $MANAGER install fortune-mod -y
+# which cowsay     &> /dev/null || exe sudo $MANAGER install cowsay -y
+# which figlet     &> /dev/null || exe sudo $MANAGER install figlet -y
+# which tmux       &> /dev/null || exe sudo $MANAGER install tmux -y
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -219,8 +234,6 @@ fi
 # [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 # [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
-read -e -p "1..."; "$@"
-
 # Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
 # will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
 # Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
@@ -237,8 +250,6 @@ if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size fil
     FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
     grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
 fi
-
-read -e -p "2..."; "$@"
 
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
 # -q be quiet, -x match the whole line, -F pattern is a plain string
@@ -265,8 +276,6 @@ grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashr
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
 exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to 'mv' this to make way for the new downloaded file
 exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-
-read -e -p "3..."; "$@"
 
 
 

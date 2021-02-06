@@ -14,8 +14,8 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --set-default-version 2`  
 `iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
 `Add-AppxPackage .\Ubuntu.appx`  
-\# Will install to:  C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc  
-\# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL`  
+\# Will install to: `C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`  
+\# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL  
 `md D:\WSL\Ubuntu`  
 `cd D:\WSL\Ubuntu`  
 `wsl -l -v`

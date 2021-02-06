@@ -14,10 +14,10 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --set-default-version 2`  
 `iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
 `Add-AppxPackage .\Ubuntu.appx`  
-\# Will install to:  
+\# Will install to:
 `C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`  
-\# Note that `C:\Program Files\WindowsApps` is quite security-restricted, cannot enter easily even as admin.  
-\# Also, this all bloats the system drive, so I normally move to D:\WSL:  
+\# Note that `C:\Program Files\WindowsApps` is quite security-restricted, cannot enter easily even as Admin.  
+\# Also, this all bloats the system drive, so I normally move WSL distros to `D:\WSL\<distro-name>` (and can port distros to other systems in this way also):  
 `md D:\WSL\Ubuntu`  
 `cd D:\WSL\Ubuntu`  
 `wsl -l -v`

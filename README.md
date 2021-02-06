@@ -23,9 +23,7 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --list                 # verify the distribution has been removed.`  
 `wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
 `# *Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : ubuntu config --default-user <yourname> where <yourname> is the username you defined during installation.*`  
-
-[Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
-To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
+[How to setup multiple instances of the same Linux distro in WSL (using --import and --export)](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 
 • **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
   
@@ -46,8 +44,8 @@ Once up and running with WSL, everything can be completely seamless in accessing
 [Very good overview of WSL2](https://www.sitepoint.com/wsl2/)
 
 **WSL Basics**  
-Show current images with `wsl -l -v` (`wsl --list --verbose`)  
-WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service` from PowerShell.  
+From PowerShell, show current images with `wsl -l -v` (`wsl --list --verbose`)  
+WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service`.  
 Switch a WSL distro image from WSL 1 to use WSL 2 with `wsl --set-version Ubuntu 2`
 Set default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
   
@@ -58,6 +56,8 @@ alias start=explorer.exe   # "start ." will now open Explorer at current folder,
 alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""   # Chrome. Can use with URL:       chrome www.google.com
 alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""             # Notepad++. Can use with files:  notepad++ ~/.bashrc
 ```  
+  
+To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
   
 Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. in the above example, it displays as `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  

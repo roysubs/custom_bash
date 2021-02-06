@@ -5,7 +5,8 @@ Configuring Linux can be awkward (`~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`
   
 The settings here are my preferences, but also are a framework (templates for how to easily automate the addition of settings for `~/.vimrc`, `~/.inputrc`, etc). Everything is lightweight so will not mess up any system (`~/.custom` is just called from `~/.bashrc` so that can be turned off simply by removing the two lines in `~/.bashrc`.
   
-**Quick WSL Setup (syntax examples for Ubuntu)**  
+# Quick WSL Setup Setps
+With syntax examples for Ubuntu (they have specific contracts with Microsoft so their images are possibly the most stable)  
   
 \# Install WSL using DISM  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
@@ -35,11 +36,14 @@ It is often useful to have multiple copies of a distro available. With the above
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
 These are completely independent managed VMs, a normal size for each folder (if not too bloated) will be around 1 GB to 1.5 GB per distro.
 
-• **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
+**Can now start the default distro** simply by running `wsl` or `bash` from a console (or the Ubuntu icon from Start Menu  
+Registered distros are automatically added to Windows Terminal, so that is probably the best option overall
   
-• **Setup 'Quick access' link to the WSL distro's home folder** Open Explorer, then navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
+**Setup 'Quick access' link to the WSL distro's home folder** Open Explorer, then navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
 
-• **Setup Bash Customisations `custom_loader.sh`**   `curl https://git.io/Jt0fZ | bash`  (using `git.io` to shorten the github link).  
+# Setup Bash Customisations (`custom_loader.sh`)
+Install immediately with following (this uses `git.io` to shorten the github link):  
+`curl https://git.io/Jt0fZ | bash`  
   
 **`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  # or  
@@ -124,11 +128,13 @@ winhome here will always fine the case-sensitive User folder in the Windows file
 `    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
 
 # Git with WSL and Windows
-
+[WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  
+[Use WSL Git instead of Git for Windows (StackOverflow)](https://stackoverflow.com/questions/44441830/vscode-use-wsl-git-instead-of-git-for-windows)
+  
 **Git**  
 Set your email with this command (replacing "youremail@domain.com" with the email you use on your Git account):  
 `git config --global user.name "username"`  
-`git config --global user.email "youremail@domain.com"`  
+`git config --global user.email "youremail@domain.com"`
   
 **Git Credential Manager setup**  
 Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager. To set up Git Credential Manager for use with a WSL distribution, open your distribution and enter this command:  

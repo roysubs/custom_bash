@@ -10,12 +10,12 @@ The settings here are my preferences, but also are a framework (templates for ho
 \# Install WSL using DISM  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
 `dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-\# Must reboot before using a distro  
+\# Must reboot before using a distro (first setting defaults to v2)  
 `wsl --set-default-version 2`  
 `iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
 `Add-AppxPackage .\Ubuntu.appx`  
 \# Will install to:  C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc  
-`# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL`  
+\# C:\Program Files\WindowsApps is quite a restricted folder, cannot enter easily and bloats the base image, so I move to D:\WSL`  
 `md D:\WSL\Ubuntu`  
 `cd D:\WSL\Ubuntu`  
 `wsl -l -v`
@@ -23,7 +23,7 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --unregister Ubuntu    # unregister the WSL image`  
 `wsl --list                 # verify the distribution has been removed.`  
 `wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
-\# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account:
+\# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account:  
 `ubuntu config --default-user <yourname>`
 \# where <yourname> is the username you defined during installation of that distro.  
 [How to setup multiple instances of the same Linux distro in WSL (using --import and --export)](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  

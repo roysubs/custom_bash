@@ -45,24 +45,27 @@ Alternatively, clone the repository with: `git clone https://github.com/roysubs/
 **`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
 # WSL Notes
-Once up and running with WSL, everything can be completely seamless in accessing Windows filesystem from WSL and vice-versa, and for example, opening/editing files in WSL with Windows tools (like Notepad++ or VS Code) can be as simple as `notepad++ ~/.bashrc` etc.
+WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
 [Very good overview of WSL2](https://www.sitepoint.com/wsl2/)
 
 **WSL Basics**  
-From PowerShell, show current images with `wsl -l -v` (`wsl --list --verbose`)  
+From PowerShell, list current images with `wsl -l -v   # wsl --list --verbose`  
 WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service`.  
 Switch a WSL distro image from WSL 1 to use WSL 2 with `wsl --set-version Ubuntu 2`
 Set default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
-  
-To [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
+
+**WSL Console Notes (**  
+To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
+
+**Explorer**  
+From Windows, note the "LxRunOffline" item that is installed by WSL for when you right-click on a folder in Explorer, this will let you open a bash shell at that folder location with the chosen distro.  
+From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
 Some aliases can make working with WSL in Windows easier (some templates have been added to `.custom`):  
 ```
 alias start=explorer.exe   # "start ." will now open Explorer at current folder, same as "start ." in DOS/PowerShell
 alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""   # Chrome. Can use with URL:       chrome www.google.com
 alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""             # Notepad++. Can use with files:  notepad++ ~/.bashrc
 ```  
-  
-To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
   
 Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. in the above example, it displays as `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  
@@ -85,7 +88,10 @@ However, you could use multiple different WSL instances on a single command:
 To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
 
-**WSL Backup/Restore and moving to other drives**  
+# VS Code Remote WSL Extension
+This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
+
+# WSL Backup/Restore and moving to other drives
 Linux disk images install by default to the C: drive.  
 In Windows Powershell, run `wsl --list` to view Linux distros.  
 Export current distro: `wsl --export Ubuntu D:\Backups\Ubuntu.tar`  
@@ -100,13 +106,8 @@ Unfortunately, Ubuntu will now use root as the default user. To go back to your 
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 **ToDo** Looks like it is not possible to invoke a script *with switches* via `curl`, so could use a local file to check if specific changes need to be made. e.g. overwriting `.custom`, or to load everything to `/etc` instead of `/home` maybe have a `.custom_install_system_wide` flag then delete that file after the change. Make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.
-
-**ToDo** If exist `.custom_install_coreapps`): Install various various core apps. e.g.
-`sudo apt install git vim curl openssh-server`
-`sudo apt install libsecret-1-0 libsecret-1-dev`
-`sudo apt <xrdp core configuration for debian/red-hat variants>`
   
-**Managing WSL Distros**  
+# Managing WSL Distros
 Note that doing this will break all connections to open sessions, e.g. open VS Code editor sessions to scripts inside WSL.
 When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
@@ -170,8 +171,6 @@ How to install Fedora Remix 33 for WSL 2 ...
 Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,then restart the ssh service by the commond sudo service ssh --full-restart,you will successfully login.But I don't know the reason.
 
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
-
-
 
 # SSH Server Setup (openssh-server)  
   
@@ -280,8 +279,6 @@ Above command will give the sorted list of IP’s with number of connections to 
 
 https://ubuntu.com/wsl
 
-# Starting WSL with keyboard shortcut ...
-
 # [Compare WSL 1 and WSL 2](https://docs.microsoft.com/en-gb/windows/wsl/compare-versions)
 **WSL 2 architecture**  
 Traditional VMs are slow to boot up, isolated, and consume a lot of resources. WSL 2 does not have these attributes, and requires no VM configuration or management While WSL 2 does use a VM, it is managed and run behind the scenes, leaving you with the same user experience as WSL 1.  
@@ -296,9 +293,6 @@ File intensive operations like git clone, npm install, apt update, apt upgrade, 
 Linux binaries use system calls to perform functions such as accessing files, requesting memory, creating processes, and more. Whereas WSL 1 used a translation layer that was built by the WSL team, WSL 2 includes its own Linux kernel with full system call compatibility. Benefits include:  
 • A whole new set of apps that you can run inside of WSL, such as Docker and more.
 • Updates to the Linux kernel are immediately ready for use (You don't have to wait for the WSL team to implement updates and add the changes).
-
-**VS Code Remote WSL Extension**  
-This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
 **Accessing network applications**  
 Accessing Linux networking apps from Windows (localhost)  
@@ -480,7 +474,7 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 **`sudoers`**  
 
-
-
 **Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
+
+**ToDo: Starting WSL with keyboard shortcut ...**
 

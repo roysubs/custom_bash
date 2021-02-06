@@ -23,7 +23,9 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --unregister Ubuntu    # unregister the WSL image`  
 `wsl --list                 # verify the distribution has been removed.`  
 `wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
-\# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : ubuntu config --default-user <yourname> where <yourname> is the username you defined during installation.  
+\# Unfortunately, Ubuntu will now use root as the default user. To go back to your own account:
+`ubuntu config --default-user <yourname>`
+\# where <yourname> is the username you defined during installation of that distro.  
 [How to setup multiple instances of the same Linux distro in WSL (using --import and --export)](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 
 • **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  

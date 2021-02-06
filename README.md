@@ -117,8 +117,33 @@ Following will be case-insensitive, equivalent to ps | out-string -stream | sls 
 Below is from WSL, accessing the Windows filesystem (a more complex example):  
 winhome here will always fine the case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
 `    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
-    
+
+# Git with WSL and Windows
+
+**Git**  
+Set your email with this command (replacing "youremail@domain.com" with the email you use on your Git account):  
+`git config --global user.name "username"`  
+`git config --global user.email "youremail@domain.com"`  
+  
+**Git Credential Manager setup**  
+Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager. To set up Git Credential Manager for use with a WSL distribution, open your distribution and enter this command:  
+`git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`  
+
+Now any git operation you perform within your WSL distribution will use the credential manager. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
+
+**Adding a Git Ignore file**  
+It is useful to add a `.gitignore` file to projects. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
+
+**Some Links / Sorting ...**
+[Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)
+*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is apparently about 15x to 20x faster for IO due to the native kernel etc.*
+
+# Docker
+  
+Should I use docker or Docker-Desktop or both?  
+
 # WSL Backup/Restore and moving to other drives
+
 Linux disk images install by default to the C: drive.  
 In Windows Powershell, run `wsl --list` to view Linux distros.  
 Export current distro: `wsl --export Ubuntu D:\Backups\Ubuntu.tar`  

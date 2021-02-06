@@ -58,7 +58,7 @@ Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cann
 Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
 e.g. if you now run a command that uses `wsl.exe` it will use the default distro: `Get-Process | wsl grep -i Win`
 
-# VS Code Remote WSL Extension
+**VS Code Remote WSL Extension**  
 This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
 **WSL Console Notes (**  
@@ -95,26 +95,24 @@ However, you could use multiple different WSL instances on a single command:
 Keep in mind that:  
 • PowerShell is case-insensitive and uses objects by default.  
 • Linux is case-sensitive and passes strings by default.  
-Some examples (all of the below are from a PowerShell prompt).
   
-First, this is all pure PowerShell. Note that the output of these is case-insensitive by default.  
-`    Get-Process | Select-String win       # This fails due to requiring to convert to a string first`  
-`    Get-Process | Out-String -Stream | Select-String win`   
-`    ps | Out-String -Stream | sls win     # Using 'Get-alias -Definition to find aliases for each Cmdlet`  
+Some examples, firstly, these are from a PowerShell prompt. Note that the output of these is case-insensitive by default.  
+`    PS C:\> Get-Process | Select-String win       # This fails due to requiring to convert to a string first`  
+`    PS C:\> Get-Process | Out-String -Stream | Select-String win`   
+`    PS C:\> ps | Out-String -Stream | sls win     # Using 'Get-alias -Definition to find aliases for each Cmdlet`  
 As `Select-String` will try to use objects from the pipe, `Out-String -Stream` is required to flatten that to a string.  
   
 In the below, `ps` is PowerShell (`Get-Process`) but the `grep` after `wsl` will be handled by the WSL distro.  
 When piping to a non-PowerShell command (not just WSL, but anything non-PowerShell), PowerShell automatically flattens that output to a string so something like `Out-String` is not required.  
 Note that by default the output below is case-sensitive and so probabaly shows less items than the above pure PowerShell.  
-`    ps | wsl grep win      # ps will be PowerShell 'Get-Process`  
+`    PS C:\> ps | wsl grep win         # ps will be PowerShell 'Get-Process`  
 Following will be case-insensitive:  
-`    ps | wsl grep win      # ps will be PowerShell 'Get-Process`  
+`    PS C:\> ps | wsl grep -i win      # This will be case-insensitive, equivalent to ps | out-string -stream | sls win`  
   
 Below is from WSL, accessing the Windows filesystem (a more complex example):  
 winhome here will always fine the case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
-`    winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
+`    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
     
-
 # WSL Backup/Restore and moving to other drives
 Linux disk images install by default to the C: drive.  
 In Windows Powershell, run `wsl --list` to view Linux distros.  

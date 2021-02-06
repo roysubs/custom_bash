@@ -5,7 +5,7 @@ Configuring Linux can be awkward (`~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`
   
 The settings here are my preferences, but also are a framework (templates for how to easily automate the addition of settings for `~/.vimrc`, `~/.inputrc`, etc). Everything is lightweight so will not mess up any system (`~/.custom` is just called from `~/.bashrc` so that can be turned off simply by removing the two lines in `~/.bashrc`.
   
-# Quick WSL Setup Setps
+# Quick WSL Setup
 With syntax examples for Ubuntu (they have specific contracts with Microsoft so their images are possibly the most stable)  
   
 \# Install WSL using DISM  
@@ -41,15 +41,16 @@ Registered distros are automatically added to Windows Terminal, so that is proba
   
 **Setup 'Quick access' link to the WSL distro's home folder** Open Explorer, then navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
 
-# Setup Bash Customisations (`custom_loader.sh`)
-Install immediately with following (this uses `git.io` to shorten the github link):  
-`curl https://git.io/Jt0fZ | bash`  
+# Setup Bash Customisations, custom_loader.sh
+Install immediately with following (tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install):  
+`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
   
-**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To run `custom_loader.sh` on any system with an internet connection with (removed `-i` to suppress HTTP header information):  
-`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  # or  
-`curl https://git.io/Jt0fZ | bash`
+**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
-Alternatively, clone the repository with: `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`), then `cd` into that folder and run: `. custom_loader.sh` (use dotsource here to run when the script has no permissions set, and no need for `sudo` as built into the script as required).
+Alternatively, clone the repository:  
+`git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`)  
+Then `cd` into that folder and run: `. custom_loader.sh`
+It is required to dotsource the script here as it has no execute permissions set. There is no need for `sudo` as that is built into the script as required.
 
 **`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
@@ -57,7 +58,8 @@ Alternatively, clone the repository with: `git clone https://github.com/roysubs/
 WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
 [Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
   
-To reset a WSL distro back to an initial state: `Settings > Apps > Apps & features > select the Linux Distro Name`  
+To reset a WSL distro back to an initial state:  
+`Settings > Apps > Apps & features > select the Linux Distro Name`  
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (note that everything will be deleted in that distro!).  
 
 **WSL Basics**  
@@ -66,7 +68,13 @@ WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to re
 Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cannot be undone after upgrade)
 Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
 e.g. if you now run a command that uses `wsl.exe` it will use the default distro: `Get-Process | wsl grep -i Win`
-
+  
+`wsl -l -v`  
+`  NAME            STATE           VERSION`  
+`* fedoraremix     Running         1`  
+`* Debian          Running         1`  
+`  Ubuntu-20.04    Running         2`  
+  
 **VS Code Remote WSL Extension**  
 This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
@@ -76,6 +84,8 @@ To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console,
 **Explorer**  
 From Windows, note the "LxRunOffline" item that is installed by WSL for when you right-click on a folder in Explorer, this will let you open a bash shell at that folder location with the chosen distro.  
 From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
+
+**Running any Windows Executable from WSL Linux**  
 Some aliases can make working with WSL in Windows easier (some templates have been added to `.custom`):  
 ```
 alias start=explorer.exe   # "start ." will now open Explorer at current folder, same as "start ." in DOS/PowerShell
@@ -87,14 +97,9 @@ Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. i
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  
 `\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
-  
-`wsl -l -v`  
-`  NAME            STATE           VERSION`  
-`* fedoraremix     Running         1`  
-`* Debian          Running         1`  
-`  Ubuntu-20.04    Running         2`  
 
-**wsl.exe / bash.exe**  
+**Running WSL Linux apps from Windows PowerShell with wsl.exe / bash.exe**  
+  
 Run `bash.exe` (or `wsl.exe`) from a cmd prompt to launch in current working directory. Run `bash ~` (or `wsl ~`) would launch in the user's home directory. Can start in any folder in this way, so `wsl /mnt/c/Users/John` would start in the Windows home folder of John.  
 A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
   
@@ -124,7 +129,7 @@ Following will be case-insensitive, equivalent to ps | out-string -stream | sls 
 `PS C:\> ps | wsl grep -i win`  
   
 Below is from WSL, accessing the Windows filesystem (a more complex example):  
-winhome here will always fine the case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
+`winhome` in this example searches for an stores the case-sensitive User folder name from the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
 `    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
 
 # Git with WSL and Windows

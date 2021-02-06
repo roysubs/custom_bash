@@ -78,36 +78,41 @@ Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. i
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  
 `\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
+  
+`wsl -l -v`  
+`  NAME            STATE           VERSION`  
+`* fedoraremix     Running         1`  
+`* Debian          Running         1`  
+`  Ubuntu-20.04    Running         2`  
 
 **wsl.exe / bash.exe**  
-Run `bash.exe` from a cmd prompt to launch in current working directory. `bash.exe ~` will launch in the user's home directory.  
+Run `bash.exe` (or `wsl.exe`) from a cmd prompt to launch in current working directory. Run `bash ~` (or `wsl ~`) would launch in the user's home directory. Can start in any folder in this way, so `wsl /mnt/c/Users/John` would start in the Windows home folder of John.  
 A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
-```  
-wsl -l -v
-  NAME            STATE           VERSION
-* fedoraremix     Running         1
-  Ubuntu-20.04    Running         1
-```
-To change the default distro, `wsl -s Ubuntu-20.04`. The default distro will be what is used when piping ( ` | wsl grep '123'` ) and will be what started by default with `wsl` or `bash`.  e.g.  
-`    dir | wsl grep -i win | wsl sed 's/win/xxx/g'   # will use the default distro on each wsl`  
-However, you could use multiple different WSL instances on a single command:  
-`    Write-Output "Hello``nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay   # if Ubuntu/Debian distros are present`  
+  
 Keep in mind that:  
 • PowerShell is case-insensitive and uses objects by default.  
 • Linux is case-sensitive and passes strings by default.  
   
 Some examples, firstly, these are from a PowerShell prompt. Note that the output of these is case-insensitive by default.  
-`    PS C:\> Get-Process | Select-String win       # This fails due to requiring to convert to a string first`  
-`    PS C:\> Get-Process | Out-String -Stream | Select-String win`   
-`    PS C:\> ps | Out-String -Stream | sls win     # Using 'Get-alias -Definition to find aliases for each Cmdlet`  
+This fails due to requiring to convert to a string first:  
+`PS C:\> Get-Process | Select-String win`  
+This works as the objects has been converted to a string stream:  
+`PS C:\> Get-Process | Out-String -Stream | Select-String win`   
+Using `Get-Alias -Definition <cmdlet> to find the aliases for each Cmdlet:  
+`PS C:\> ps | Out-String -Stream | sls win`  
 As `Select-String` will try to use objects from the pipe, `Out-String -Stream` is required to flatten that to a string.  
+To change the default distro, use `-s`, e.g. `wsl -s Ubuntu-20.04 <command>`. The default distro is used when `-s` is not specified.  
+`PS C:\> dir C:\ | wsl grep -i win | wsl sed 's/win/xxx/g'`  
+However, with multiple distros, you could use multiple different WSL instances on a single line:  
+`PS C:\> Write-Output "Hello``nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay`  
   
 In the below, `ps` is PowerShell (`Get-Process`) but the `grep` after `wsl` will be handled by the WSL distro.  
 When piping to a non-PowerShell command (not just WSL, but anything non-PowerShell), PowerShell automatically flattens that output to a string so something like `Out-String` is not required.  
 Note that by default the output below is case-sensitive and so probabaly shows less items than the above pure PowerShell.  
-`    PS C:\> ps | wsl grep win         # ps will be PowerShell 'Get-Process`  
-Following will be case-insensitive:  
-`    PS C:\> ps | wsl grep -i win      # This will be case-insensitive, equivalent to ps | out-string -stream | sls win`  
+In the following, `ps` is a PowerShell Cmdlet (`Get-Process`) but grep is using the default wsl distro:  
+`PS C:\> ps | wsl grep win`  
+Following will be case-insensitive, equivalent to ps | out-string -stream | sls win
+`PS C:\> ps | wsl grep -i win`  
   
 Below is from WSL, accessing the Windows filesystem (a more complex example):  
 winhome here will always fine the case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:

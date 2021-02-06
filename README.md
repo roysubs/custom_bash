@@ -19,7 +19,6 @@ The settings here are my preferences, but also are a framework (templates for ho
 \# Note that `C:\Program Files\WindowsApps` is quite security-restricted, cannot enter easily even as Admin.  
 \# Also, this all bloats the system drive, so I normally move WSL distros to `D:\WSL\<distro-name>` (and can port distros to other systems in this way also):  
 `md D:\WSL\Ubuntu`  
-`cd D:\WSL\Ubuntu`  
 `wsl -l -v`
 `wsl --export Ubuntu D:\WSL\Ubuntu.tar`  
 `wsl --unregister Ubuntu    # unregister the WSL image`  
@@ -29,6 +28,12 @@ The settings here are my preferences, but also are a framework (templates for ho
 `ubuntu config --default-user <yourname>`  
 \# where `<yourname>` is the username you defined during installation of that distro.  
 [How to setup multiple instances of the same Linux distro in WSL (using --import and --export)](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
+It is often useful to have multiple copies of a distro available. With the above exported distro this can be done easily:  
+`md D:\WSL\Ubuntu1`  
+`md D:\WSL\Ubuntu2`  
+`wsl --import Ubuntu D:\WSL\Ubuntu1 D:\WSL\Ubuntu.tar`  
+`wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
+These are completely independent managed VMs, a normal size for each folder (if not too bloated) will be around 1 GB to 1.5 GB per distro.
 
 • **Can now start the default distro** by `wsl.exe` or `bash.exe` (or from the Start Menu)  
   

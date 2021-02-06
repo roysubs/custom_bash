@@ -46,13 +46,20 @@ Alternatively, clone the repository with: `git clone https://github.com/roysubs/
 
 # WSL Notes
 WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
-[Very good overview of WSL2](https://www.sitepoint.com/wsl2/)
+[Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
+  
+To reset a WSL distro back to an initial state: `Settings > Apps > Apps & features > select the Linux Distro Name`  
+In the Advanced Options link, select the "Reset" button to restroe to the initial install state (note that everything will be deleted in that distro!).  
 
 **WSL Basics**  
 From PowerShell, list current images with `wsl -l -v   # wsl --list --verbose`  
 WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service`.  
-Switch a WSL distro image from WSL 1 to use WSL 2 with `wsl --set-version Ubuntu 2`
-Set default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
+Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cannot be undone after upgrade)
+Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
+e.g. if you now run a command that uses `wsl.exe` it will use the default distro: `Get-Process | wsl grep -i Win`
+
+# VS Code Remote WSL Extension
+This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
 **WSL Console Notes (**  
 To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
@@ -72,6 +79,7 @@ The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\ro
 `\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
 
+**wsl.exe / bash.exe**  
 Run `bash.exe` from a cmd prompt to launch in current working directory. `bash.exe ~` will launch in the user's home directory.  
 A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
 ```  
@@ -81,15 +89,31 @@ wsl -l -v
   Ubuntu-20.04    Running         1
 ```
 To change the default distro, `wsl -s Ubuntu-20.04`. The default distro will be what is used when piping ( ` | wsl grep '123'` ) and will be what started by default with `wsl` or `bash`.  e.g.  
-    `dir | wsl grep -i win | wsl sed 's/win/xxx/g'   # will use the default distro on each wsl`  
+`    dir | wsl grep -i win | wsl sed 's/win/xxx/g'   # will use the default distro on each wsl`  
 However, you could use multiple different WSL instances on a single command:  
-    `Write-Output "Hello``nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay   # if Ubuntu/Debian distros are present`  
- 
-To reset a WSL distro back to an initial state: Settings > Apps > Apps & features > select the Linux Distro Name
-In the Advanced Options link, select the "Reset" button to restroe to the initial install state (everything will be deleted).
-
-# VS Code Remote WSL Extension
-This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
+`    Write-Output "Hello``nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay   # if Ubuntu/Debian distros are present`  
+Keep in mind that:  
+• PowerShell is case-insensitive and uses objects by default.  
+• Linux is case-sensitive and passes strings by default.  
+Some examples (all of the below are from a PowerShell prompt).
+  
+First, this is all pure PowerShell. Note that the output of these is case-insensitive by default.  
+`    Get-Process | Select-String win       # This fails due to requiring to convert to a string first`  
+`    Get-Process | Out-String -Stream | Select-String win`   
+`    ps | Out-String -Stream | sls win     # Using 'Get-alias -Definition to find aliases for each Cmdlet`  
+As `Select-String` will try to use objects from the pipe, `Out-String -Stream` is required to flatten that to a string.  
+  
+In the below, `ps` is PowerShell (`Get-Process`) but the `grep` after `wsl` will be handled by the WSL distro.  
+When piping to a non-PowerShell command (not just WSL, but anything non-PowerShell), PowerShell automatically flattens that output to a string so something like `Out-String` is not required.  
+Note that by default the output below is case-sensitive and so probabaly shows less items than the above pure PowerShell.  
+`    ps | wsl grep win      # ps will be PowerShell 'Get-Process`  
+Following will be case-insensitive:  
+`    ps | wsl grep win      # ps will be PowerShell 'Get-Process`  
+  
+Below is from WSL, accessing the Windows filesystem (a more complex example):  
+winhome here will always fine the case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
+`    winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
+    
 
 # WSL Backup/Restore and moving to other drives
 Linux disk images install by default to the C: drive.  

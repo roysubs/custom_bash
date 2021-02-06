@@ -22,7 +22,7 @@ The settings here are my preferences, but also are a framework (templates for ho
 `wsl --unregister Ubuntu    # unregister the WSL image`  
 `wsl --list                 # verify the distribution has been removed.`  
 `wsl --import Ubuntu D:\WSL\Ubuntu D:\WSL\Ubuntu.tar`  
-`# *Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : ubuntu config --default-user <yourname> where <yourname> is the username you defined during installation.`  
+`# *Unfortunately, Ubuntu will now use root as the default user. To go back to your own account : ubuntu config --default-user <yourname> where <yourname> is the username you defined during installation.*`  
 
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
@@ -128,7 +128,7 @@ To upgrade an existing distro to v2:
 `   Conversion in progress, this may take a few minutes...`  
 `   For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
   
-# Systemd does not exist in WSL distros**  
+# Systemd does not exist in WSL distros  
 You cannot use `sudo reboot` or any similar systemd command:  
   
 `Systemd command                 Sysvinit command`  

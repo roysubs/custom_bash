@@ -200,17 +200,19 @@ Now, we need to restart the ssh service, but need to remember that WSL does *not
 Can now connect LOCALLY via putty or other ssh client at 127.0.0.1 on port 2222 (remember that Windows now has a built in ssh.exe and ssh-keygen.exe etc).  
   
 To connect from a REMOTE system to this instance of WSL, follow this [guide](https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2):  
-# edit /etc/ssh/sshd_config with the following three changes
+```
+edit /etc/ssh/sshd_config with the following three changes
 Port 2222
 ListenAddress 0.0.0.0
 PasswordAuthentication yes
+```
 
 We also need to edit /etc/sudoers.d/ in order to remove the requirement of a password for starting the ssh service, this will come handy later on in the automation section of the article, so add the following line:  
 `%sudo ALL=NOPASSWD: /usr/sbin/service ssh *`  
 After all this we can start the service:  
 `service ssh start`  
   
-**[*Guide to using Linux GUI apps + ZSH + Docker on WSL 2](https://scottspence.com/2020/12/09/gui-with-wsl/#video-detailing-the-process)**  
+**[Guide to using Linux GUI apps + ZSH + Docker on WSL 2](https://scottspence.com/2020/12/09/gui-with-wsl/#video-detailing-the-process)**  
 [Nicky Meuleman’s guide on Using Graphical User Interfaces like Cypress’ in WSL2](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)  
 [Nicky Meuleman’s guide on Linux on Windows WSL 2 + ZSH + Docker](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker)  
 [Notes on Zsh and Oh My Zsh](https://scottspence.com/2020/12/08/zsh-and-oh-my-zsh/)  

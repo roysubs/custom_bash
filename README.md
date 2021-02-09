@@ -45,12 +45,13 @@ Registered distros are automatically added to Windows Terminal, so that is proba
 Install immediately with following (tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install):  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
   
-**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools for ifconfig, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
+**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
 Alternatively, clone the repository:  
 `git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`)  
 Then `cd` into that folder and run: `. custom_loader.sh`
 It is required to dotsource the script here as it has no execute permissions set. There is no need for `sudo` as that is built into the script as required.
+With the clone, can customise the settings to be applied to each machine, what standard apps to install etc.
 
 **`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
@@ -82,7 +83,7 @@ This enables you to store your project files on the Linux file system, using Lin
 To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 **Explorer**  
-From Windows, note the "LxRunOffline" item that is installed by WSL for when you right-click on a folder in Explorer, this will let you open a bash shell at that folder location with the chosen distro.  
+If `choco install lxrunoffline` is installed, from Windows Explorer, note the "LxRunOffline" right-click item to let you open a bash shell at that folder location with the chosen distro.  
 From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
 
 **Running any Windows Executable from WSL Linux**  
@@ -131,6 +132,159 @@ Following will be case-insensitive, equivalent to ps | out-string -stream | sls 
 Below is from WSL, accessing the Windows filesystem (a more complex example):  
 `winhome` in this example searches for an stores the case-sensitive User folder name from the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
 `    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
+
+# WSL.exe
+
+```
+PS C:\> wsl -h
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+Usage: wsl.exe [Argument] [Options...] [CommandLine]
+
+Arguments for running Linux binaries:
+
+    If no command line is provided, wsl.exe launches the default shell.
+
+    --exec, -e <CommandLine>
+        Execute the specified command without using the default Linux shell.
+
+    --
+        Pass the remaining command line as is.
+
+Options:
+    --distribution, -d <Distro>
+        Run the specified distribution.
+
+    --user, -u <UserName>
+        Run as the specified user.
+
+Arguments for managing Windows Subsystem for Linux:
+
+    --export <Distro> <FileName>
+        Exports the distribution to a tar file.
+        The filename can be - for standard output.
+
+    --import <Distro> <InstallLocation> <FileName> [Options]
+        Imports the specified tar file as a new distribution.
+        The filename can be - for standard input.
+
+        Options:
+            --version <Version>
+                Specifies the version to use for the new distribution.
+
+    --list, -l [Options]
+        Lists distributions.
+
+        Options:
+            --all
+                List all distributions, including distributions that are currently
+                being installed or uninstalled.
+
+            --running
+                List only distributions that are currently running.
+
+            --quiet, -q
+                Only show distribution names.
+
+            --verbose, -v
+                Show detailed information about all distributions.
+
+    --set-default, -s <Distro>
+        Sets the distribution as the default.
+
+    --set-default-version <Version>
+        Changes the default install version for new distributions.
+
+    --set-version <Distro> <Version>
+        Changes the version of the specified distribution.
+
+    --shutdown
+        Immediately terminates all running distributions and the WSL 2 lightweight utility virtual machine.
+
+    --terminate, -t <Distro>
+        Terminates the specified distribution.
+
+    --unregister <Distro>
+        Unregisters the distribution.
+
+    --help
+        Display usage information.
+```
+
+
+# LxRunOffline.exe
+
+Open source WSL tool. [Home page](https://awesomeopensource.com/project/DDoSolitary/LxRunOffline)), [Git Project](https://github.com/DDoSolitary/LxRunOffline).  
+"A full-featured utility for managing Windows Subsystem for Linux (WSL)"  
+Chocolatey: `choco install lxrunoffline`  
+Scoop: `scoop bucket add extras`, `scoop install lxrunoffline`  
+  
+Shell extension: The right-click menu feature requires the shell extension DLL to be properly registered. This is automatically done if you used Chocolatey to install this project. However, if you downloaded the binaries directly, you need to run regsvr32 LxRunOfflineShellExt.dll manually to register the DLL file.  
+  
+```
+PS C:\> LxRunOffline.exe
+
+Supported actions are:
+    l, list            List all installed distributions.
+    gd, get-default    Get the default distribution, which is used by bash.exe.
+    sd, set-default    Set the default distribution, which is used by bash.exe.
+    i, install         Install a new distribution.
+    ui, uninstall      Uninstall a distribution.
+    rg, register       Register an existing installation directory.
+    ur, unregister     Unregister a distribution but not delete the installation directory.
+    m, move            Move a distribution to a new directory.
+    d, duplicate       Duplicate an existing distribution in a new directory.
+    e, export          Export a distribution's filesystem to a .tar.gz file, which can be imported by the "install" command.
+    r, run             Run a command in a distribution.
+    di, get-dir        Get the installation directory of a distribution.
+    gv, get-version    Get the filesystem version of a distribution.
+    ge, get-env        Get the default environment variables of a distribution.
+    se, set-env        Set the default environment variables of a distribution.
+    ae, add-env        Add to the default environment variables of a distribution.
+    re, remove-env     Remove from the default environment variables of a distribution.
+    gu, get-uid        Get the UID of the default user of a distribution.
+    su, set-uid        Set the UID of the default user of a distribution.
+    gk, get-kernelcmd  Get the default kernel command line of a distribution.
+    sk, set-kernelcmd  Set the default kernel command line of a distribution.
+    gf, get-flags      Get some flags of a distribution. See https://docs.microsoft.com/en-us/previous-versions/windows/desktop/api/wslapi/ne-wslapi-wsl_distribution_flags for details.
+    sf, set-flags      Set some flags of a distribution. See https://docs.microsoft.com/en-us/previous-versions/windows/desktop/api/wslapi/ne-wslapi-wsl_distribution_flags for details.
+    s, shortcut        Create a shortcut to launch a distribution.
+    ec, export-config  Export configuration of a distribution to an XML file.
+    ic, import-config  Import configuration of a distribution from an XML file.
+    sm, summary        Get general information of a distribution.
+    version            Get version information about this LxRunOffline.exe.
+```
+
+https://stackoverflow.com/questions/38779801/move-wsl-bash-on-windows-root-filesystem-to-another-hard-drive
+In any Windows 10 version, you can move the distribution to another drive using lxRunOffline.
+
+1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. You may use icacls <dir> /grant "<user>:(OI)(CI)(F)" to set the proper permissions.
+
+C:\> whoami
+test\jaime
+
+C:\> icacls D:\wsl /grant "jaime:(OI)(CI)(F)"
+NOTE: In addition to the above permissions, I have activated the long path names in Windows.
+
+2. Move the distribution. Using lxrunoffline move.
+
+C:\wsl> lxrunoffline move -n Ubuntu-18.04 -d d:\wsl\installed\Ubuntu-18.04
+You may check the installation folder using
+
+C:\wsl> lxrunoffline get-dir -n Ubuntu-18.04
+d:\wsl\installed\Ubuntu-18.04
+3. Run the distribution. after moving the distribution, you can run the distribution using wsl or the same lxrunoffline
+
+C:\wsl> lxrunoffline run -n Ubuntu-18.04 -w
+user@test:~$ exit
+logout
+
+C:\wsl> wsl
+user@test:/mnt/c/wsl$ exit
+logout
+
+chttps://github.com/pxlrbt/move-wsl
 
 # Git with WSL and Windows
 [WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  

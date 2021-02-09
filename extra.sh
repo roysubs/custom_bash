@@ -1,20 +1,3 @@
-#!/bin/bash
-# Problem with 'set -e', it should Stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
-export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
-alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
-export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
-alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
-# Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
-# \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
-export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
-[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd function if bash ver 4+, i.e. type a directory name (without cd) to cd into that directory
-alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
-alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
-alias q='exit'                         # Quit immediately
-alias v='vim'                          # Short vim access
-alias cd..='cd ..'; alias cd.='cd /'   # Common typos
-alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
-
 # Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
 # ls shows all files including .*, l is the same but without .*, ll is as ls but -l long format, l. and ll. are for .* files only, lss shows both security views (drwxr-xr-x / 755)
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc, note "\ls" for "l", this ignores the alias "ls" to run raw to remove "A"
@@ -37,8 +20,8 @@ git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository
 # ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
-# alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
-if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias al='sudo apt list --upgradable'; alias aptup='sudo apt update && sudo apt upgrade'; fi   # apt
+if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias aptup='sudo apt update && sudo apt upgrade'; alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'; fi   # apt
+# sudo apt list --upgradable
 if which dnf &> /dev/null; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 if which yum &> /dev/null; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumup='sudo yum update && sudo yum upgrade'; fi   # yum
 if which zypper &> /dev/null; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
@@ -46,6 +29,8 @@ if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo 
 if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
+# An issue that I would 
+# 
 
 # Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed

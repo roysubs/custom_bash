@@ -71,7 +71,7 @@ fi
 ### Check for and fix any outstanding broken installs
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 
-printf "\nCheck updates:\n\n- sudo $MANAGER update -y\n sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n\n"
+printf "\nCheck updates:\n\n- sudo $MANAGER update -y\n sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n"
 
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
@@ -505,6 +505,29 @@ echo ""
 echo "The new locale will not be applied until a new shell is started"
 echo ""
 read -e -p "Any key to continue ..."; "$@"
+
+
+echo "Try regenerating the supported locale list by running:"
+echo "sudo dpkg-reconfigure locales"
+echo ""
+echo "And update/change the current default locale:"
+echo "sudo update-locale LANG=fr_FR.UTF-8"
+echo "Update"
+echo ""
+echo "Generate the locales for your language (e.g. British English):"
+echo "   sudo locale-gen fr_FR"
+echo "   sudo locale-gen fr_FR.UTF-8"
+echo ""
+echo "Extra steps to try:"
+echo ""
+echo "Try:"
+echo ""
+echo "sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR""
+echo "sudo dpkg-reconfigure locales"
+echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
+echo ""
+echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
+
 
 
 

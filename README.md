@@ -293,7 +293,13 @@ chttps://github.com/pxlrbt/move-wsl
 **Git**  
 Set your email with this command (replacing "youremail@domain.com" with the email you use on your Git account):  
 `git config --global user.name "username"`  
-`git config --global user.email "youremail@domain.com"`
+`git config --global user.email "youremail@domain.com"`  
+Create `.gitignore` file inside the root of the project to exclude files from the project.  
+Add one line per exclude mask (can use wildcards). If a file is already in the project, it must be removed:  
+`git rm --cached <filename>`  
+To create a global ignore file (e.g. could put `*.tmp` to exclude all files like that in all projects):  
+`git config --global core.excludesfile ~/.gitignore_global`  
+To exclude without using `.gitignore`, put exclude masks into `.git/info/exclude`.  
   
 **Git Credential Manager setup**  
 Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager. To set up Git Credential Manager for use with a WSL distribution, open your distribution and enter this command:  

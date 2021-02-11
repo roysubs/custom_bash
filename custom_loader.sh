@@ -71,7 +71,8 @@ fi
 ### Check for and fix any outstanding broken installs
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 
-printf "\nCheck updates:\n\n- sudo $MANAGER update -y\n sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n"
+printf "\nCheck updates:\n\n"
+printf "- sudo $MANAGER update -y\n- sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n"
 
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
@@ -93,18 +94,21 @@ fi
 
 ####################
 #
-print_header "Check and install basic/small packages"
+print_header "Check and install small/essential packages"
 #
 ####################
 
-### Console Tools ### Only install each if not already installed
+# Only install each if not already installed
 check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe sudo $MANAGER install $1 -y; }
+# which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
+
 check_and_install git
 check_and_install vim
 check_and_install curl
 check_and_install wget
 check_and_install dpkg
 check_and_install unzip
+check_and_install dos2unix
 check_and_install ifconfig
 check_and_install mount.cifs
 check_and_install neofetch
@@ -112,21 +116,6 @@ check_and_install fortune
 check_and_install cowsay
 check_and_install figlet
 check_and_install tmux
-# which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
-
-# which git        &> /dev/null || exe sudo $MANAGER install git -y
-# which vim        &> /dev/null || exe sudo $MANAGER install vim -y
-# which curl       &> /dev/null || exe sudo $MANAGER install curl -y
-# which wget       &> /dev/null || exe sudo $MANAGER install wget -y
-# which dpkg       &> /dev/null || exe sudo $MANAGER install dpkg -y
-# which unzip      &> /dev/null || exe sudo $MANAGER install unzip -y
-# which ifconfig   &> /dev/null || exe sudo $MANAGER install net-tools -y
-# which mount.cifs &> /dev/null || exe sudo $MANAGER install cifs-utils -y
-# which neofetch   &> /dev/null || exe sudo $MANAGER install neofetch -y
-# which fortune    &> /dev/null || exe sudo $MANAGER install fortune-mod -y
-# which cowsay     &> /dev/null || exe sudo $MANAGER install cowsay -y
-# which figlet     &> /dev/null || exe sudo $MANAGER install figlet -y
-# which tmux       &> /dev/null || exe sudo $MANAGER install tmux -y
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -149,7 +138,6 @@ check_and_install tmux
 # https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/
 # sudo apt install python3-pip ; # pip3 install bpytop
 
-
 ### AsciiAquarium
 #apt-get install libcurses-perl
 # cd /tmp 
@@ -166,7 +154,7 @@ check_and_install tmux
 # cp asciiquarium /usr/local/bin
 # chmod 0755 /usr/local/bin/asciiquarium
 
-### Deprecate this installer, it's for Peppermint UI to havve hot corners.
+# Removed this installer, it's for Peppermint UI to havve hot corners.
 # This should not be here - move to advanced installers
 # Check if Peppermint
 # https://launchpad.net/ubuntu/+source/brightside
@@ -179,7 +167,7 @@ check_and_install tmux
 
 ####################
 #
-print_header "Setup 'figlet' and 'bat' (syntax highlighted replacement for 'cat')"
+print_header "Custom setups for 'figlet' and 'bat' (syntax highlighted replacement for 'cat')"
 #
 ####################
 
@@ -213,44 +201,6 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 #
 ####################
 
-####################
-#
-print_header "Download and dotsource new .custom"
-#
-####################
-# read -e -p "Any key to continue ..."; "$@"
-
-[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")   # Backup old .custom
-
-if [ -f ./.custom ] && [[ $- == *"i"* ]]; then   # and pwd is not ~ !!!
-    cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-fi
-
-if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-fi
-
-# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
-
-# Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
-# will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
-# Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
-# If .bash_profile is not zero length, load a line to dotsource .bashrc
-
-if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
-    echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
-    rm ~/.bash_profile &> /dev/null
-fi
-
-if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size file exists
-    echo "Existing ~/.bash_profile is not empty, so adding line to include ~/bashrc (and so then run ~/.custom) at end of ~/.bash_profile"
-    # Need to also deal with case when .bashrc is not there ...
-    FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
-    grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
-fi
-
 # grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
 # -q be quiet, -x match the whole line, -F pattern is a plain string
 # use "tee" instead of ">>", as ">>" will not permit updating protected files
@@ -274,8 +224,51 @@ grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashr
 # sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
 
 # Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
-exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to 'mv' this to make way for the new downloaded file
+exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to rename this to make way for the new downloaded file
 exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+
+# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
+
+# Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
+# will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
+# Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
+# If .bash_profile is not zero length, load a line to dotsource .bashrc
+
+if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
+    echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
+    rm ~/.bash_profile &> /dev/null
+fi
+
+if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size file exists
+    echo "Existing ~/.bash_profile is not empty, so adding line to include ~/bashrc (and so then run ~/.custom) at end of ~/.bash_profile"
+    # Need to also deal with case when .bashrc is not there ...
+    FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
+    grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
+fi
+
+
+
+####################
+#
+print_header "Download and dotsource new .custom"
+#
+####################
+# read -e -p "Any key to continue ..."; "$@"
+
+# Backup existing ~/.custom, if present
+[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")
+
+# If ~/.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory
+if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[  ]]; then
+    cp ./.custom ~/.custom
+fi
+
+# If, after the above, ~/.custom does not exist, then download it from github
+if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
 
 
 
@@ -288,20 +281,26 @@ print_header "Common changes to .vimrc"
 # https://topic.alibabacloud.com/article/ubuntu-system-vimrc-configuration-file_3_12_513382.html
 # https://linuxhint.com/vimrc_tutorial/
 
-# First, check if the item is already in the /etc/xxx file
-# If there, do nothing, then check the ~ version, only add if not there
+# grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+#    -q, --quiet, --silent   Quiet; do not write anything to standard output.  Exit immediately with zero status if any match is found, even if an error was  detected. Also see the -s or --no-messages option.
+#    -x, --line-regexp   Select  only  those  matches that exactly match the whole line (i.e. like parenthesizing the pattern and then surrounding it with ^ and $ for regex).
+#    -F, --fixed-strings   Interpret PATTERNS as fixed strings, not regular expressions).
+#
+# First, check if the full line is already in the file. If there, do nothing, then check the ~ version, only add if not there
+# ToDo: extend this to check both /etc/vimrc and then ~/.vimrc, possibly a function with parameteres $1=(line to check or add), $2=(/etc/xxx admin file), $3=(~/.vimrc user file)
+#
+# Note that cannot >> back to the same file being read, so use "| sudo tee --append ~/.vimrc"
 
-# update .vimrc
 VIMLINE='color industry'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='set expandtab tabstop=4 shiftwidth=4'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
-VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'   # Variant for elevating Vim, not using for now
-VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
+VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
-VIMLINE="cnoremap w!! execute \'silent! write !sudo tee % >/dev/null\' <bar> edit"
+# VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'   # Variant for elevating Vim, not using for now
+VIMLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
 VIMLINE='" Set F3 to toggle line numbers on/off'
 grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
@@ -318,7 +317,7 @@ print_header "Common changes to /etc/samba/smb.conf"
 #
 ####################
 
-# update /etc/samba/smb.conf
+# ToDo: add generic changes to make sure that Samba will work, including some default sharing
 # Add an entry for the home folder on this environment so that is always available
 # Restart the samba service
 
@@ -329,16 +328,23 @@ print_header "Common changes to /etc/samba/smb.conf"
 print_header "Common changes to .inputrc"
 #
 ####################
-# https://superuser.com/questions/241187/how-do-i-reload-inputrc
-# https://relentlesscoding.com/posts/readline-transformation/
-#
-if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
+
+# if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
+if [ ! -f ~/.inputrc ]; then touch ~/.inputrc
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
-echo  >> ~/.inputrc
-INPUTRC='set completion-ignore-case On'   # Set Tab completion to be non-case sensitive
+# echo  >> ~/.inputrc
+
+INPUTRC='$include /etc/inputrc'   # Set Tab completion to be non-case sensitive
+grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='# Set tab completion for 'cd' to be non-case sensitive'
+grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='set completion-ignore-case On'
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
+# https://superuser.com/questions/241187/how-do-i-reload-inputrc
+# https://relentlesscoding.com/posts/readline-transformation/
 # https://www.topbug.net/blog/2017/07/31/inputrc-for-humans/
+#
 # $include /etc/inputrc
 # "\C-p":history-search-backward
 # "\C-n":history-search-forward
@@ -383,13 +389,8 @@ grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 # "\e\e[C": forward-word
 # "\e\e[D": backward-word
 
-
-# To Make the changes systemwide:
-# add option to /etc/inputrc to enable case-insensitive tab completion for all users
-# echo 'set completion-ignore-case On' >> /etc/inputrc
-# you may have to use this instead if you are not a superuser:
-# echo 'set completion-ignore-case On' | sudo tee -a /etc/inputrc
-
+# Rough working:
+# Seems that /etc/inputrc is not loaded by default, so have to use "$include /etc/inputrc"
 # testforline() { cat $1; cat $2; }
 # testforline /etc/inputrc ~/.inputrc "\"\\e\[1\~\": beginning-of-line"
 # check for the line in $1 and $2, and only add to $2 if not present in either
@@ -402,7 +403,11 @@ print_header "Common changes to /etc/sudoers"
 #
 ####################
 
-# Here just adding a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
+# This part is very dangerous and can brick the system if /etc/sudoers ends up in an invalid state
+echo "In case editing of the sodoers file goes wrong, run:   pkexec visudo"
+echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save"
+
+# Object here is just to add a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
 #     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to
@@ -411,8 +416,7 @@ print_header "Common changes to /etc/sudoers"
 # A note on the use of env_reset (Ubuntu and CentOS both use it, but CentOS restricts it with env_keep from what I can see)
 # https://unixhealthcheck.com/blog?id=363
 
-# This all must be overhauled. Need to be able programmatically automate changes to sudoers.
-# There are guides for this.
+# Programmatically automate changes to sudoers. There are guides for this.
 
 # Nornally, should only use visudo to update /etc/sudoers, so have to be very careful with this one, as can break system
 # However, on Ubuntu and many modern distros, fixing a corrupted sudoers file is actually quite easy, and doesn't require
@@ -429,18 +433,14 @@ print_header "Common changes to /etc/sudoers"
 # actions, you'll be asked to select which one you want to use, before being asked for your password.)
 
 # First, check if this system has a line ending "env_reset" (seems to normally be there in all Ubuntu / CentOs systems)
-SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
-exe sudo cp /etc/sudoers $SUDOTMP
+# SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
+# exe sudo cp /etc/sudoers $SUDOTMP
 
 # This completely broke my environment, had to reinstall ...
 # exe sudo sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers | sudo tee /etc/sudoers
 
 # Require "sudo tee" as /etc/sudoers does not even have 'read' permissiong so "> sudoers.1" would not work
 # Can also use "--append" to tee, useful to adding to end of a file, but in this case we do not need
-
-echo "In case editing of the sodoers file goes wrong, run:   pkexec visudo"
-echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save"
-
 # Add option to view the sudoers file in case it is broken to offer to copy the backup back in
 
 
@@ -452,6 +452,7 @@ print_header "Update Locale"
 ####################
 
 exe locale
+# Following are usual defaults
 # LANG=en_US.UTF-8
 # LANGUAGE=
 # LC_CTYPE="en_US.UTF-8"
@@ -474,22 +475,25 @@ echo "# sudo update-locale LANGUAGE=en_GB.UTF-8"
 echo "# sudo localectl set-locale LANG=en_GB.UTF-8"
 echo "# sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
 echo ""
-COLUMNS=12;
-printf "Select new Locale:\n\n";
-select x in en_GB.UTF-8 en_US.UTF-8 nl_NL.UTF-8 "Do not change";
-do
-    if [ "$x" == "Do not change" ]; then break; fi
-    exe sudo update-locale LANG=$x;
-    exe sudo update-locale LANGUAGE=$x;
-    exe sudo update-locale LC_ALL=$x;
-    echo ""
-    echo "New locale environment settings:"
-    exe locale
-    break;
-done
-echo ""
-echo "If locale has changed, it will be applied only after a new login session starts."
-echo ""
+
+# Commenting this section out since will be ignored when downloading from github with: curl <script> | bash
+#
+# COLUMNS=12;
+# printf "Select new Locale:\n\n";
+# select x in en_GB.UTF-8 en_US.UTF-8 nl_NL.UTF-8 "Do not change";
+# do
+#     if [ "$x" == "Do not change" ]; then break; fi
+#     exe sudo update-locale LANG=$x;
+#     exe sudo update-locale LANGUAGE=$x;
+#     exe sudo update-locale LC_ALL=$x;
+#     echo ""
+#     echo "New locale environment settings:"
+#     exe locale
+#     break;
+# done
+# echo ""
+# echo "If locale has changed, it will be applied only after a new login session starts."
+# echo ""
 
 # Changing the default locale is a little different on Ubuntu compared to most Linux distros, these are the steps we needed to go through to get it changed:
 # Add the locale to the list of 'supported locales', by editing /var/lib/locales/supported.d/local and add the following line:
@@ -504,8 +508,7 @@ echo "# sudo dpkg-reconfigure locales"
 echo ""
 echo "The new locale will not be applied until a new shell is started"
 echo ""
-read -e -p "Any key to continue ..."; "$@"
-
+# read -e -p "Any key to continue ..."; "$@"
 
 echo "Try regenerating the supported locale list by running:"
 echo "sudo dpkg-reconfigure locales"
@@ -530,10 +533,9 @@ echo "locale will show your current locale for the current user. Perhaps it's wo
 
 
 
-
 ####################
 #
-print_header "Dotsource ~/.custom into running session"
+print_header "Dotsource ~/.custom into this currently running session"
 #
 ####################
 
@@ -541,23 +543,11 @@ print_header "Dotsource ~/.custom into running session"
 
 
 
-# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
-# - Line endings being Windows instead of Unix.
-# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
-# - Another thing to check is to terminate bodies of single-line functions with semicolon.
-#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
-#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }
-# For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
-# Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
-# Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
-# https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
+####################
 #
-# Tip: use trap to debug (if your script is on the large side...)
-# e.g.
-# set -x
-# trap read debug
-
-
+# Notes
+#
+####################
 
 # Test code: update getting new file if it is older than 3 days
 # if [[ $(find "~/.custom" -mtime +3 -print) ]]; then

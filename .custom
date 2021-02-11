@@ -8,11 +8,12 @@ alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux fr
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd function if bash ver 4+, i.e. type a directory name (without cd) to cd into that directory
-alias sudo='sudo '                     # Fixes alias expansion when using sudo vi etc
-alias s!='eval "sudo $(fc -ln -1)"'    # Equivalent to "sudo !!", rerun last command but as superuser
-alias q='exit'                         # Quit immediately
-alias v='vim'                          # Short vim access
-alias cd..='cd ..'; alias cd.='cd /'   # Common typos
+alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
+alias s!='eval "sudo $(fc -ln -1)"'       # Equivalent to "sudo !!", rerun last command but as superuser
+alias q='exit'                            # Quit immediately
+alias v='vim'                             # Short vim access
+alias cd..='cd ..'; alias cd.='cd /'      # Common typos
+alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
 
 # Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
@@ -23,14 +24,14 @@ alias l='\ls --color=auto --group-directories-first'       # Do not show hidden 
 alias ll='ls -l'       # A (almost all, ignores ./ and ../ but show all .* files), long format
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
-alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n"' # ls+security (shows the octal code as well as normal ls security flags) using stat
+alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # ls+security (show octal and normal permission flags) using 'stat' for current directory
 
 # git: g, gst, ga, gcm, gcl, gstash, glog
 # gc, gcg, gcname, gadu, gall, git-push
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
-git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nWill run the following if choose to continue:\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "About to upload repository to github\nCtrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; read -p "About to upload repository to github\nCtrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
 # Tired of typing out 'sudo apt install' a lot so abbreviated these. Just have to be careful to avoid standard commands like 'du'
 # di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptup = update + upgrade + dist-update

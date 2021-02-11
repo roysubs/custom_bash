@@ -3,10 +3,10 @@
 
 Project intended to help with common bash configuration, which can be complex (setting up `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, getting useful tools that may not be default on a given distro etc). The `custom_loader.sh` script controls setup and is common for most distros, CentOS/Ubuntu/Debian (but does not cover Alpine yet), and includes WSL specific tools (if detected to be running on WSL).  
 
-The `.custom` script are common bash profile settings and are called from `~/.bashrc` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. The settings here are my preferences, but `custom_loader.sh` is also a template for how to easily extend for other preferred settings (simply clone the project and adjust to add remove settings as required).  
+`.custom` contains common bash profile settings and are called from `~/.bashrc` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. The settings here are my preferences, but `custom_loader.sh` is also a template for how to easily extend for other preferred settings (simply clone the project and adjust to add remove settings as required).  
   
 # Quick WSL Setup
-With syntax examples for Ubuntu (they have specific contracts with Microsoft so their images are possibly the most stable)  
+The following is full syntax to do all steps required for settings up an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are possibly probably the most stable). Note that each distro is an independent VMs (using Hyper-V), but they are completely managed by the OS and so have almost instant start times. Each WSL VM folder (before making changes and installing software) will be around 1 GB per instance:  
   
 \# Install WSL using DISM  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
@@ -34,12 +34,11 @@ It is often useful to have multiple copies of a distro available. With the above
 `md D:\WSL\Ubuntu2`  
 `wsl --import Ubuntu D:\WSL\Ubuntu1 D:\WSL\Ubuntu.tar`  
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
-These are completely independent managed VMs, a normal size for each folder (if not too bloated) will be around 1 GB to 1.5 GB per distro.
 
-**Can now start the default distro** simply by running `wsl` or `bash` from a console (or the Ubuntu icon from Start Menu  
+**Can now start the default distro** simply by running `wsl` or `bash` from a console (or the Ubuntu icon from the Start Menu).  
 Registered distros are automatically added to Windows Terminal, so that is probably the best option overall
   
-**Setup 'Quick access' link to the WSL distro's home folder** Open Explorer, then navigating to `\\wsl$\Ubuntu\home\<user>` and drag this folder into 'Quick access' for eacy access from Windows.  
+**Setup 'Quick access' link to the WSL distro's home folder** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows.  
 
 # Setup Bash Customisations, custom_loader.sh
 Install immediately with following (tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install):  
@@ -64,7 +63,7 @@ To reset a WSL distro back to an initial state:
 In the Advanced Options link, select the "Reset" button to restroe to the initial install state (note that everything will be deleted in that distro!).  
 
 **WSL Basics**  
-From PowerShell, list current images with `wsl -l -v   # wsl --list --verbose`  
+From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
 WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service`.  
 Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cannot be undone after upgrade)
 Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
@@ -79,7 +78,7 @@ e.g. if you now run a command that uses `wsl.exe` it will use the default distro
 **VS Code Remote WSL Extension**  
 This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
-**WSL Console Notes (**  
+**WSL Console Notes**  
 To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 **Explorer**  
@@ -99,123 +98,43 @@ The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\ro
 `\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
 
-**Running WSL Linux apps from Windows PowerShell with wsl.exe / bash.exe**  
-  
-Run `bash.exe` (or `wsl.exe`) from a cmd prompt to launch in current working directory. Run `bash ~` (or `wsl ~`) would launch in the user's home directory. Can start in any folder in this way, so `wsl /mnt/c/Users/John` would start in the Windows home folder of John.  
-A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
+# Using WSL with PowerShell, or Windows Apps in WSL  
+
+**[WSL Command References: wsl.exe / wslconfig.exe / bash.exe](https://docs.microsoft.com/en-us/windows/wsl/reference)**
+Run `bash.exe` (or `wsl.exe`) from a cmd prompt to launch linux from the current working directory and using the default distro. Run `bash ~` (or `wsl ~`) would launch in the user's home directory. Can start in any folder in this way, so `wsl /mnt/c/Users/John` would start in the Windows home folder of John. `wsl -d Fedoraremix ~` would open in a specific distro version.  
   
 Keep in mind that:  
 • PowerShell is case-insensitive and uses objects by default.  
 • Linux is case-sensitive and passes strings by default.  
   
-Some examples, firstly, these are from a PowerShell prompt. Note that the output of these is case-insensitive by default.  
-This fails due to requiring to convert to a string first:  
+Examples from a PowerShell prompt. As above, not that these are case-insensitive by default.  
+Get processes with "win" in the name (the following fails due to requiring to convert to a string first):  
 `PS C:\> Get-Process | Select-String win`  
-This works as the objects has been converted to a string stream:  
-`PS C:\> Get-Process | Out-String -Stream | Select-String win`   
-Using `Get-Alias -Definition <cmdlet> to find the aliases for each Cmdlet:  
-`PS C:\> ps | Out-String -Stream | sls win`  
+Fixing this by converting the object to a string first.  
 As `Select-String` will try to use objects from the pipe, `Out-String -Stream` is required to flatten that to a string.  
-To change the default distro, use `-s`, e.g. `wsl -s Ubuntu-20.04 <command>`. The default distro is used when `-s` is not specified.  
-`PS C:\> dir C:\ | wsl grep -i win | wsl sed 's/win/xxx/g'`  
-However, with multiple distros, you could use multiple different WSL instances on a single line:  
-`PS C:\> Write-Output "Hello``nLinux!" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay`  
+`PS C:\> Get-Process | Out-String -Stream | Select-String win`   
+Using `Get-Alias -Definition <cmdlet>` to find the aliases for each Cmdlet:  
+`PS C:\> ps | Out-String -Stream | sls win`  
+
+Now do the same but using `grep` and `sed` from WSL to manipulate the output.
+Note that when piping to a non-PowerShell command (not just WSL, but anything non-PowerShell), PowerShell automatically flattens that output to a string so `Out-String -Stream` is not required. Also note that `ps` here is `Get-Process` from PowerShell, and not `ps` from the WSL Linux distro.
+`PS C:\> ps | grep -i win | wsl sed 's/win/xxx/g'`  
+We can change the default distro using `-s`, so could use multiple different WSL instances on a single line:  
+`PS C:\> Write-Output "Hello``nLinux" | wsl -d Ubuntu grep -i linux | wsl -d Debian cowsay`  
   
-In the below, `ps` is PowerShell (`Get-Process`) but the `grep` after `wsl` will be handled by the WSL distro.  
-When piping to a non-PowerShell command (not just WSL, but anything non-PowerShell), PowerShell automatically flattens that output to a string so something like `Out-String` is not required.  
-Note that by default the output below is case-sensitive and so probabaly shows less items than the above pure PowerShell.  
-In the following, `ps` is a PowerShell Cmdlet (`Get-Process`) but grep is using the default wsl distro:  
+Remember that the PowerShell is case-insensitive but that the Linux is case-sensitive so get different output without the `-i`.  
 `PS C:\> ps | wsl grep win`  
-Following will be case-insensitive, equivalent to ps | out-string -stream | sls win
+Making this case-insensitive, so will be equivalent to `ps | out-string -stream | sls win`
 `PS C:\> ps | wsl grep -i win`  
-  
-Below is from WSL, accessing the Windows filesystem (a more complex example):  
-`winhome` in this example searches for an stores the case-sensitive User folder name from the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL:
-`    $ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
 
-# WSL.exe
+A more complex example, to access the Windows filesystem (a more complex example). `winhome` in this example searches for and stores the case-sensitive User folder name from the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL):
+`$ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
 
-```
-PS C:\> wsl -h
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-Usage: wsl.exe [Argument] [Options...] [CommandLine]
-
-Arguments for running Linux binaries:
-
-    If no command line is provided, wsl.exe launches the default shell.
-
-    --exec, -e <CommandLine>
-        Execute the specified command without using the default Linux shell.
-
-    --
-        Pass the remaining command line as is.
-
-Options:
-    --distribution, -d <Distro>
-        Run the specified distribution.
-
-    --user, -u <UserName>
-        Run as the specified user.
-
-Arguments for managing Windows Subsystem for Linux:
-
-    --export <Distro> <FileName>
-        Exports the distribution to a tar file.
-        The filename can be - for standard output.
-
-    --import <Distro> <InstallLocation> <FileName> [Options]
-        Imports the specified tar file as a new distribution.
-        The filename can be - for standard input.
-
-        Options:
-            --version <Version>
-                Specifies the version to use for the new distribution.
-
-    --list, -l [Options]
-        Lists distributions.
-
-        Options:
-            --all
-                List all distributions, including distributions that are currently
-                being installed or uninstalled.
-
-            --running
-                List only distributions that are currently running.
-
-            --quiet, -q
-                Only show distribution names.
-
-            --verbose, -v
-                Show detailed information about all distributions.
-
-    --set-default, -s <Distro>
-        Sets the distribution as the default.
-
-    --set-default-version <Version>
-        Changes the default install version for new distributions.
-
-    --set-version <Distro> <Version>
-        Changes the version of the specified distribution.
-
-    --shutdown
-        Immediately terminates all running distributions and the WSL 2 lightweight utility virtual machine.
-
-    --terminate, -t <Distro>
-        Terminates the specified distribution.
-
-    --unregister <Distro>
-        Unregisters the distribution.
-
-    --help
-        Display usage information.
-```
-
+A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
 
 # LxRunOffline.exe
 
-Open source WSL tool. [Home page](https://awesomeopensource.com/project/DDoSolitary/LxRunOffline)), [Git Project](https://github.com/DDoSolitary/LxRunOffline).  
+Open source WSL tool. WSL had a built-in tool called `lxrun.exe` (now deprecated) and this was named after that for offline tasks (but is non-Microsoft). [Home page](https://awesomeopensource.com/project/DDoSolitary/LxRunOffline)), [Git Project](https://github.com/DDoSolitary/LxRunOffline).  
 "A full-featured utility for managing Windows Subsystem for Linux (WSL)"  
 Chocolatey: `choco install lxrunoffline`  
 Scoop: `scoop bucket add extras`, `scoop install lxrunoffline`  
@@ -259,34 +178,31 @@ Supported actions are:
 https://stackoverflow.com/questions/38779801/move-wsl-bash-on-windows-root-filesystem-to-another-hard-drive
 In any Windows 10 version, you can move the distribution to another drive using lxRunOffline.
 
-1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. You may use icacls <dir> /grant "<user>:(OI)(CI)(F)" to set the proper permissions.
+[Move WSL Project](https://github.com/pxlrbt/move-wsl)
+1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. Use `icacls` to set the proper permissions.
+    `C:\> whoami`
+    test\john
+    `C:\> icacls D:\wsl /grant "john:(OI)(CI)(F)"`
+    NOTE: In addition to the above permissions, I have activated the long path names in Windows.
 
-C:\> whoami
-test\jaime
+2. Move the distribution with `lxrunoffline move`.
+    `C:\wsl> lxrunoffline move -n Ubuntu-18.04 -d d:\wsl\installed\Ubuntu-18.04`
+    You may check the installation folder using
+    `C:\wsl> lxrunoffline get-dir -n Ubuntu-18.04`
+    d:\wsl\installed\Ubuntu-18.04
 
-C:\> icacls D:\wsl /grant "jaime:(OI)(CI)(F)"
-NOTE: In addition to the above permissions, I have activated the long path names in Windows.
+3. Run the distribution. after moving the distribution, you can run the distribution using `wsl` or the same `lxrunoffline`
+    `C:\wsl> lxrunoffline run -n Ubuntu-18.04 -w`
+    `user@test:~$ exit`
+    `logout`
+    `C:\wsl> wsl`
+    `user@test:/mnt/c/wsl$ exit`
+    `logout`
 
-2. Move the distribution. Using lxrunoffline move.
 
-C:\wsl> lxrunoffline move -n Ubuntu-18.04 -d d:\wsl\installed\Ubuntu-18.04
-You may check the installation folder using
-
-C:\wsl> lxrunoffline get-dir -n Ubuntu-18.04
-d:\wsl\installed\Ubuntu-18.04
-3. Run the distribution. after moving the distribution, you can run the distribution using wsl or the same lxrunoffline
-
-C:\wsl> lxrunoffline run -n Ubuntu-18.04 -w
-user@test:~$ exit
-logout
-
-C:\wsl> wsl
-user@test:/mnt/c/wsl$ exit
-logout
-
-chttps://github.com/pxlrbt/move-wsl
 
 # Git with WSL and Windows
+
 [WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  
 [Use WSL Git instead of Git for Windows (StackOverflow)](https://stackoverflow.com/questions/44441830/vscode-use-wsl-git-instead-of-git-for-windows)
   

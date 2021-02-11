@@ -1,9 +1,9 @@
 # Automated Bash Customisation & WSL Usage
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-Configuring Linux can be awkward (`~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, getting useful tools that may not be default on a given distro etc) so this installer will do those tasks. The script `custom_loader.sh` sets things up (for most distros, CentOS/Ubuntu/Debian etc, including WSL specific settings if that is detected). It also sets up locale preferences. The second script `.custom` is simply called from `~/.bashrc` to setup a consistent set of login settings.  
-  
-The settings here are my preferences, but also are a framework (templates for how to easily automate the addition of settings for `~/.vimrc`, `~/.inputrc`, etc). Everything is lightweight so will not mess up any system (`~/.custom` is just called from `~/.bashrc` so that can be turned off simply by removing the two lines in `~/.bashrc`.
+Project intended to help with common bash configuration, which can be complex (setting up `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, getting useful tools that may not be default on a given distro etc). The `custom_loader.sh` script controls setup and is common for most distros, CentOS/Ubuntu/Debian (but does not cover Alpine yet), and includes WSL specific tools (if detected to be running on WSL).  
+
+The `.custom` script are common bash profile settings and are called from `~/.bashrc` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. The settings here are my preferences, but `custom_loader.sh` is also a template for how to easily extend for other preferred settings (simply clone the project and adjust to add remove settings as required).  
   
 # Quick WSL Setup
 With syntax examples for Ubuntu (they have specific contracts with Microsoft so their images are possibly the most stable)  

@@ -179,25 +179,25 @@ https://stackoverflow.com/questions/38779801/move-wsl-bash-on-windows-root-files
 In any Windows 10 version, you can move the distribution to another drive using lxRunOffline.
 
 [Move WSL Project](https://github.com/pxlrbt/move-wsl)
-1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. Use `icacls` to set the proper permissions.
-    `C:\> whoami`
-    test\john
-    `C:\> icacls D:\wsl /grant "john:(OI)(CI)(F)"`
-    NOTE: In addition to the above permissions, I have activated the long path names in Windows.
+1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. Use `icacls` to set the proper permissions.  
+    `C:\> whoami`  
+    test\john  
+    `C:\> icacls D:\wsl /grant "john:(OI)(CI)(F)"`  
+    NOTE: In addition to the above permissions, I have activated the long path names in Windows.  
 
-2. Move the distribution with `lxrunoffline move`.
-    `C:\wsl> lxrunoffline move -n Ubuntu-18.04 -d d:\wsl\installed\Ubuntu-18.04`
-    You may check the installation folder using
-    `C:\wsl> lxrunoffline get-dir -n Ubuntu-18.04`
-    d:\wsl\installed\Ubuntu-18.04
+2. Move the distribution with `lxrunoffline move`.  
+    `C:\wsl> lxrunoffline move -n Ubuntu-18.04 -d d:\wsl\installed\Ubuntu-18.04`  
+    You may check the installation folder using  
+    `C:\wsl> lxrunoffline get-dir -n Ubuntu-18.04`  
+    d:\wsl\installed\Ubuntu-18.04  
 
-3. Run the distribution. after moving the distribution, you can run the distribution using `wsl` or the same `lxrunoffline`
-    `C:\wsl> lxrunoffline run -n Ubuntu-18.04 -w`
-    `user@test:~$ exit`
-    `logout`
-    `C:\wsl> wsl`
-    `user@test:/mnt/c/wsl$ exit`
-    `logout`
+3. Run the distribution. after moving the distribution, you can run the distribution using `wsl` or the same `lxrunoffline`  
+    `C:\wsl> lxrunoffline run -n Ubuntu-18.04 -w`  
+    `user@test:~$ exit`  
+    `logout`  
+    `C:\wsl> wsl`  
+    `user@test:/mnt/c/wsl$ exit`  
+    `logout`  
 
 
 

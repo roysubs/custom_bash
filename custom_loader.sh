@@ -72,7 +72,7 @@ fi
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
 
 printf "\nCheck updates:\n\n"
-printf "- sudo $MANAGER update -y\n- sudo $MANAGER upgrade -y\n- sudo $MANAGER dist-upgrade -y\n- sudo $MANAGER install ca-certificates -y\n- sudo $MANAGER autoremove -y\n"
+printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade \-y\n> sudo $MANAGER dist-upgrade \-y\n> sudo $MANAGER install ca-certificates \-y\n> sudo $MANAGER autoremove \-y\n"
 
 # Need to reboot script if pending
 exe sudo $MANAGER update -y
@@ -207,34 +207,40 @@ print_header "Update .bashrc to load .custom in every interactive login session"
 # https://linux.die.net/man/1/grep
 # https://stackoverflow.com/questions/3557037/appending-a-line-to-a-file-only-if-it-does-not-already-exist
 
-# Remove any loader lines from .bashrc
-# This should maybe be updated to first remove the lines, and then re-add them, so that the lines are always at the end?
-cp ~/.bashrc /tmp/.bashrc_$(date +"%H_%M_%S")   # Backup .bashrc in case of issues
-GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
-RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
+# Backup ~/.custom
+if [ -f ~/.custom ]; then
+    exe cp ~/.custom ~/tmp/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to rename this to make way for the new downloaded file
+fi
+if [ -f ~/.bashrc ]; then
+    cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S")   # Backup .bashrc in case of issues
+fi
 # Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
-sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file $
-echo "" | sudo tee --append ~/.bashrc   # Add an empty line
+sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
+sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
+echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
+
+# Add lines to trigger .custom to end of .bashrc
+GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
+RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
 # grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
 # grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
 # sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
 # sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
-
-# Then append loader lines to end of .bashrc (remove then re-add to ensure that they are at end of file)
-exe mv ~/.custom ~/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to rename this to make way for the new downloaded file
-exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+# exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
 # [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
 # [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 # [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
-# Note: have to be careful with this as if ".bash_profile" is ever created, it takes precedence so that .bashrc
-# will NEVER load! Just one of the many crazy "features" of bash. To avoid this need to have logic to check.
-# Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
-# If .bash_profile is not zero length, load a line to dotsource .bashrc
+# .bash_profile checks
+##########
+# If ".bash_profile" is ever created, it takes precedence, and .bashrc will NOT load in this case (just one of the crazy bash rules).
+# To avoid this need to check for its existence:
+# - Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
+# - If .bash_profile is not zero length, load a line to dotsource .bashrc
 
 if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
     echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
@@ -255,19 +261,14 @@ fi
 print_header "Download and dotsource new .custom"
 #
 ####################
-# read -e -p "Any key to continue ..."; "$@"
-
-# Backup existing ~/.custom, if present
-[ -f ~/.custom ] && mv ~/.custom /tmp/.custom_$(date +"%H_%M_%S")
 
 # If ~/.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory
-if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[  ]]; then
-    cp ./.custom ~/.custom
+if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    exe cp ./.custom ~/.custom
 fi
 
-# If, after the above, ~/.custom does not exist, then download it from github
 if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+    exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
 
@@ -277,6 +278,7 @@ fi
 print_header "Common changes to .vimrc"
 #
 ####################
+# read -e -p "Any key to continue ..."; "$@"
 
 # https://topic.alibabacloud.com/article/ubuntu-system-vimrc-configuration-file_3_12_513382.html
 # https://linuxhint.com/vimrc_tutorial/
@@ -330,7 +332,7 @@ print_header "Common changes to .inputrc"
 ####################
 
 # if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
-if [ ! -f ~/.inputrc ]; then touch ~/.inputrc
+if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
 # echo  >> ~/.inputrc
 
@@ -549,6 +551,38 @@ print_header "Dotsource ~/.custom into this currently running session"
 #
 ####################
 
+# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
+# - Line endings being Windows instead of Unix.
+# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
+#   For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
+#   Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
+#   Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
+#   https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
+# 
+# - Also check on the termination of single-line functions with semicolon.
+#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
+#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }     (i.e. add the ";" at the end)
+#
+# Tip: use trap to debug (if your script is on the large side...)
+# e.g.
+# set -x
+# trap read debug
+# 
+# The 'trap' command is a way to debug your scripts by esentially breaking after every line.
+# A fuller discussion is here: 
+# hppts://stackoverflow.com/questions/951336/how-to-debug-a-bash-script/45096876#45096876 
+#
+# An alternative for handling line endings:
+# export SHELLOPTS
+# set -o igncr
+# Put into .bashrc or .bash_profile and then do not need to run unix2dos
+
+# Default LS_COLORS (on Ubuntu)
+# Original di is 01;34 then is overwritten by 0;94 later
+# rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36::di=0;94
+
+# ToDo: rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty
+
 # Test code: update getting new file if it is older than 3 days
 # if [[ $(find "~/.custom" -mtime +3 -print) ]]; then
 #     echo "File ~/.custom exists and is older than 3 days"
@@ -579,37 +613,3 @@ print_header "Dotsource ~/.custom into this currently running session"
 # if (( file_time <= hundred_days_ago )); then
 #   echo "$filename is older than 100 days"
 # fi
-
-
-
-# Most common parsing issues that I found leading to "syntax error: unexpected end of file" errors:
-# - Line endings being Windows instead of Unix.
-# - Bash treats "then\r" as a command name, and "fi\r" as another, and so thinks that it has not seen the correct format for an if …; then …; fi statement
-#   For line-endings, can either change this with "dos2unix <filename>" or, easier, open in vim and use ":set fileformat=unix"
-#   Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
-#   Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
-#   https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
-# 
-# - Also check on the termination of single-line functions with semicolon.
-#   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
-#   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }
-#
-# Tip: use trap to debug (if your script is on the large side...)
-# e.g.
-# set -x
-# trap read debug
-# 
-# The 'trap' command is a way to debug your scripts by esentially breaking after every line.
-# A fuller discussion is here: 
-# hppts://stackoverflow.com/questions/951336/how-to-debug-a-bash-script/45096876#45096876 
-#
-# An alternative for handling line endings:
-# export SHELLOPTS
-# set -o igncr
-# Put into .bashrc or .bash_profile and then do not need to run unix2dos
-
-# Default LS_COLORS (on Ubuntu)
-# Original di is 01;34 then is overwritten by 0;94 later
-# rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36::di=0;94
-
-# ToDo: rd() { [ $# = 1 ] && [ "$(ls -A "$@")" ] && echo "Not Empty" || echo "Empty"   # ToDo: remove a folder only if it is empty

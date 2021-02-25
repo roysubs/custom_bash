@@ -9,27 +9,29 @@ alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux fr
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # autocd function if bash ver 4+, i.e. type a directory name (without cd) to cd into that directory
 alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
-alias s!='eval "sudo $(fc -ln -1)"'       # Equivalent to "sudo !!", rerun last command but as superuser
+alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
 alias q='exit'                            # Quit immediately
 alias v='vim'                             # Short vim access
 alias cd..='cd ..'; alias cd.='cd /'      # Common typos
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
+def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl^C
 
 # Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
 # ls shows all files including .*, l is the same but without .*, ll is as ls but -l long format, l. and ll. are for .* files only, lss shows both security views (drwxr-xr-x / 755)
-if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc, note "\ls" for "l", this ignores the alias "ls" to run raw to remove "A"
-alias ls='ls -FAh --color=auto --group-directories-first'  # A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)
+if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc. Note that the "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
+alias ls='ls -FAh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)
 alias l='\ls --color=auto --group-directories-first'       # Do not show hidden (.*) (this is the more normal 'ls' alias output, but putting to 'l' as usually always want "A" flag
 alias ll='ls -l'       # A (almost all, ignores ./ and ../ but show all .* files), long format
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
-alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # ls+security (show octal and normal permission flags) using 'stat' for current directory
+alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 
 # git: g, gst, ga, gcm, gcl, gstash, glog
 # gc, gcg, gcname, gadu, gall, git-push
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
-alias gc='git config'; alias gcg='git config --global'; alias gcname='git config --global user.name; git config --global user.email'
+alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
@@ -65,7 +67,7 @@ export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-termin
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # if bash ver 4+, then autocd. i.e. if type a directory name to cd into it, without needing to type 'cd'
 
 # Some basic/useful functions (and to use as templates to demonstrate some function syntax)
-md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error - no directory passed!"; }  # 'mkdir' and then 'cd' into that directory
+md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 dufix() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\n$(ls -alc | grep ^total) = size of all files in current directory only\n\n"; } # Fixes du for current folder, as it normally skips .* files/folders. To find only folders bigger than 1 GB, add   | grep -E ^[0-9]+?\.?[0-9]+G
 dufixsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\n$(sudo ls -alc | grep ^total) (size of files in current directory only)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'

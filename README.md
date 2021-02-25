@@ -210,12 +210,6 @@ In any Windows 10 version, you can move the distribution to another drive using 
 Set your email with this command (replacing "youremail@domain.com" with the email you use on your Git account):  
 `git config --global user.name "username"`  
 `git config --global user.email "youremail@domain.com"`  
-Create `.gitignore` file inside the root of the project to exclude files from the project.  
-Add one line per exclude mask (can use wildcards). If a file is already in the project, it must be removed:  
-`git rm --cached <filename>`  
-To create a global ignore file (e.g. could put `*.tmp` to exclude all files like that in all projects):  
-`git config --global core.excludesfile ~/.gitignore_global`  
-To exclude without using `.gitignore`, put exclude masks into `.git/info/exclude`.  
   
 **Git Credential Manager setup**  
 Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager. To set up Git Credential Manager for use with a WSL distribution, open your distribution and enter this command:  
@@ -224,15 +218,17 @@ Git Credential Manager enables you to authenticate a remote Git server, even if 
 Now any git operation you perform within your WSL distribution will use the credential manager. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
 
 **Adding a Git Ignore file**  
-It is useful to add a `.gitignore` file to projects. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
-
-**Some Links / Sorting ...**
-[Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)
-*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is apparently about 15x to 20x faster for IO due to the native kernel etc.*
+It is useful to add a `.gitignore` file (must be in the root folder of a project) to exclude certain files from the project. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
+Add one line per exclude mask (can use wildcards). If a file is already in the project, it must be removed:  
+`git rm --cached <filename>`  
+To create a global ignore file (e.g. could put `*.tmp` to exclude all files like that in all projects):  
+`git config --global core.excludesfile ~/.gitignore_global`  
+To exclude without using `.gitignore`, put exclude masks into `.git/info/exclude`.  
 
 # Docker
   
-Should I use docker or Docker-Desktop or both?  
+[Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)
+*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is apparently about 15x to 20x faster for IO due to the native kernel etc.* Should I use docker or Docker-Desktop or both?  
 
 # WSL Backup/Restore and moving to other drives
 

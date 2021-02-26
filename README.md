@@ -130,11 +130,11 @@ Making this case-insensitive, so will be equivalent to `ps | out-string -stream 
 A more complex example, to access the Windows filesystem (a more complex example). `winhome` in this example searches for and stores the case-sensitive User folder name from the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL):
 `$ winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)`
 
-A [write-up](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between the /mnt/ drive mounts and the Linux filesystem.  
+[Here are some notes](https://github.com/microsoft/WSL/issues/87#issuecomment-214567251) on differences between `/mnt/` host (Windows) drive mountpoints and the Linux filesystem.  
 
 # LxRunOffline.exe
 
-Open source WSL tool. WSL had a built-in tool called `lxrun.exe` (now deprecated) and this was named after that for offline tasks (but is non-Microsoft). [Home page](https://awesomeopensource.com/project/DDoSolitary/LxRunOffline)), [Git Project](https://github.com/DDoSolitary/LxRunOffline).  
+Non-Microsoft open source tool to manage WSL (there was a now deprecated tool called `lxrun.exe` that was previously part of WSL that this tool is named after). [Home page](https://awesomeopensource.com/project/DDoSolitary/LxRunOffline)), [Git Project](https://github.com/DDoSolitary/LxRunOffline).  
 "A full-featured utility for managing Windows Subsystem for Linux (WSL)"  
 Chocolatey: `choco install lxrunoffline`  
 Scoop: `scoop bucket add extras`, `scoop install lxrunoffline`  

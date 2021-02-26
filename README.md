@@ -58,9 +58,9 @@ With the clone, can customise the settings to be applied to each machine, what s
 WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
 [Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
   
-To reset a WSL distro back to an initial state:  
+**Reset a WSL distro back to an initial state**  
 `Settings > Apps > Apps & features > select the Linux Distro Name`  
-In the Advanced Options link, select the "Reset" button to restroe to the initial install state (note that everything will be deleted in that distro!).  
+In the Advanced Options link, select the "Reset" button to restore back to initial install state (note that everything will be deleted in that distro!) which is very useful for testing distros.  
 
 **WSL Basics**  
 From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
@@ -78,9 +78,6 @@ e.g. if you now run a command that uses `wsl.exe` it will use the default distro
 **VS Code Remote WSL Extension**  
 This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
-**WSL Console Notes**  
-To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
-
 **Explorer**  
 If `choco install lxrunoffline` is installed, from Windows Explorer, note the "LxRunOffline" right-click item to let you open a bash shell at that folder location with the chosen distro.  
 From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
@@ -97,6 +94,9 @@ Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. i
 The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  
 `\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
+
+**WSL Console Notes**  
+To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 # Using WSL with PowerShell, or Windows Apps in WSL  
 

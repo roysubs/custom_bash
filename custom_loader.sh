@@ -61,12 +61,13 @@ which yum &> /dev/null && MANAGER=yum && DISTRO="RHEL/Fedora/CentOS"
 which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 
 if [ -z $MANAGER ]; then
-    echo "No manager available"
+    echo "No package manager identified, so script cannot continue."
+    echo "This distro may not support apt/dnf/yum etc"
     return
-else
-    echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
-    echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 fi
+
+echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
+echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 
 ### Check for and fix any outstanding broken installs
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
@@ -220,6 +221,8 @@ sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty li
 echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
 
 # Add lines to trigger .custom to end of .bashrc
+HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
+grep -qxF "$HEADERCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
@@ -449,11 +452,21 @@ echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in he
 
 ####################
 #
-print_header "Update Locale"
+print_header "Dotsource ~/.custom into this currently running session"
 #
 ####################
 
-exe locale
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
+
+
+
+####################
+#
+print_header "Configure Locale"
+#
+####################
+
+# exe locale
 # Following are usual defaults
 # LANG=en_US.UTF-8
 # LANGUAGE=
@@ -471,11 +484,19 @@ exe locale
 # LC_IDENTIFICATION=nl_NL.UTF-8
 # LC_ALL=
 echo ""
-echo "Has to set LANG, LANGUAGE, and all LC variables (via LC_ALL)."
-echo "# sudo update-locale LANG=en_GB.UTF-8"
-echo "# sudo update-locale LANGUAGE=en_GB.UTF-8"
-echo "# sudo localectl set-locale LANG=en_GB.UTF-8"
-echo "# sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
+echo "To change locale for language and keyboard settings (e.g. GB, FR, NL, etc)"
+echo "we have to set LANG, LANGUAGE, and all LC variables (via LC_ALL):"
+echo '   # sudo update-locale LANG="en_GB.UTF-8" LANGUAGE="en_GB"   # for GB'
+echo '   # sudo update-locale LANG="nl_NL.UTF-8" LANGUAGE="nl_NL"   # for NL'
+echo '   # sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR"   # for FR'
+echo "   # sudo localectl set-locale LANG=en_GB.UTF-8"
+echo "   # sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
+echo ""
+echo "For Ubuntu, just need to run the folloing and choose the UTF-8 option:"
+echo "   # sudo dpkg-reconfigure locales"
+echo ""
+echo "Run 'locale' to view the current settings before changing."
+echo ""
 echo ""
 
 # Commenting this section out since will be ignored when downloading from github with: curl <script> | bash
@@ -501,47 +522,38 @@ echo ""
 # Add the locale to the list of 'supported locales', by editing /var/lib/locales/supported.d/local and add the following line:
 # en_GB ISO-8859-1
 # The above does not work for me on current Ubuntu
-echo "Note en_GB.UTF-8 vs en_GB.ISO-8859-1, though this might be old/fixed now"
-echo "https://blog.andrewbeacock.com/2007/01/how-to-change-your-default-locale-on.html"
-echo "https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server#89983"
-echo "For Ubuntu, easiest option is to reconfigure locale, select en_GB.UTF-8 (or other):"
-echo ""
-echo "# sudo dpkg-reconfigure locales"
-echo ""
-echo "The new locale will not be applied until a new shell is started"
-echo ""
+# echo "Note en_GB.UTF-8 vs en_GB.ISO-8859-1, though this might be old/fixed now"
+# echo "https://blog.andrewbeacock.com/2007/01/how-to-change-your-default-locale-on.html"
+# echo "https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server#89983"
+# echo "For Ubuntu, easiest option is to reconfigure locale, select en_GB.UTF-8 (or other):"
+# echo ""
+# echo "# sudo dpkg-reconfigure locales"
+# echo ""
+# echo "The new locale will not be applied until a new shell is started"
+# echo ""
 # read -e -p "Any key to continue ..."; "$@"
-
-echo "Try regenerating the supported locale list by running:"
-echo "sudo dpkg-reconfigure locales"
-echo ""
-echo "And update/change the current default locale:"
-echo "sudo update-locale LANG=fr_FR.UTF-8"
-echo "Update"
-echo ""
-echo "Generate the locales for your language (e.g. British English):"
-echo "   sudo locale-gen fr_FR"
-echo "   sudo locale-gen fr_FR.UTF-8"
-echo ""
-echo "Extra steps to try:"
-echo ""
-echo "Try:"
-echo ""
-echo "sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR""
-echo "sudo dpkg-reconfigure locales"
-echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
-echo ""
-echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
-
+# echo "Try regenerating the supported locale list by running:"
+# echo "sudo dpkg-reconfigure locales"
+# echo ""
+# echo "And update/change the current default locale:"
+# echo "sudo update-locale LANG=fr_FR.UTF-8"
+# echo "Update"
+# echo ""
+# echo "Generate the locales for your language (e.g. British English):"
+# echo "   sudo locale-gen fr_FR"
+# echo "   sudo locale-gen fr_FR.UTF-8"
+# echo ""
+# echo "Extra steps to try:"
+# echo ""
+# echo "Try:"
+# echo ""
+# echo "sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR""
+# echo "sudo dpkg-reconfigure locales"
+# echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
+# echo ""
+# echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
 
 
-####################
-#
-print_header "Dotsource ~/.custom into this currently running session"
-#
-####################
-
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 
 
 

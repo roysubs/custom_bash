@@ -252,19 +252,26 @@ Note that doing this will break all connections to open sessions, e.g. open VS C
 When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
   
-Terminate a single WSL instance: `wsl -t <distro-name>   # or --terminate`   
-Does it restart immediately?
-Note that `sudo reboot` does not work and generates the following error:  
+# Terminating/Rebooting WSL sessions, and Systemd incompatibility
+
+You can terminate a single WSL instance from PowerShell as follows (will terminate the Hyper-V VN immediately):  
+`wsl -t <distro-name>   # or --terminate`   
+
+You can also terminate a WSL session from its own console as WSL imports the whole Windows PATH so that you can run all Windows binaries, but you have to fully specify the name of a binary (so must use `wsl.exe` and not just `wsl`), so to terminate a WSL session, use:  
+`wsl.exe -t <distro-name>`  
+  
+Note that `sudo reboot` does not work (as it is part of systemd which does not exist on *any* WSL distro). It will generate the following error:  
 `   System has not been booted with systemd as init system (PID 1). Can't operate.`  
 `   Failed to connect to bus: Host is down`  
 `   Failed to talk to init daemon.`  
-This is because WSL does not use systemd, and so this also applies to all systemd actions such as `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/). 
+All systemd actions will fail, e.g. `systemctl start` etc. More on this [here](https://linuxhandbook.com/system-has-not-been-booted-with-systemd/).  
+Also look at `echo $PATH` to see that all Windows paths are imported (this happens at session startup).
+
+Kill all WSL instances: `Get-Service LxssManager | Stop-Service`   (then same again but with ` | Start-Service` to start again)  
+Restart all instances:  `Get-Service LxssManager | Restart-Service`  
 
 **[WSL2-Hacks](https://github.com/shayne/wsl2-hacks)**
 https://stackoverflow.com/questions/55579342/why-systemd-is-disabled-in-wsl
-
-Kill all WSL instances: `Get-Service LxssManager | Stop-Service`   (then same again but with ` | Start-Service` to start again)
-Restart all instances:  `Get-Service LxssManager | Restart-Service`
 
 To make all new distros install as v2:  
 `wsl --set-default-version 2`  
@@ -274,7 +281,6 @@ To upgrade an existing distro to v2:
 `   Conversion in progress, this may take a few minutes...`  
 `   For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
   
-# Systemd does not exist in WSL distros  
 You cannot use `sudo reboot` or any similar systemd command:  
   
 `Systemd command                 Sysvinit command`  
@@ -379,12 +385,13 @@ Microsoft is also bringing GPU hardware acceleration for Linux applications runn
 `C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
 
 **Quick summary**  
-Reboot: do not use `sudo reboot`, use `wsl -t <distro>`
-Shutdown all distros: `wsl -shutdown`
+Reboot: do not use `sudo reboot`, use `wsl -t <distro>` (or from inside the session itself, use `wsl.exe -t <distro>`)  
+To shutdown all distros immediately (i.e. to close the WSL VM manager): `wsl -shutdown` (or from inside the session itself, use `wsl.exe -shutdown`)  
 
-**Using the Remote extension in VS Code**
+# Using the Remote extension in VS Code
 
-`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+This is very important for seamless integration between WSL sessions and Windows, so that you can open any script on the WSL session using VS Code. Install this extension from within VS Code to be able to run `code ~/.bashrc` directly inside a WSL session and have that open in VS Code.
+*... add more notes here ...*  
 
 # Useful Links and One-Liner Bash Functions etc
 

@@ -112,6 +112,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # [ ! -d $winhome ] && mkdir "$winhome"
     # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
     alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""  # Chrome, can use with URLs:       chrome www.google.com
+    alias chromecustom='chrome https://github.com/roysubs/custom_bash'
     alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
     alias n='notepad++'                                                           # n C:\Temp\Test.txt
     # Don't use code.exe from a full installation or the chocolatey shim at /mnt/c/ProgramData/chocolatey/bin/code.exe. Both of these generate errors.

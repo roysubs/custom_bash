@@ -93,7 +93,7 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 # Aliases for Windows apps (only runs if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL").   https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
-    alias shutdown='wsl.exe -t $WSL_DISTO_NAME'
+    alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTO_NAME"'
     winhome=$(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)
     [ ! -d $winhome ] && mkdir "$winhome"
     # $1 is name of the alias and $2 is the (escaped, i.e. spaces should be escaped) path to the target file
@@ -109,6 +109,11 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
     alias c='code'
     alias clip_ip='hostname -I | clip.exe'
+    # Run CMD scripts from within WSL, note that you must use the Windows path, so cmd D:\test.cmd, and not cmd /mnt/d/test.cmd
+    # https://github.com/microsoft/WSL/issues/4547
+    run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
+    # Run CMD scripts from within WSL, note that you must use the Windows path, so cmd D:\test.cmd, and not cmd /mnt/d/test.cmd
+    run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 fi
 
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS

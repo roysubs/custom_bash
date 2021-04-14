@@ -203,6 +203,8 @@ In any Windows 10 version, you can move the distribution to another drive using 
 
 # Git with WSL and Windows
 
+Git direct passwords will be deprecated on 21st August, so need to move over to tokens.
+
 [WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  
 [Use WSL Git instead of Git for Windows (StackOverflow)](https://stackoverflow.com/questions/44441830/vscode-use-wsl-git-instead-of-git-for-windows)
   
@@ -228,7 +230,7 @@ To exclude without using `.gitignore`, put exclude masks into `.git/info/exclude
 # Docker
   
 [Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)
-*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is apparently about 15x to 20x faster for IO due to the native kernel etc.* Should I use docker or Docker-Desktop or both?  
+*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is about 15x to 20x faster for IO due to the native kernel etc.* Should I use docker or Docker-Desktop or both?  
 
 # WSL Backup/Restore and moving to other drives
 

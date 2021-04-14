@@ -108,7 +108,6 @@ check_and_install vim
 check_and_install curl
 check_and_install wget
 check_and_install dpkg
-check_and_install unzip
 check_and_install dos2unix
 check_and_install ifconfig
 check_and_install mount.cifs
@@ -117,6 +116,9 @@ check_and_install fortune
 check_and_install cowsay
 check_and_install figlet
 check_and_install tmux
+check_and_install zip
+check_and_install unzip
+check_and_install p7zip-full   # provides 7z
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow

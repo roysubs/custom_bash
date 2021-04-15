@@ -106,8 +106,8 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # Gets around the lack of systemd in WSL, this will properly terminate the running WSL instance
-    # 'reboot': There is no easy way to do this as would have to somehow tell Windows to restart a new WSL instance
-    alias home='cd ~' 
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "rebooting WSL" cmd /c "timeout 6 && wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias home='cd ~'   # https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
     alias winhome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
     # [ ! -d $winhome ] && mkdir "$winhome"
     # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file

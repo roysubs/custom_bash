@@ -215,7 +215,7 @@ if [ -f ~/.custom ]; then
     exe cp ~/.custom ~/tmp/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
-    cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S")   # Backup .bashrc in case of issues
+    exe cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S")   # Backup .bashrc in case of issues
 fi
 # Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
 sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
@@ -263,7 +263,7 @@ fi
 
 ####################
 #
-print_header "Download and dotsource new .custom"
+print_header "Get new .custom and dotsource into current session"
 #
 ####################
 

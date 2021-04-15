@@ -1,12 +1,25 @@
 # Automated Bash Customisation & WSL Usage
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-Project intended to help with common bash configuration, which can be complex (setting up `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, getting useful tools that may not be default on a given distro etc). The `custom_loader.sh` script controls setup and is common for most distros, CentOS/Ubuntu/Debian (but does not cover Alpine yet), and includes WSL specific tools (if detected to be running on WSL).  
+This project sets up common bash configuration on almost any environment (CentOS/Ubuntu/Debian, but not Alpine yet) including specific settings for WSL from a single script `custom_loader.sh`. Some setup can be complex to get a comfortable environment, (setting up `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, and getting useful tools), so this is a template to achieving that.
 
-`.custom` contains common bash profile settings and are called from `~/.bashrc` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. The settings here are my preferences, but `custom_loader.sh` is also a template for how to easily extend for other preferred settings (simply clone the project and adjust to add remove settings as required).  
+# custom_loader.sh (custom bash configuration including WSL specific tools)  
+Install immediately as follows (curl is required on new Ubuntu setups):  
+`sudo apt install curl`  
+`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
+I tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install.  
+
+**`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
-# Quick WSL Setup
-The following is full syntax to do all steps required for settings up an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are possibly probably the most stable). Note that each distro is an independent VMs (using Hyper-V), but they are completely managed by the OS and so have almost instant start times. Each WSL VM folder (before making changes and installing software) will be around 1 GB per instance:  
+**`.custom`** is called from `~/.bashrc` using two lines that ensure that the changes only apply to *interactive* shells (i.e. will load equally in either `ssh login` shells or `terminal` windows inside a Linux Gnome/KDE UI, and will *not* load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
+
+**How to uninstall the custom_bash project**  
+This is very easily done as the only main change are the lines in `~/.bashrc` to call `~/.custom` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. `custom_loader.sh` is also a template for how to easily extend for other preferred settings; simply clone the project and adjust to add remove your own settings as required.  
+`git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`)  
+If cloning the repo, run the loader with `. custom_loader.sh` (dotsourcing it works has no execute permissions set, *or* set the execute permission). There is no need to use `sudo` for this as those are built into the script as required.  
+
+# WSL Setup Steps
+The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance:  
   
 \# Install WSL using DISM  
 `dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
@@ -35,26 +48,9 @@ It is often useful to have multiple copies of a distro available. With the above
 `wsl --import Ubuntu D:\WSL\Ubuntu1 D:\WSL\Ubuntu.tar`  
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
 
-**Can now start the default distro** simply by running `wsl` or `bash` from a console (or the Ubuntu icon from the Start Menu).  
-Registered distros are automatically added to Windows Terminal, so that is probably the best option overall
+# WSL Startup  
+You can start the distro from the Ubuntu icon on the Start Menu, or by running `wsl` or `bash` from a console. Additionally, registered distros will be automatically added to the new Windows Terminal, so it is a good idea to install that before setting up WSL.  
   
-**Setup 'Quick access' link to the WSL distro's home folder** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows.  
-
-# Setup Bash Customisations, custom_loader.sh
-Install immediately with following (tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install):  
-`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`
-  
-**`custom_loader.sh`**. This script can be run remotely from github and will download the latest `~/.custom` and then add two lines into `~/.bashrc` to dotsource `~/.custom` for all new shell instances, then update some selected very small core tools that I normally want on all systems (`vim, openssh, curl, wget, dpkg, net-tools, git, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, `~/.inputrc`, `sudoers` and offers to update localisation settings as required. It will then dotsource `~/.custom` into the currently running session to make the tools immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
-  
-Alternatively, clone the repository:  
-`git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`)  
-Then `cd` into that folder and run: `. custom_loader.sh`
-It is required to dotsource the script here as it has no execute permissions set. There is no need for `sudo` as that is built into the script as required.
-With the clone, can customise the settings to be applied to each machine, what standard apps to install etc.
-
-**`.custom`** configures a set of standard modifications (aliases, functions, .vimrc, .inputrc, sudoers) but with minimal alteration of core files. This is done by running the setup script `custom_loader.sh` from github which configures base tools and adds two lines to `~/.bashrc` to point at `~/.custom` so that these changes only apply to interactive shells (so will load equally in `ssh login` shells or `terminal` windows from a Linux Gnome/KDE UI, and will not load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
-
-# WSL Notes
 WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
 [Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
   
@@ -78,7 +74,10 @@ e.g. if you now run a command that uses `wsl.exe` it will use the default distro
 **VS Code Remote WSL Extension**  
 This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
 
-**Explorer**  
+# Windows Explorer Integration  
+
+**Setup 'Quick access' link to the WSL distro's home folder** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows Explorer to see files in the distro home folder.  
+
 If `choco install lxrunoffline` is installed, from Windows Explorer, note the "LxRunOffline" right-click item to let you open a bash shell at that folder location with the chosen distro.  
 From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
 
@@ -96,7 +95,7 @@ The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\ro
 Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
 
 **WSL Console Notes**  
-To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
+To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, you need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
 # Using WSL with PowerShell, or Windows Apps in WSL  
 

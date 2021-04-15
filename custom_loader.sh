@@ -230,15 +230,17 @@ grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashr
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
 grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
+
+
 # grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
 # grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
 # sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
 # sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
 # exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 
-# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
+[ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 # .bash_profile checks
 ##########
@@ -410,11 +412,16 @@ print_header "Common changes to /etc/sudoers"
 #
 ####################
 
-# This part is very dangerous and can brick the system if /etc/sudoers ends up in an invalid state
-echo "In case editing of the sodoers file goes wrong, run:   pkexec visudo"
-echo "Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save"
-
-# Object here is just to add a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
+echo ToDo: This part is dangerous and can completely break a system if /etc/sudoers ends up in an
+echo invalid state. If editing of the sodoers file goes wrong, run:   pkexec visudo
+echo Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save
+echo ""
+echo The goal is to add a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
+echo This will be something like the following, but don\'t try this as it will break the system:
+echo    sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers
+echo ""
+echo Until find a safe solution, just do this manually, run visudo and then add:
+echo    env_reset,timestamp_timeout=600 
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
 #     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to

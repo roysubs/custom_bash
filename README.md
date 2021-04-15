@@ -1,4 +1,5 @@
-# Automated Bash Customisation & WSL Usage  
+# Auto-configure Bash & WSL Integration  
+
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
 This project is designed to auto-configure common settings for most Linux distros (CentOS/Ubuntu/Debian based plus others). Although this should work on any Linux installation, additional specific settings for WSL are included (which only load if WSL is detected). A single script `custom_loader.sh` does the configuration and removal of the project is as simple as removing two lines from `~/.bashrc`.  
@@ -9,7 +10,7 @@ Key to the setup is that modifications are kept separate from bash configuration
 Install the settings immediately (curl is required on new Ubuntu setups) as follows:  
 `sudo apt install curl`  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-*`git.io` is useful to shorten github links, but it did not work for the above, so just use the long form to install.*  
+*I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
   
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
@@ -20,10 +21,10 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 `git clone https://github.com/roysubs/custom_bash`  
 or  
 `git clone https://git.io/Jt0f6`  
-After cloning the repo, run the loader with: `. custom_loader.sh`  
-Dotsourcing it works as no execute permissions are set (*or* just set the execute permission). There is no need to use `sudo` for this as requirements for any sudo lines are built into the script as required).  
+After cloning the repo, run the loader with: `. custom_loader.sh` (dotsourcing as above means that it will run after cloning as no execute permissions are set on the file. Alternatively, set the execute permission). There is no need to use `sudo` when running this; any elevated tasks will `sudo` inside the script.  
 
 # WSL Setup Steps
+
 The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance:  
   
 \# Install WSL using DISM  

@@ -1,22 +1,27 @@
-# Automated Bash Customisation & WSL Usage
+# Automated Bash Customisation & WSL Usage  
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-This project sets up common bash configuration on almost any environment (CentOS/Ubuntu/Debian, but not Alpine yet) including specific settings for WSL from a single script `custom_loader.sh`. Some setup can be complex to get a comfortable environment, (setting up `~/.bashrc`, updating `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`, and getting useful tools), so this is a template to achieving that.
+This project is designed to auto-configure common settings for most Linux distros (CentOS/Ubuntu/Debian based plus others). Although this should work on any Linux installation, additional specific settings for WSL are included (which only load if WSL is detected). A single script `custom_loader.sh` does the configuration and removal of the project is as simple as removing two lines from `~/.bashrc`.  
+
+Key to the setup is that modifications are kept separate from bash configuration files so the footprint is very small and doesn't have a complex setup that overtakes a system config. The goal is to be able to setup a usable / comfortable environment with basic tools and settings in `~/.bashrc`, `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`. This can also be used a template, so just `git clone` the project and customise for your needs. If there are some things that this project would benefit from, please email me at roysubs@hotmail.com and we can add to the project.  
 
 # custom_loader.sh (custom bash configuration including WSL specific tools)  
-Install immediately as follows (curl is required on new Ubuntu setups):  
+Install the settings immediately (curl is required on new Ubuntu setups) as follows:  
 `sudo apt install curl`  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-I tried to use `git.io` to shorten the github link, which works, but not with the below, so just use long form to install.  
-
+*`git.io` is useful to shorten github links, but it did not work for the above, so just use the long form to install.*  
+  
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
 **`.custom`** is called from `~/.bashrc` using two lines that ensure that the changes only apply to *interactive* shells (i.e. will load equally in either `ssh login` shells or `terminal` windows inside a Linux Gnome/KDE UI, and will *not* load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
 **How to uninstall the custom_bash project**  
 This is very easily done as the only main change are the lines in `~/.bashrc` to call `~/.custom` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. `custom_loader.sh` is also a template for how to easily extend for other preferred settings; simply clone the project and adjust to add remove your own settings as required.  
-`git clone https://github.com/roysubs/custom_bash` (or `git clone https://git.io/Jt0f6`)  
-If cloning the repo, run the loader with `. custom_loader.sh` (dotsourcing it works has no execute permissions set, *or* set the execute permission). There is no need to use `sudo` for this as those are built into the script as required.  
+`git clone https://github.com/roysubs/custom_bash`  
+or  
+`git clone https://git.io/Jt0f6`  
+After cloning the repo, run the loader with: `. custom_loader.sh`  
+Dotsourcing it works as no execute permissions are set (*or* just set the execute permission). There is no need to use `sudo` for this as requirements for any sudo lines are built into the script as required).  
 
 # WSL Setup Steps
 The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance:  

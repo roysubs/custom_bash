@@ -4,9 +4,9 @@
 # Current settings work for Debian/Ubuntu/RedHat/Fedora/CentOS etc (but not very lightweight like Alpine).
 # Each alias or function should be self-contained if possible (to make as modular as possible)
 # This file is called from .bashrc so does not heavily modify core distro files.
-#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash       # Full Update
-#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/.custom  # Full Update
-#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom           # Get .custom only
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Full Update
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh  # Download custom_loader.sh
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom                    # Download .custom
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result

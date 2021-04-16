@@ -12,8 +12,9 @@ Key to the setup is that modifications are kept separate from bash configuration
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
   
 **To control the install process** (as the above will simply run everything without prompting):  
-`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/custom_loader.sh`  
-`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom`  
+`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh`  
+`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom`  
+Then run `. custom_loader.sh` from the current directory.  
   
 *I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
 

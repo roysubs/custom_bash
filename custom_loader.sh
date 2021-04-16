@@ -73,26 +73,28 @@ print_header "Check and install small/essential packages"
 ####################
 
 # Only install each if not already installed
-check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe sudo $MANAGER install $1 -y; }
+check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe sudo $MANAGER install $2 -y; }
 # which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
-check_and_install git
-check_and_install vim
-check_and_install curl
-check_and_install wget
-check_and_install dpkg
-check_and_install dos2unix
-check_and_install ifconfig
-check_and_install mount.cifs
-check_and_install neofetch
-check_and_install fortune
-check_and_install cowsay
-check_and_install figlet
-check_and_install tmux
-check_and_install zip
-check_and_install unzip
-# Does not have the same name as the binary so do this manually
-which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
+check_and_install git git
+check_and_install vim vim
+check_and_install curl curl
+check_and_install wget wget
+check_and_install dpkg dpkg
+check_and_install dos2unix dos2unix
+check_and_install mount.cifs mount.cifs
+check_and_install neofetch neofetch
+check_and_install fortune fortune
+check_and_install cowsay cowsay
+check_and_install figlet figlet
+check_and_install tmux tmux
+check_and_install zip zip
+check_and_install unzip unzip
+# Does not have the same name as the binary
+check_and_install ifconfig net-tools
+check_and_install 7z p7zip-full
+# which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
+# which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -562,11 +564,15 @@ echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Scheme
 print_header "Run 'source ~/.custom' into this currently running session"
 #
 ####################
-read -e -p "Press any key to dotsource .custom (or CTRL+C to skip)"; "$@"
+echo "Press any key to dotsource .custom (or CTRL+C to skip)."
+read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
 echo ""
 echo ""
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
-echo "Please note the above configuration details in case any of the additional manual steps are useful."
+echo "Note the above configuration details for any useful additional manual actions."
+echo "'update-distro' to run through all update/upgrade actions (def 'distro-update' to check)."
+echo "'update-custom-tools' will update .custom to latest version from Github."
+echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
 echo ""
 echo ""
 echo ""

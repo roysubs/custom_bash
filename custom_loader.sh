@@ -54,15 +54,19 @@ which apt &> /dev/null && MANAGER=apt && DISTRO="Debian/Ubuntu"
 which dnf &> /dev/null && MANAGER=dnf && DISTRO="RHEL/Fedora/CentOS"
 which yum &> /dev/null && MANAGER=yum && DISTRO="RHEL/Fedora/CentOS"
 which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-
-if [ -z $MANAGER ]; then
-    echo "No package manager identified, so script cannot continue."
-    echo "This distro may not support apt/dnf/yum etc"
-    return
-fi
-
+printf "\nCheck updates:\n\n"
 echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
 echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
+if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+# Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
+exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
+if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+if [ -f /var/run/reboot-required ]; then
+    echo "A reboot is required (/var/run/reboot-required is present)." >&2
+    echo "Re-run this script after reboot to finish the install." >&2
+    return
+fi
 
 
 
@@ -87,6 +91,7 @@ check_and_install neofetch neofetch
 check_and_install fortune fortune
 check_and_install cowsay cowsay
 check_and_install figlet figlet
+which figlet &> /dev/null || exe sudo snap install figlet -y   # Ubuntu 20.04 only has as snap package
 check_and_install tmux tmux
 check_and_install zip zip
 check_and_install unzip unzip
@@ -564,7 +569,7 @@ echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Scheme
 print_header "Run 'source ~/.custom' into this currently running session"
 #
 ####################
-echo "Press any key to dotsource .custom (or CTRL+C to skip)."
+echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
 read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
 echo ""
 echo ""
@@ -576,6 +581,12 @@ echo "'cat ~/.custom' to view the functions that will load in all new interactiv
 echo ""
 echo ""
 echo ""
+if [ -f /var/run/reboot-required ]; then
+    echo "A reboot is required (/var/run/reboot-required is present)." >&2
+    echo "Re-run this script after reboot to finish the install." >&2
+    return
+fi
+
 
 
 

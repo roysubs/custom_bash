@@ -10,8 +10,13 @@ Key to the setup is that modifications are kept separate from bash configuration
 **To install the custom tools immediately** (curl is often not installed on new systems):  
 `sudo apt install curl`  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-*I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
   
+**To control the install process** (as the above will simply run everything without prompting):  
+`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/custom_loader.sh`  
+`curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom`  
+  
+*I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
+
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
 **`.custom`** is called from `~/.bashrc` using two lines that ensure that the changes only apply to *interactive* shells (i.e. will load equally in either `ssh login` shells or `terminal` windows inside a Linux Gnome/KDE UI, and will *not* load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  

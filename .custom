@@ -2,8 +2,11 @@
 ####################
 # Bash Custom Configuration. Try to maintain below settings as compatible with as many distros as possible.
 # Current settings work for Debian/Ubuntu/RedHat/Fedora/CentOS etc (but not very lightweight like Alpine).
+# Each alias or function should be self-contained if possible (to make as modular as possible)
 # This file is called from .bashrc so does not heavily modify core distro files.
-# Update with: 
+#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash       # Full Update
+#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/.custom  # Full Update
+#    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom           # Get .custom only
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and finding 2 lines above/below each result
@@ -13,7 +16,7 @@ alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux fr
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # if bash ver 4+, then autocd. i.e. if type a directory name to cd into it, without needing to type 'cd'
-alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # DateTime in Year-Month-Day__Hour-Min-Sec format, useful for filename output.
+alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # YYYYY-MM-DD__HHH-Min-Sec format, very useful to add to filename output.
 alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
 alias q='exit'                            # Quit immediately
@@ -117,12 +120,14 @@ update-distro() {
     exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
     if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
-        echo "A reboot is required. Re-run this script after reboot to finish the install." >&2
+        echo "A reboot is required (/var/run/reboot-required is present)." >&2
+        echo "Re-run this script after reboot to finish the install." >&2
         return
     fi
 }
 
-login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
+login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; which figlet &> /dev/null && fignow; }
+# login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
 

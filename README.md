@@ -7,8 +7,8 @@ This project is designed to auto-configure common settings for most Linux distro
 Key to the setup is that modifications are kept separate from bash configuration files so the footprint is very small and doesn't have a complex setup that overtakes a system config. The goal is to be able to setup a usable / comfortable environment with basic tools and settings in `~/.bashrc`, `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`. This can also be used a template, so just `git clone` the project and customise for your needs. If there are some things that this project would benefit from, please email me at roysubs@hotmail.com and we can add to the project.  
 
 # custom_loader.sh (custom bash configuration including WSL specific tools)  
-Install the settings immediately (curl is required on new Ubuntu setups) as follows:  
-`sudo apt install curl`  
+To install the settings immediately:
+`sudo apt install curl   # 'curl' is not installed by default on various distros`
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
 *I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
   

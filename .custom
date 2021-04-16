@@ -101,10 +101,18 @@ distro-update() {
     which dnf &> /dev/null && MANAGER=dnf && DISTRO="RHEL/Fedora/CentOS"
     which yum &> /dev/null && MANAGER=yum && DISTRO="RHEL/Fedora/CentOS"
     which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
+    printf "\nCheck updates:\n\n"
     echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
     echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
+    printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
+    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+    # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
     exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
+    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+    if [ -f /var/run/reboot-required ]; then
+        echo "A reboot is required. Re-run this script after reboot to finish the install." >&2
+        return
+    fi
 }
 
 login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
@@ -118,7 +126,7 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # Gets around the lack of systemd in WSL, this will properly terminate the running WSL instance
-    alias reboot='cd /mnt/c/ && cmd.exe /c start "$WSL_DISTRO_NAME" cmd /c "timeout 6 && wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
     alias home='cd ~'   # https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
     alias winhome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
     # [ ! -d $winhome ] && mkdir "$winhome"

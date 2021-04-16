@@ -64,28 +64,6 @@ fi
 echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
 echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 
-### Check for and fix any outstanding broken installs
-if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi
-
-printf "\nCheck updates:\n\n"
-printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade \-y\n> sudo $MANAGER dist-upgrade \-y\n> sudo $MANAGER install ca-certificates \-y\n> sudo $MANAGER autoremove \-y\n"
-
-# Need to reboot script if pending
-exe sudo $MANAGER update -y
-exe sudo $MANAGER upgrade -y
-exe sudo $MANAGER dist-upgrade -y
-exe sudo $MANAGER install ca-certificates -y   # to allow SSL-based applications to check for the authenticity of SSL connections
-exe sudo $MANAGER autoremove -y
-
-### Check for and fix any outstanding broken installs
-if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Do 'fix-broken' check before and after update/upgrade/autoremove
-
-if [ -f /var/run/reboot-required ]; then
-    echo "A reboot is required in order to proceed with the install." >&2
-    echo "Please reboot and re-run this script to finish the install." >&2
-    return
-fi
-
 
 
 ####################
@@ -113,7 +91,8 @@ check_and_install figlet
 check_and_install tmux
 check_and_install zip
 check_and_install unzip
-check_and_install p7zip-full   # provides 7z / 7za
+# Does not have the same name as the binary so do this manually
+which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -207,22 +186,32 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 
 # Backup ~/.custom
 if [ -f ~/.custom ]; then
-    exe cp ~/.custom ~/tmp/.custom.$(date +"%Y-%m-%d__%H-%M-%S")   # Need to rename this to make way for the new downloaded file
+    exe cp ~/.custom ~/tmp/custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
-    exe cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S")   # Backup .bashrc in case of issues
+    exe cp ~/.bashrc /tmp/bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
 # Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
 sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
 sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
 echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
 
-# Add lines to trigger .custom to end of .bashrc
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
-grep -qxF "$HEADERCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
-grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
+
+# Remove lines to trigger .custom from end of .bashrc (-v show everything except, -x full line match, -F fixed string / no regexp)
+# https://stackoverflow.com/questions/28647088/grep-for-a-line-in-a-file-then-remove-the-line
+# grep -vxF "$HEADERCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
+# grep -vxF "$GETCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
+# grep -vxF "$RUNCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
+
+sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
+echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
+
+# Add lines to trigger .custom to end of .bashrc (-q silent show now output, -x full line match, -F fixed string / no regexp)
+grep -qxF "$HEADERCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc
+grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
 grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
 
 # .bash_profile checks
@@ -482,8 +471,6 @@ echo "For Ubuntu, just need to run the folloing and choose the UTF-8 option:"
 echo "   # sudo dpkg-reconfigure locales"
 echo ""
 echo "Run 'locale' to view the current settings before changing."
-echo ""
-echo ""
 
 # Commenting this section out since will be ignored when downloading from github with: curl <script> | bash
 #
@@ -559,7 +546,7 @@ echo "Go to Integration Services tab > Make sure Guest services section is check
 
 ####################
 #
-print_header "To disable annoying/jarring Windows Event sounds if running in WSL or Putty"
+print_header "To disable annoying/loud Windows Event sounds if running in WSL or Putty"
 #
 ####################
 
@@ -575,11 +562,13 @@ echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Scheme
 print_header "Run 'source ~/.custom' into this currently running session"
 #
 ####################
-
 read -e -p "Press any key to dotsource .custom (or CTRL+C to skip)"; "$@"
+echo ""
+echo ""
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
-
 echo "Please note the above configuration details in case any of the additional manual steps are useful."
+echo ""
+echo ""
 echo ""
 
 

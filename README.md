@@ -7,16 +7,19 @@ This project is designed to auto-configure common settings for most Linux distro
 Key to the setup is that modifications are kept separate from bash configuration files so the footprint is very small and doesn't have a complex setup that overtakes a system config. The goal is to be able to setup a usable / comfortable environment with basic tools and settings in `~/.bashrc`, `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`. This can also be used a template, so just `git clone` the project and customise for your needs. If there are some things that this project would benefit from, please email me at roysubs@hotmail.com and we can add to the project.  
 
 # Install the Linux custom tools    
-**To install the custom tools immediately** (curl is often not installed on new systems):  
-`sudo apt install curl`  
+**To install the custom tools immediately** (curl is often not on new systems so `sudo apt install curl` first):  
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
+Can use git.io to shorten github links, but does not work for , so just useing long form here.*  
   
+**Download full git project, then run `. custom_loader.sh`**:  
+`git clone https://github.com/roysubs/custom_bash`  
+`git clone https://git.io/Jt0f6`   # git.io shortened
+This is useful as the `curl xxx | bash` method runs everything immediately without prompting.  
+
 **To control the install process** (as the above will simply run everything without prompting):  
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh`  
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom`  
 Then run `. custom_loader.sh` from the current directory.  
-  
-*I normally use `git.io` to shorten github links, but it did not work for the above, so just useing long form here.*  
 
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   

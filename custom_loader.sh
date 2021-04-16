@@ -249,13 +249,9 @@ print_header "Download latest .custom to ~/.custom"
 ####################
 
 # If ~/.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory
-if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    exe cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
-fi
+[ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]] && cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
 # If ~/.custom still does not exist, then get it from Github
-if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-fi
+[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 
 # [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
 # [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
@@ -584,7 +580,6 @@ echo ""
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
     echo "Re-run this script after reboot to finish the install." >&2
-    return
 fi
 
 

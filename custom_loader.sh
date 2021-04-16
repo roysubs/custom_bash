@@ -1,31 +1,27 @@
 #!/bin/bash
 ####################
 #
-# Configure consistent bash environemtn
+# Configure consistent bash environemt
+#
+# Can download custom_loader.sh before running with:
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/custom_loader.sh
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
 #
 ####################
 
-# What is the .vscode folder in ~ ?
-
-# Some random points:
+# Some WSL / Putty / Linux editing:
 # To paste into a Terminal (in Linux, not via Putty), use Ctrl+Shift+V. In Putty, use  Shift+Insert.
-# Also can use the middle mouse button to paste selected text onto a Linux Terminal.
+# Also can use the middle mouse button to paste selected text in a Linux Terminal (i.e. if in a Hyper-V Ubuntu session)
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
-# Check that a script has root priveleges
-# if [ "$(id -u)" -ne 0 ]; then
-#     echo 'This script must be run with root privileges' >&2
-#     return
-# fi
+
 
 ####################
 #
 # print_header() and exe() functions
 #
 ####################
-# print_header() is used to create a simple section banner to output during execution
+
+### print_header() is used to create a simple section banner to output during execution
 print_header() {
     printf "\n####################\n"
     printf "#\n"
@@ -34,7 +30,7 @@ print_header() {
     printf "####################\n"
 }
 
-# exe() is used to display a command and then run it, so you can see what the script is about to run
+### exe() is used to display a command and then run that same command, so you can see what the script is about to run
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
 # By default, the following exe() will run run unattended, i.e. will show the command and then execute immediately
 # Howeve, if "y" is chosen, the exe() function is altered to display the command, then display a pause before running
@@ -44,7 +40,6 @@ print_header() {
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 printf "\n"
 [[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue..."; "$@"; } 
-# This "OR echo Stopping" was at the end, not sure why, removing it...    || echo Stopping
 
 
 
@@ -118,7 +113,7 @@ check_and_install figlet
 check_and_install tmux
 check_and_install zip
 check_and_install unzip
-check_and_install p7zip-full   # provides 7z
+check_and_install p7zip-full   # provides 7z / 7za
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -200,7 +195,7 @@ which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, el
 
 ####################
 #
-print_header "Update .bashrc to load .custom in every interactive login session"
+print_header "Update .bashrc so that it will load .custom during any interactive login sessions"
 #
 ####################
 
@@ -227,20 +222,8 @@ HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 grep -qxF "$HEADERCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
-RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom'
+RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
-
-
-
-# grep -v '^\[ \! -f ~\/.custom \] && \[\[.*$' ~/.bashrc >> ~/.bashrc.tmp1     # remove the curl loader line, error if try to output to same file
-# grep -v '^\[ -f ~\/.custom \] && \[\[.*$' ~/.bashrc.tmp1 >> ~/.bashrc.tmp2   # remove the dotsource .custom line, error if try to output to same file
-# sed 's/^\[ ! -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc1 > ~/.bashrc1   # remove the curl loader line
-# sed 's/^\[ -f ~\/.custom \] && \[\[.*$//g' ~/.bashrc2 > ~/.bashrc2   # remove the dotsource .custom line
-# exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
-
-[ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 # .bash_profile checks
 ##########
@@ -265,18 +248,22 @@ fi
 
 ####################
 #
-print_header "Get new .custom and dotsource into current session"
+print_header "Download latest .custom to ~/.custom"
 #
 ####################
 
 # If ~/.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory
 if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    exe cp ./.custom ~/.custom
+    exe cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
 fi
-
+# If ~/.custom still does not exist, then get it from Github
 if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     exe curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
+
+# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
+# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 
 
@@ -461,16 +448,6 @@ echo    env_reset,timestamp_timeout=600
 
 ####################
 #
-print_header "Dotsource ~/.custom into this currently running session"
-#
-####################
-
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
-
-
-
-####################
-#
 print_header "Configure Locale"
 #
 ####################
@@ -564,6 +541,47 @@ echo ""
 
 
 
+####################
+#
+print_header "To get full-screen if running in Hyper-V"
+#
+####################
+
+echo "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
+echo '   Change: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
+echo '   To:     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080"'
+echo "Adjust 1920x1080 to your current monitor resolution."
+echo "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
+echo "From Hyper-V Manager dashboard find your virtual machine, and open Settings."
+echo "Go to Integration Services tab > Make sure Guest services section is checked."
+
+
+
+####################
+#
+print_header "To disable annoying/jarring Windows Event sounds if running in WSL or Putty"
+#
+####################
+
+echo "Run the following lines in a PowerShell console on Windows to soften the Windows Event sounds:"
+echo ""
+echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
+echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+
+
+
+####################
+#
+print_header "Run 'source ~/.custom' into this currently running session"
+#
+####################
+
+read -e -p "Press any key to dotsource .custom (or CTRL+C to skip)"; "$@"
+[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
+
+echo "Please note the above configuration details in case any of the additional manual steps are useful."
+echo ""
+
 
 
 ####################
@@ -634,3 +652,12 @@ echo ""
 # if (( file_time <= hundred_days_ago )); then
 #   echo "$filename is older than 100 days"
 # fi
+
+# What is the .vscode folder in ~ ?
+
+# To check that a script has root priveleges (did not require for the above script):
+# if [ "$(id -u)" -ne 0 ]; then
+#     echo 'This script must be run with root privileges' >&2
+#     return
+# fi
+

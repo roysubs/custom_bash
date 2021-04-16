@@ -21,7 +21,7 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 `git clone https://github.com/roysubs/custom_bash`  
 or  
 `git clone https://git.io/Jt0f6`  
-After cloning the repo, run the loader with: `. custom_loader.sh` (dotsourcing as above means that it will run after cloning as no execute permissions are set on the file. Alternatively, set the execute permission). There is no need to use `sudo` when running this; any elevated tasks will `sudo` inside the script.  
+After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  
 
 # WSL Setup Steps
 

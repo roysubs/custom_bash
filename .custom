@@ -98,7 +98,7 @@ ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
-update-custom-tools() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }
+update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }
 cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
@@ -127,7 +127,7 @@ update-distro() {
     fi
 }
 
-login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; which figlet &> /dev/null && fignow; }
+login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
 # login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session

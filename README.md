@@ -1,36 +1,37 @@
-# Auto-configure Bash & WSL Integration  
+# Bash custom configuration & WSL Integration  
 
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-This project is designed to auto-configure common settings for most Linux distros (CentOS/Ubuntu/Debian based plus others). Although this should work on any Linux installation, additional specific settings for WSL are included (which only load if WSL is detected). A single script `custom_loader.sh` does the configuration and removal of the project is as simple as removing two lines from `~/.bashrc`.  
+This project auto-configure common settings for most Linux distros (CentOS/Ubuntu/Debian based plus others). Additional specific tools for WSL are included that only load when WSL is detected. A single script `custom_loader.sh` sets everything up and the project can be easily uninstalled simply by removing the two lines at the end of `~/.bashrc` that call `.custom`.  
 
-Key to the setup is that modifications are kept separate from bash configuration files so the footprint is very small and doesn't have a complex setup that overtakes a system config. The goal is to be able to setup a usable / comfortable environment with basic tools and settings in `~/.bashrc`, `~/.vimrc`, `~/.inputrc`, `/etc/sudoers`. This can also be used a template, so just `git clone` the project and customise for your needs. If there are some things that this project would benefit from, please email me at roysubs@hotmail.com and we can add to the project.  
+The project keeps all modifications outside of main bash configuration files so does not create a confusing setup. The goal is to setup a usable / comfortable environment with essential settings in `~/.vimrc`, `~/.inputrc` and useful tools without a few hours of setup. The project can also be used a template. Run `git clone` then customise as required. If there are any fixes or additional tools that this project would benefit from, please email me at **roysubs@hotmail.com** and we can add into the main project.  
 
 # Install the Linux custom tools    
-**To install the custom tools immediately** (curl is often not on new systems so `sudo apt install curl` first):  
-`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
-Can use git.io to shorten github links, but does not work for , so just useing long form here.*  
-  
-**Download full git project, then run `. custom_loader.sh`**:  
-`git clone https://github.com/roysubs/custom_bash`  
-`git clone https://git.io/Jt0f6`   # git.io shortened
-This is useful as the `curl xxx | bash` method runs everything immediately without prompting.  
 
-**To control the install process** (as the above will simply run everything without prompting):  
+**Option 1: Download full git project, then run `. custom_loader.sh`**:  
+
+Note that `sudo apt install curl git -y` is a useful first step as new installations are often missing these.  
+
+`git clone https://github.com/roysubs/custom_bash`  
+`git clone https://git.io/Jt0f6`   # git.io shortened url  
+This is useful as the `curl xxx | bash` method runs everything immediately without prompting. After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  
+
+**Option 1: Download only the required files**:  
+The project only requires the following two files, so this can be done instead of cloning the project.
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh`  
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom`  
 Then run `. custom_loader.sh` from the current directory.  
 
+**Option 3: Install the custom tools immediately**  
+`curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
+We can use **git.io** to shorten github utl's, but this does not work for `curl xxx | bash`, so using long form here. This method is least resilient, but works fine in most situations.  
+  
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
 **`.custom`** is called from `~/.bashrc` using two lines that ensure that the changes only apply to *interactive* shells (i.e. will load equally in either `ssh login` shells or `terminal` windows inside a Linux Gnome/KDE UI, and will *not* load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
 
-**How to uninstall the custom_bash project**  
+**How to uninstall**  
 This is very easily done as the only main change are the lines in `~/.bashrc` to call `~/.custom` so that the main profile scripts are modified as little as possible, so will not mess up any system, just delete the two lines in `~/.bashrc` that call `.custom` to remove everything. `custom_loader.sh` is also a template for how to easily extend for other preferred settings; simply clone the project and adjust to add remove your own settings as required.  
-`git clone https://github.com/roysubs/custom_bash`  
-or  
-`git clone https://git.io/Jt0f6`  
-After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  
 
 # WSL Setup Steps
 

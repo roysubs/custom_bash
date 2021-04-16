@@ -25,12 +25,12 @@ alias v='vim'                             # Short vim access
 alias cd..='cd ..'; alias cd.='cd /'      # Common typos
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
-alias zipex="printf \"7z a -y -r -t7z -mx9 repo * -x@README.md   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\""
+alias zipex="printf \"Zip examples:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\""
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl^C
 
 ####################
-# Standardised 'ls' output. Adding colour, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
-# ls is *all* files (including .*), l is without .*, ll is with -l long format, l. and ll. are for .* files only, lss shows security as (drwxr-xr-x and 755 formats)
+# Standardised 'ls' output. Adding colour, showing '.' prefix files, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
+# ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only, 'lss' uses 'stat' to show both security formats (i.e. drwxr-xr-x and 755 formats)
 ####################
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc. Note that the "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias ls='ls -FAh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)

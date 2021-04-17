@@ -6,12 +6,12 @@ This project auto-configure common settings for most Linux distros (CentOS/Ubunt
 
 The project keeps all modifications outside of main bash configuration files so does not create a confusing setup. The goal is to setup a usable / comfortable environment with essential settings in `~/.vimrc`, `~/.inputrc` and useful tools without a few hours of setup. The project can also be used a template. Run `git clone` then customise as required. If there are any fixes or additional tools that this project would benefit from, please email me at **roysubs@hotmail.com** and we can add into the main project.  
 
-# Install the Linux custom tools    
-
-**Option 1: Download full git project, then run `. custom_loader.sh`**:  
-
+# Install the Linux custom tools  
+  
 Note that `sudo apt install curl git -y` is a useful first step as new installations are often missing these.  
-
+  
+**Option 1: Download full git project, then run `. custom_loader.sh`**:  
+  
 `git clone https://github.com/roysubs/custom_bash`  
 `git clone https://git.io/Jt0f6`   # git.io shortened url  
 This is useful as the `curl xxx | bash` method runs everything immediately without prompting. After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  

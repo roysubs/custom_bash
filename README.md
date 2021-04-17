@@ -16,7 +16,7 @@ Note that `sudo apt install curl git -y` is a useful first step as new installat
 `git clone https://git.io/Jt0f6`   # git.io shortened url  
 This is useful as the `curl xxx | bash` method runs everything immediately without prompting. After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  
 
-**Option 1: Download only the required files**:  
+**Option 2: Download only the required files**:  
 The project only requires the following two files, so this can be done instead of cloning the project.
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh`  
 `curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom`  
@@ -69,29 +69,39 @@ You can start the distro from the Ubuntu icon on the Start Menu, or by running `
   
 WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
 [Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
+
+
+
+# WSL VMs, how to terminate (shutdowns/reboot), and how to reset  
+
+It is important to understand that there is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance (and any services, websites, containers) continue to run in the background. Only terminating the WSL distro will stop those services. More on that [here](https://stackoverflow.com/questions/66375364shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137).  
+
+**Shutdown and Reboot:** There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands have been added to WSL section of `.custom` (i.e. this section is only run if a distro is detected to be WSL) to replace the built-in (systemd) `shutdown` and `reboot`:
+`alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'`  
+`alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d$WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'`  
   
 **Reset a WSL distro back to an initial state**  
 `Settings > Apps > Apps & features > select the Linux Distro Name`  
 In the Advanced Options link, select the "Reset" button to restore back to initial install state (note that everything will be deleted in that distro!) which is very useful for testing distros.  
 
-**WSL Basics**  
-From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
 WSL images run in Hyper-V images via the `LxssManager` service. Therefore, to restart all WSL instances, just restart the service `Get-Service LxssManager | Restart-Service`.  
+
 Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cannot be undone after upgrade)
 Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
 e.g. if you now run a command that uses `wsl.exe` it will use the default distro: `Get-Process | wsl grep -i Win`
   
+From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
+
 `wsl -l -v`  
 `  NAME            STATE           VERSION`  
 `* fedoraremix     Running         1`  
 `* Debian          Running         1`  
 `  Ubuntu-20.04    Running         2`  
+
+
+
+# WSL Windows Integration (Windows Explorer and VS Code)
   
-**VS Code Remote WSL Extension**  
-This enables you to store your project files on the Linux file system, using Linux command line tools, but also using VS Code on Windows to author, edit, debug, or run your project in an internet browser without any of the performance slow-downs associated with working across the Linux and Windows file systems. Learn more.
-
-# Windows Explorer Integration  
-
 **Setup 'Quick access' link to the WSL distro's home folder** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows Explorer to see files in the distro home folder.  
 
 If `choco install lxrunoffline` is installed, from Windows Explorer, note the "LxRunOffline" right-click item to let you open a bash shell at that folder location with the chosen distro.  
@@ -104,12 +114,13 @@ alias start=explorer.exe   # "start ." will now open Explorer at current folder,
 alias chrome="\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""   # Chrome. Can use with URL:       chrome www.google.com
 alias notepad++="\"/mnt/c/Program Files/Notepad++/notepad++.exe\""             # Notepad++. Can use with files:  notepad++ ~/.bashrc
 ```  
-  
-Opening a file with a Windows tool as above uses a share called `\\wsl$`, e.g. in the above example, it displays as `\\wsl$\Ubuntu-20.04\home\boss\.bashrc`  
-The `~` directory maps to `%localappdata%\lxss\home` (or `%localappdata%\lxss\root` for root) and not to `%userprofile%`  
-`\\wsl$` does not display in `net share` but you can type it into explorer and navigate there, and pin to 'Quick access'  
-Typing `dir \\wsl$` from DOS/PowerShell fails; you have to use the distro name, e.g. `dir \\wsl$\Ubuntu-20.04`  
 
+Opening a file with a Windows tool as above uses the `\\wsl$` share, e.g. `.bashrc` in Linux will displays as `\\wsl$\Ubuntu-20.04\home\boss\.bashrc` in Windows Explorer. The Linux home folder `~` maps to `\\wsl$\Ubuntu-20.04\home\boss` (or `\\wsl$\Ubuntu-20.04\root` for root) and not to `%userprofile%`. `\\wsl$` does not display in `net share` and you cannot run `cd \\wsl$` or `dir \\wsl$` but you can use the distro name, `cd \\wsl$\Ubuntu-20.04` or `dir \\wsl$\Ubuntu-20.04\home\boss` etc. You *can* navigate to `\\wsl$` in Windows Explorer however, and pin it or any subfolder to 'Quick access'.  
+
+**VS Code Remote WSL Extension**  
+
+WSL integration enables you to store your project files on the Linux file system using Linux command line tools, but also edit, debug, run projects directly in VS Code on Windows (or in a Chrome browser one Windows, or Notepad++ etc) generally without any performance issues associated with running across Linux and Windows file systems.  
+  
 **WSL Console Notes**  
 To use **Ctrl+Shift+C / Ctrl+Shift+V** for Copy/Paste operations in the console, you need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
@@ -193,7 +204,11 @@ Supported actions are:
 https://stackoverflow.com/questions/38779801/move-wsl-bash-on-windows-root-filesystem-to-another-hard-drive
 In any Windows 10 version, you can move the distribution to another drive using lxRunOffline.
 
-[Move WSL Project](https://github.com/pxlrbt/move-wsl)
+**Default locations for WSL Distros**
+
+`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
+
+[How to move a WSL distro](https://github.com/pxlrbt/move-wsl)
 1. Set permissions to the target folder. First, I think you must set some permissions to the folder where the distribution will be moved. Use `icacls` to set the proper permissions.  
     `C:\> whoami`  
     test\john  
@@ -218,13 +233,13 @@ In any Windows 10 version, you can move the distribution to another drive using 
 
 # Git with WSL and Windows
 
-Git direct passwords will be deprecated on 21st August, so need to move over to tokens.
+Git direct passwords will be deprecated on 21st August 2021, so need to move over to tokens.
 
 [WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  
 [Use WSL Git instead of Git for Windows (StackOverflow)](https://stackoverflow.com/questions/44441830/vscode-use-wsl-git-instead-of-git-for-windows)
   
 **Git**  
-Set your email with this command (replacing "youremail@domain.com" with the email you use on your Git account):  
+Set your email as follows command (setting name and email you use on your Git account):  
 `git config --global user.name "username"`  
 `git config --global user.email "youremail@domain.com"`  
   
@@ -234,7 +249,7 @@ Git Credential Manager enables you to authenticate a remote Git server, even if 
 
 Now any git operation you perform within your WSL distribution will use the credential manager. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
 
-**Adding a Git Ignore file**  
+**Git Ignore file**  
 It is useful to add a `.gitignore` file (must be in the root folder of a project) to exclude certain files from the project. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
 Add one line per exclude mask (can use wildcards). If a file is already in the project, it must be removed:  
 `git rm --cached <filename>`  
@@ -244,8 +259,10 @@ To exclude without using `.gitignore`, put exclude masks into `.git/info/exclude
 
 # Docker
   
-[Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)
-*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This relates to WSL 1, but WSL 2 is about 15x to 20x faster for IO due to the native kernel etc.* Should I use docker or Docker-Desktop or both?  
+[Info on both Git and Docker with WSL](https://quotidian-ennui.github.io/blog/2019/09/04/wsl-wingit-bash/)  
+*Note that the above contains the following comment "Apparently WSL has kinda crappy IO performance". This comment relates to WSL 1 only. WSL 2 is about 15x to 20x faster for IO operations due to the native Linux kernel build into the OS for WSL 2 etc.*  
+
+**(Should I use docker or Docker-Desktop or both??)**  
 
 # WSL Backup/Restore and moving to other drives
 
@@ -269,7 +286,7 @@ Note that doing this will break all connections to open sessions, e.g. open VS C
 When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
   
-# Terminating/Rebooting WSL sessions, and Systemd incompatibility
+# Motr on systemd incompatibility
 
 You can terminate a single WSL instance from PowerShell as follows (will terminate the Hyper-V VN immediately):  
 `wsl -t <distro-name>   # or --terminate`   
@@ -328,12 +345,12 @@ git pull
 ./ubuntu-wsl2-systemd-script.sh --force
 ```
 
-How to install Fedora Remix 33 for WSL 2 ...  
-
 [Connect to WSL via SSH](https://superuser.com/questions/1123552/how-to-ssh-into-wsl)
 Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,then restart the ssh service by the commond sudo service ssh --full-restart,you will successfully login.But I don't know the reason.
 
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
+
+
 
 # SSH Server Setup (openssh-server)  
   
@@ -379,31 +396,35 @@ We also need to edit /etc/sudoers.d/ in order to remove the requirement of a pas
 After all this we can start the service:  
 `service ssh start`  
   
+# Other WSL Notes  
+  
+**Starting WSL with keyboard shortcut ...**
+  
+**How to install Fedora Remix 33 for WSL 2 ...**  
+  
 **[Guide to using Linux GUI apps + ZSH + Docker on WSL 2](https://scottspence.com/2020/12/09/gui-with-wsl/#video-detailing-the-process)**  
 [Nicky Meuleman’s guide on Using Graphical User Interfaces like Cypress’ in WSL2](https://nickymeuleman.netlify.app/blog/gui-on-wsl2-cypress)  
 [Nicky Meuleman’s guide on Linux on Windows WSL 2 + ZSH + Docker](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker)  
 [Notes on Zsh and Oh My Zsh](https://scottspence.com/2020/12/08/zsh-and-oh-my-zsh/)  
 [Nicky Meuleman’s guide on setting up ZSH](https://nickymeuleman.netlify.app/blog/linux-on-windows-wsl2-zsh-docker#zsh)  
 There is talk of the WSL team Adding Linux GUI app support to WSL but this is slated for an update around December 2020, but this will only be in the Insider's Build and probably not in the main release of Windows 10 until the Spring/Summer 2021 release.  
-
+  
+**Support for Wayland GUI Apps in WSL 2**
+  
+With the latest updates to WSL2, Linux GUI apps integrate with Windows 10 using Wayland display server protocol running inside of WSL. Wayland communicates with a Remote Desktop Protocol (RDP) client on the Windows host to run the GUI app.  
+  
+Microsoft is also bringing GPU hardware acceleration for Linux applications running in WSL2. It has pushed the first draft of the brand new GPU driver ‘Dxgkrnl’ for the Linux kernel.  
+  
 **Run Windows commands from WSL and vice-versa**  
 In the Windows 10 Creators Update (build 1703, April 2017), this is natively supported. So you can now run Windows binaries from Linux...  
 `alias putty="/mnt/c/ProgramData/chocolatey/bin/PUTTY.EXE"  # Run Windows commands form Linux`  
 `bash -c "fortune | cowsay"                                 # Run Linux commands from Windows PowerShell`  
-
-**Support for Wayland GUI Apps in WSL 2**
-
-With the latest updates to WSL2, Linux GUI apps integrate with Windows 10 using Wayland display server protocol running inside of WSL. Wayland communicates with a Remote Desktop Protocol (RDP) client on the Windows host to run the GUI app.  
   
-Microsoft is also bringing GPU hardware acceleration for Linux applications running in WSL2. It has pushed the first draft of the brand new GPU driver ‘Dxgkrnl’ for the Linux kernel.  
-
-**Default locations for WSL Distros**
-
-`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`
-
 **Quick summary**  
 Reboot: do not use `sudo reboot`, use `wsl -t <distro>` (or from inside the session itself, use `wsl.exe -t <distro>`)  
 To shutdown all distros immediately (i.e. to close the WSL VM manager): `wsl -shutdown` (or from inside the session itself, use `wsl.exe -shutdown`)  
+
+
 
 # Using the Remote extension in VS Code
 
@@ -631,6 +652,8 @@ This chocolatey package can set the default user as root (default is false):
 Finally, install and register with: `Add-AppxPackage .\Ubuntu.appx  # To install the AppX package`  
 After doing this, `wsl -l -v` will show the registered distro.
 
+# custom_loader.sh and .custom tools
+
 **.inputrc changes**.  
 `set completion-ignore-case On`   really useful to prevent case-sensitivity taking over when trying to tab complete into folders
 
@@ -638,7 +661,5 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 **`sudoers`**  
 
-**Notes** To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
-
-**ToDo: Starting WSL with keyboard shortcut ...**
+To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
 

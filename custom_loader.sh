@@ -189,7 +189,7 @@ if [ ! $(which bat) ]; then
     [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/$REL/$BAT   # 64-bit version
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
     # sudo dpkg -r bat   # to remove after install
-    # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
+    # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool 
 fi
 
 

@@ -1,0 +1,492 @@
+/home/boss/.bashrc:# ~/.bashrc: executed by bash(1) for non-login shells.
+/home/boss/.bashrc:# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+/home/boss/.bashrc:# for examples
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If not running interactively, don't do anything
+/home/boss/.bashrc:case $- in
+/home/boss/.bashrc:    *i*) ;;
+/home/boss/.bashrc:      *) return;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# don't put duplicate lines or lines starting with space in the history.
+/home/boss/.bashrc:# See bash(1) for more options
+/home/boss/.bashrc:HISTCONTROL=ignoreboth
+/home/boss/.bashrc:
+/home/boss/.bashrc:# append to the history file, don't overwrite it
+/home/boss/.bashrc:shopt -s histappend
+/home/boss/.bashrc:
+/home/boss/.bashrc:# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+/home/boss/.bashrc:HISTSIZE=1000
+/home/boss/.bashrc:HISTFILESIZE=2000
+/home/boss/.bashrc:
+/home/boss/.bashrc:# check the window size after each command and, if necessary,
+/home/boss/.bashrc:# update the values of LINES and COLUMNS.
+/home/boss/.bashrc:shopt -s checkwinsize
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If set, the pattern "**" used in a pathname expansion context will
+/home/boss/.bashrc:# match all files and zero or more directories and subdirectories.
+/home/boss/.bashrc:#shopt -s globstar
+/home/boss/.bashrc:
+/home/boss/.bashrc:# make less more friendly for non-text input files, see lesspipe(1)
+/home/boss/.bashrc:[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+/home/boss/.bashrc:
+/home/boss/.bashrc:# set variable identifying the chroot you work in (used in the prompt below)
+/home/boss/.bashrc:if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+/home/boss/.bashrc:    debian_chroot=$(cat /etc/debian_chroot)
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# set a fancy prompt (non-color, unless we know we "want" color)
+/home/boss/.bashrc:case "$TERM" in
+/home/boss/.bashrc:    xterm-color|*-256color) color_prompt=yes;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# uncomment for a colored prompt, if the terminal has the capability; turned
+/home/boss/.bashrc:# off by default to not distract the user: the focus in a terminal window
+/home/boss/.bashrc:# should be on the output of commands, not on the prompt
+/home/boss/.bashrc:#force_color_prompt=yes
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ -n "$force_color_prompt" ]; then
+/home/boss/.bashrc:    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+/home/boss/.bashrc:	# We have color support; assume it's compliant with Ecma-48
+/home/boss/.bashrc:	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+/home/boss/.bashrc:	# a case would tend to support setf rather than setaf.)
+/home/boss/.bashrc:	color_prompt=yes
+/home/boss/.bashrc:    else
+/home/boss/.bashrc:	color_prompt=
+/home/boss/.bashrc:    fi
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ "$color_prompt" = yes ]; then
+/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+/home/boss/.bashrc:else
+/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:unset color_prompt force_color_prompt
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If this is an xterm set the title to user@host:dir
+/home/boss/.bashrc:case "$TERM" in
+/home/boss/.bashrc:xterm*|rxvt*)
+/home/boss/.bashrc:    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+/home/boss/.bashrc:    ;;
+/home/boss/.bashrc:*)
+/home/boss/.bashrc:    ;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# enable color support of ls and also add handy aliases
+/home/boss/.bashrc:if [ -x /usr/bin/dircolors ]; then
+/home/boss/.bashrc:    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+/home/boss/.bashrc:    alias ls='ls --color=auto'
+/home/boss/.bashrc:    #alias dir='dir --color=auto'
+/home/boss/.bashrc:    #alias vdir='vdir --color=auto'
+/home/boss/.bashrc:
+/home/boss/.bashrc:    alias grep='grep --color=auto'
+/home/boss/.bashrc:    alias fgrep='fgrep --color=auto'
+/home/boss/.bashrc:    alias egrep='egrep --color=auto'
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# colored GCC warnings and errors
+/home/boss/.bashrc:#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# some more ls aliases
+/home/boss/.bashrc:alias ll='ls -alF'
+/home/boss/.bashrc:alias la='ls -A'
+/home/boss/.bashrc:alias l='ls -CF'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# Add an "alert" alias for long running commands.  Use like so:
+/home/boss/.bashrc:#   sleep 10; alert
+/home/boss/.bashrc:alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# Alias definitions.
+/home/boss/.bashrc:# You may want to put all your additions into a separate file like
+/home/boss/.bashrc:# ~/.bash_aliases, instead of adding them here directly.
+/home/boss/.bashrc:# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ -f ~/.bash_aliases ]; then
+/home/boss/.bashrc:    . ~/.bash_aliases
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# enable programmable completion features (you don't need to enable
+/home/boss/.bashrc:# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+/home/boss/.bashrc:# sources /etc/bash.bashrc).
+/home/boss/.bashrc:if ! shopt -oq posix; then
+/home/boss/.bashrc:  if [ -f /usr/share/bash-completion/bash_completion ]; then
+/home/boss/.bashrc:    . /usr/share/bash-completion/bash_completion
+/home/boss/.bashrc:  elif [ -f /etc/bash_completion ]; then
+/home/boss/.bashrc:    . /etc/bash_completion
+/home/boss/.bashrc:  fi
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+/home/boss/.bashrc:
+/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+tee:/home/boss/.bashrc:# ~/.bashrc: executed by bash(1) for non-login shells.
+tee:/home/boss/.bashrc:# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+tee:/home/boss/.bashrc:# for examples
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If not running interactively, don't do anything
+tee:/home/boss/.bashrc:case $- in
+tee:/home/boss/.bashrc:    *i*) ;;
+tee:/home/boss/.bashrc:      *) return;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# don't put duplicate lines or lines starting with space in the history.
+tee:/home/boss/.bashrc:# See bash(1) for more options
+tee:/home/boss/.bashrc:HISTCONTROL=ignoreboth
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# append to the history file, don't overwrite it
+tee:/home/boss/.bashrc:shopt -s histappend
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+tee:/home/boss/.bashrc:HISTSIZE=1000
+tee:/home/boss/.bashrc:HISTFILESIZE=2000
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# check the window size after each command and, if necessary,
+tee:/home/boss/.bashrc:# update the values of LINES and COLUMNS.
+tee:/home/boss/.bashrc:shopt -s checkwinsize
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If set, the pattern "**" used in a pathname expansion context will
+tee:/home/boss/.bashrc:# match all files and zero or more directories and subdirectories.
+tee:/home/boss/.bashrc:#shopt -s globstar
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# make less more friendly for non-text input files, see lesspipe(1)
+tee:/home/boss/.bashrc:[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# set variable identifying the chroot you work in (used in the prompt below)
+tee:/home/boss/.bashrc:if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+tee:/home/boss/.bashrc:    debian_chroot=$(cat /etc/debian_chroot)
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# set a fancy prompt (non-color, unless we know we "want" color)
+tee:/home/boss/.bashrc:case "$TERM" in
+tee:/home/boss/.bashrc:    xterm-color|*-256color) color_prompt=yes;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# uncomment for a colored prompt, if the terminal has the capability; turned
+tee:/home/boss/.bashrc:# off by default to not distract the user: the focus in a terminal window
+tee:/home/boss/.bashrc:# should be on the output of commands, not on the prompt
+tee:/home/boss/.bashrc:#force_color_prompt=yes
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ -n "$force_color_prompt" ]; then
+tee:/home/boss/.bashrc:    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+tee:/home/boss/.bashrc:	# We have color support; assume it's compliant with Ecma-48
+tee:/home/boss/.bashrc:	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+tee:/home/boss/.bashrc:	# a case would tend to support setf rather than setaf.)
+tee:/home/boss/.bashrc:	color_prompt=yes
+tee:/home/boss/.bashrc:    else
+tee:/home/boss/.bashrc:	color_prompt=
+tee:/home/boss/.bashrc:    fi
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ "$color_prompt" = yes ]; then
+tee:/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+tee:/home/boss/.bashrc:else
+tee:/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:unset color_prompt force_color_prompt
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If this is an xterm set the title to user@host:dir
+tee:/home/boss/.bashrc:case "$TERM" in
+tee:/home/boss/.bashrc:xterm*|rxvt*)
+tee:/home/boss/.bashrc:    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+tee:/home/boss/.bashrc:    ;;
+tee:/home/boss/.bashrc:*)
+tee:/home/boss/.bashrc:    ;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# enable color support of ls and also add handy aliases
+tee:/home/boss/.bashrc:if [ -x /usr/bin/dircolors ]; then
+tee:/home/boss/.bashrc:    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+tee:/home/boss/.bashrc:    alias ls='ls --color=auto'
+tee:/home/boss/.bashrc:    #alias dir='dir --color=auto'
+tee:/home/boss/.bashrc:    #alias vdir='vdir --color=auto'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:    alias grep='grep --color=auto'
+tee:/home/boss/.bashrc:    alias fgrep='fgrep --color=auto'
+tee:/home/boss/.bashrc:    alias egrep='egrep --color=auto'
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# colored GCC warnings and errors
+tee:/home/boss/.bashrc:#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# some more ls aliases
+tee:/home/boss/.bashrc:alias ll='ls -alF'
+tee:/home/boss/.bashrc:alias la='ls -A'
+tee:/home/boss/.bashrc:alias l='ls -CF'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# Add an "alert" alias for long running commands.  Use like so:
+tee:/home/boss/.bashrc:#   sleep 10; alert
+tee:/home/boss/.bashrc:alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# Alias definitions.
+tee:/home/boss/.bashrc:# You may want to put all your additions into a separate file like
+tee:/home/boss/.bashrc:# ~/.bash_aliases, instead of adding them here directly.
+tee:/home/boss/.bashrc:# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ -f ~/.bash_aliases ]; then
+tee:/home/boss/.bashrc:    . ~/.bash_aliases
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# enable programmable completion features (you don't need to enable
+tee:/home/boss/.bashrc:# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+tee:/home/boss/.bashrc:# sources /etc/bash.bashrc).
+tee:/home/boss/.bashrc:if ! shopt -oq posix; then
+tee:/home/boss/.bashrc:  if [ -f /usr/share/bash-completion/bash_completion ]; then
+tee:/home/boss/.bashrc:    . /usr/share/bash-completion/bash_completion
+tee:/home/boss/.bashrc:  elif [ -f /etc/bash_completion ]; then
+tee:/home/boss/.bashrc:    . /etc/bash_completion
+tee:/home/boss/.bashrc:  fi
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+tee:/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+tee:/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+tee:/home/boss/.bashrc:# ~/.bashrc: executed by bash(1) for non-login shells.
+tee:/home/boss/.bashrc:# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+tee:/home/boss/.bashrc:# for examples
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If not running interactively, don't do anything
+tee:/home/boss/.bashrc:case $- in
+tee:/home/boss/.bashrc:    *i*) ;;
+tee:/home/boss/.bashrc:      *) return;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# don't put duplicate lines or lines starting with space in the history.
+tee:/home/boss/.bashrc:# See bash(1) for more options
+tee:/home/boss/.bashrc:HISTCONTROL=ignoreboth
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# append to the history file, don't overwrite it
+tee:/home/boss/.bashrc:shopt -s histappend
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+tee:/home/boss/.bashrc:HISTSIZE=1000
+tee:/home/boss/.bashrc:HISTFILESIZE=2000
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# check the window size after each command and, if necessary,
+tee:/home/boss/.bashrc:# update the values of LINES and COLUMNS.
+tee:/home/boss/.bashrc:shopt -s checkwinsize
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If set, the pattern "**" used in a pathname expansion context will
+tee:/home/boss/.bashrc:# match all files and zero or more directories and subdirectories.
+tee:/home/boss/.bashrc:#shopt -s globstar
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# make less more friendly for non-text input files, see lesspipe(1)
+tee:/home/boss/.bashrc:[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# set variable identifying the chroot you work in (used in the prompt below)
+tee:/home/boss/.bashrc:if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+tee:/home/boss/.bashrc:    debian_chroot=$(cat /etc/debian_chroot)
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# set a fancy prompt (non-color, unless we know we "want" color)
+tee:/home/boss/.bashrc:case "$TERM" in
+tee:/home/boss/.bashrc:    xterm-color|*-256color) color_prompt=yes;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# uncomment for a colored prompt, if the terminal has the capability; turned
+tee:/home/boss/.bashrc:# off by default to not distract the user: the focus in a terminal window
+tee:/home/boss/.bashrc:# should be on the output of commands, not on the prompt
+tee:/home/boss/.bashrc:#force_color_prompt=yes
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ -n "$force_color_prompt" ]; then
+tee:/home/boss/.bashrc:    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+tee:/home/boss/.bashrc:	# We have color support; assume it's compliant with Ecma-48
+tee:/home/boss/.bashrc:	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+tee:/home/boss/.bashrc:	# a case would tend to support setf rather than setaf.)
+tee:/home/boss/.bashrc:	color_prompt=yes
+tee:/home/boss/.bashrc:    else
+tee:/home/boss/.bashrc:	color_prompt=
+tee:/home/boss/.bashrc:    fi
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ "$color_prompt" = yes ]; then
+tee:/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+tee:/home/boss/.bashrc:else
+tee:/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:unset color_prompt force_color_prompt
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# If this is an xterm set the title to user@host:dir
+tee:/home/boss/.bashrc:case "$TERM" in
+tee:/home/boss/.bashrc:xterm*|rxvt*)
+tee:/home/boss/.bashrc:    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+tee:/home/boss/.bashrc:    ;;
+tee:/home/boss/.bashrc:*)
+tee:/home/boss/.bashrc:    ;;
+tee:/home/boss/.bashrc:esac
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# enable color support of ls and also add handy aliases
+tee:/home/boss/.bashrc:if [ -x /usr/bin/dircolors ]; then
+tee:/home/boss/.bashrc:    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+tee:/home/boss/.bashrc:    alias ls='ls --color=auto'
+tee:/home/boss/.bashrc:    #alias dir='dir --color=auto'
+tee:/home/boss/.bashrc:    #alias vdir='vdir --color=auto'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:    alias grep='grep --color=auto'
+tee:/home/boss/.bashrc:    alias fgrep='fgrep --color=auto'
+tee:/home/boss/.bashrc:    alias egrep='egrep --color=auto'
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# colored GCC warnings and errors
+tee:/home/boss/.bashrc:#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# some more ls aliases
+tee:/home/boss/.bashrc:alias ll='ls -alF'
+tee:/home/boss/.bashrc:alias la='ls -A'
+tee:/home/boss/.bashrc:alias l='ls -CF'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# Add an "alert" alias for long running commands.  Use like so:
+tee:/home/boss/.bashrc:#   sleep 10; alert
+tee:/home/boss/.bashrc:alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# Alias definitions.
+tee:/home/boss/.bashrc:# You may want to put all your additions into a separate file like
+tee:/home/boss/.bashrc:# ~/.bash_aliases, instead of adding them here directly.
+tee:/home/boss/.bashrc:# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:if [ -f ~/.bash_aliases ]; then
+tee:/home/boss/.bashrc:    . ~/.bash_aliases
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:# enable programmable completion features (you don't need to enable
+tee:/home/boss/.bashrc:# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+tee:/home/boss/.bashrc:# sources /etc/bash.bashrc).
+tee:/home/boss/.bashrc:if ! shopt -oq posix; then
+tee:/home/boss/.bashrc:  if [ -f /usr/share/bash-completion/bash_completion ]; then
+tee:/home/boss/.bashrc:    . /usr/share/bash-completion/bash_completion
+tee:/home/boss/.bashrc:  elif [ -f /etc/bash_completion ]; then
+tee:/home/boss/.bashrc:    . /etc/bash_completion
+tee:/home/boss/.bashrc:  fi
+tee:/home/boss/.bashrc:fi
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+tee:/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+tee:/home/boss/.bashrc:
+tee:/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+tee:/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+/home/boss/.bashrc:# ~/.bashrc: executed by bash(1) for non-login shells.
+/home/boss/.bashrc:# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+/home/boss/.bashrc:# for examples
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If not running interactively, don't do anything
+/home/boss/.bashrc:case $- in
+/home/boss/.bashrc:    *i*) ;;
+/home/boss/.bashrc:      *) return;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# don't put duplicate lines or lines starting with space in the history.
+/home/boss/.bashrc:# See bash(1) for more options
+/home/boss/.bashrc:HISTCONTROL=ignoreboth
+/home/boss/.bashrc:
+/home/boss/.bashrc:# append to the history file, don't overwrite it
+/home/boss/.bashrc:shopt -s histappend
+/home/boss/.bashrc:
+/home/boss/.bashrc:# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+/home/boss/.bashrc:HISTSIZE=1000
+/home/boss/.bashrc:HISTFILESIZE=2000
+/home/boss/.bashrc:
+/home/boss/.bashrc:# check the window size after each command and, if necessary,
+/home/boss/.bashrc:# update the values of LINES and COLUMNS.
+/home/boss/.bashrc:shopt -s checkwinsize
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If set, the pattern "**" used in a pathname expansion context will
+/home/boss/.bashrc:# match all files and zero or more directories and subdirectories.
+/home/boss/.bashrc:#shopt -s globstar
+/home/boss/.bashrc:
+/home/boss/.bashrc:# make less more friendly for non-text input files, see lesspipe(1)
+/home/boss/.bashrc:[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+/home/boss/.bashrc:
+/home/boss/.bashrc:# set variable identifying the chroot you work in (used in the prompt below)
+/home/boss/.bashrc:if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+/home/boss/.bashrc:    debian_chroot=$(cat /etc/debian_chroot)
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# set a fancy prompt (non-color, unless we know we "want" color)
+/home/boss/.bashrc:case "$TERM" in
+/home/boss/.bashrc:    xterm-color|*-256color) color_prompt=yes;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# uncomment for a colored prompt, if the terminal has the capability; turned
+/home/boss/.bashrc:# off by default to not distract the user: the focus in a terminal window
+/home/boss/.bashrc:# should be on the output of commands, not on the prompt
+/home/boss/.bashrc:#force_color_prompt=yes
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ -n "$force_color_prompt" ]; then
+/home/boss/.bashrc:    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+/home/boss/.bashrc:	# We have color support; assume it's compliant with Ecma-48
+/home/boss/.bashrc:	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+/home/boss/.bashrc:	# a case would tend to support setf rather than setaf.)
+/home/boss/.bashrc:	color_prompt=yes
+/home/boss/.bashrc:    else
+/home/boss/.bashrc:	color_prompt=
+/home/boss/.bashrc:    fi
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ "$color_prompt" = yes ]; then
+/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+/home/boss/.bashrc:else
+/home/boss/.bashrc:    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:unset color_prompt force_color_prompt
+/home/boss/.bashrc:
+/home/boss/.bashrc:# If this is an xterm set the title to user@host:dir
+/home/boss/.bashrc:case "$TERM" in
+/home/boss/.bashrc:xterm*|rxvt*)
+/home/boss/.bashrc:    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+/home/boss/.bashrc:    ;;
+/home/boss/.bashrc:*)
+/home/boss/.bashrc:    ;;
+/home/boss/.bashrc:esac
+/home/boss/.bashrc:
+/home/boss/.bashrc:# enable color support of ls and also add handy aliases
+/home/boss/.bashrc:if [ -x /usr/bin/dircolors ]; then
+/home/boss/.bashrc:    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+/home/boss/.bashrc:    alias ls='ls --color=auto'
+/home/boss/.bashrc:    #alias dir='dir --color=auto'
+/home/boss/.bashrc:    #alias vdir='vdir --color=auto'
+/home/boss/.bashrc:
+/home/boss/.bashrc:    alias grep='grep --color=auto'
+/home/boss/.bashrc:    alias fgrep='fgrep --color=auto'
+/home/boss/.bashrc:    alias egrep='egrep --color=auto'
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# colored GCC warnings and errors
+/home/boss/.bashrc:#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# some more ls aliases
+/home/boss/.bashrc:alias ll='ls -alF'
+/home/boss/.bashrc:alias la='ls -A'
+/home/boss/.bashrc:alias l='ls -CF'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# Add an "alert" alias for long running commands.  Use like so:
+/home/boss/.bashrc:#   sleep 10; alert
+/home/boss/.bashrc:alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+/home/boss/.bashrc:
+/home/boss/.bashrc:# Alias definitions.
+/home/boss/.bashrc:# You may want to put all your additions into a separate file like
+/home/boss/.bashrc:# ~/.bash_aliases, instead of adding them here directly.
+/home/boss/.bashrc:# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+/home/boss/.bashrc:
+/home/boss/.bashrc:if [ -f ~/.bash_aliases ]; then
+/home/boss/.bashrc:    . ~/.bash_aliases
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:# enable programmable completion features (you don't need to enable
+/home/boss/.bashrc:# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+/home/boss/.bashrc:# sources /etc/bash.bashrc).
+/home/boss/.bashrc:if ! shopt -oq posix; then
+/home/boss/.bashrc:  if [ -f /usr/share/bash-completion/bash_completion ]; then
+/home/boss/.bashrc:    . /usr/share/bash-completion/bash_completion
+/home/boss/.bashrc:  elif [ -f /etc/bash_completion ]; then
+/home/boss/.bashrc:    . /etc/bash_completion
+/home/boss/.bashrc:  fi
+/home/boss/.bashrc:fi
+/home/boss/.bashrc:
+/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom
+/home/boss/.bashrc:
+/home/boss/.bashrc:[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom
+/home/boss/.bashrc:[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom

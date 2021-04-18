@@ -88,18 +88,21 @@ check_and_install dpkg dpkg
 check_and_install dos2unix dos2unix
 check_and_install mount.cifs mount.cifs
 check_and_install neofetch neofetch
+# check_and_install screenfetch screenfetch   # Same as neofetch
 check_and_install fortune fortune
 check_and_install cowsay cowsay
-check_and_install figlet figlet
-which figlet &> /dev/null || exe sudo snap install figlet -y   # Ubuntu 20.04 only has as snap package
 check_and_install tmux tmux
 check_and_install zip zip
 check_and_install unzip unzip
-# Does not have the same name as the binary
-check_and_install ifconfig net-tools
-check_and_install 7z p7zip-full
+# check_and_install bat bat   # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
+check_and_install ifconfig net-tools   # Does not have the same name as the binary
+check_and_install 7z p7zip-full        # Does not have the same name as the binary
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
+
+check_and_install figlet figlet
+# This was odd, Ubuntu 20.04 only had this as a snap package out of the box, only after full update could it see the normal package
+which figlet &> /dev/null || exe sudo snap install figlet -y
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -151,7 +154,7 @@ check_and_install 7z p7zip-full
 
 ####################
 #
-print_header "Custom setups for 'figlet' and 'bat' (syntax highlighted replacement for 'cat')"
+print_header "Download extended fonts for 'figlet'"
 #
 ####################
 
@@ -170,12 +173,24 @@ echo "# Download and setup figlet extended fonts"
 [ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
 
-echo "# Download and setup 'bat' as a better replacement for 'cat'"
-BAT=bat_0.15.4_amd64.deb
-[ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/v0.15.4/$BAT   # 64-bit version
-which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
-# sudo dpkg -r bat   # to remove after install
-# Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
+
+
+# [ ! $(which bat) ]   will resolve 'which bat' and if empty will trigger the 'if-fi' condition
+if [ ! $(which bat) ]; then
+    ####################
+    #
+    print_header "Download 'bat' (syntax highlighted replacement for 'cat') manually to a known working version"
+    #
+    ####################
+    echo "# Download and setup 'bat' and alias 'cat' to use 'bat' instead (same as 'cat' but with syntax highlighting)"
+    echo "# Check here for latest updates: https://github.com/sharkdp/bat/releases"
+    REL=v0.18.0
+    BAT=bat_0.18.0_amd64.deb
+    [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/$REL/$BAT   # 64-bit version
+    which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
+    # sudo dpkg -r bat   # to remove after install
+    # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool
+fi
 
 
 
@@ -185,48 +200,58 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 #
 ####################
 
-# grep -qxF 'include "/configs/projectname.conf"' foo.bar || echo 'include "/configs/projectname.conf"' | sudo tee --append foo.bar
-# -q be quiet, -x match the whole line, -F pattern is a plain string
-# use "tee" instead of ">>", as ">>" will not permit updating protected files
+# Note how the grep line logically resolves below as it is not always obvious: (( grep for $thing in $file )) OR (( echo $thing | tee --append $thing ))
+# i.e. $expression1 || $expression2    where    $expression2 = echo $thing | tee --append $thing
+# "tee --append" is better than ">>" in general as it also permits updating protected files.
+# e.g. echo "thing" >> ~/.bashrc      # fails as cannot update protected file.
+#      sudo echo "thing" >> ~/.bashrc # also fails as the 'echo' is elevated, but '>>' is not(!)
+# But: echo "thing" | sudo tee --append /etc/bashrc   # works as the 'tee' operation is elevated correctly.
 # https://linux.die.net/man/1/grep
 # https://stackoverflow.com/questions/3557037/appending-a-line-to-a-file-only-if-it-does-not-already-exist
+# Could alternatively use sed for everything:
+# https://unix.stackexchange.com/questions/295274/grep-to-find-the-correct-line-sed-to-change-the-contents-then-putting-it-back
 
 # Backup ~/.custom
 if [ -f ~/.custom ]; then
-    exe cp ~/.custom ~/tmp/custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
+    exe cp ~/.custom /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
-    exe cp ~/.bashrc /tmp/bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
+    exe cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
-# Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
-sed -i 's/[ \t]*$//' ~/.bashrc          # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
-sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
-echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
-
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 
 # Remove lines to trigger .custom from end of .bashrc (-v show everything except, -x full line match, -F fixed string / no regexp)
 # https://stackoverflow.com/questions/28647088/grep-for-a-line-in-a-file-then-remove-the-line
-# grep -vxF "$HEADERCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
-# grep -vxF "$GETCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
-# grep -vxF "$RUNCUSTOM" ~/.bashrc | sudo tee ~/.bashrc
 
-sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
-echo "" | sudo tee --append ~/.bashrc   # Add an empty line back in as a separator before our the lines to call .custom 
+# Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
+rc=~/.bashrc
+rctmp=/tmp/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
 
-# Add lines to trigger .custom to end of .bashrc (-q silent show now output, -x full line match, -F fixed string / no regexp)
-grep -qxF "$HEADERCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc
-grep -qxF "$GETCUSTOM" ~/.bashrc || echo $GETCUSTOM | sudo tee --append ~/.bashrc
-grep -qxF "$RUNCUSTOM" ~/.bashrc || echo $RUNCUSTOM | sudo tee --append ~/.bashrc
+grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
+grep -vxF "$GETCUSTOM" $rc > $rctmp.2 && cp $rctmp.2 $rc
+grep -vxF "$RUNCUSTOM" $rc > $rctmp.3 && cp $rctmp.3 $rc
+# If doing this with a system file (e.g. /etc/bashrc), just sudo the 'cp' part. i.e. grep <> /etc/bashrc > $rctmp && sudo cp /etc/bashrc
 
-# .bash_profile checks
-##########
-# If ".bash_profile" is ever created, it takes precedence, and .bashrc will NOT load in this case (just one of the crazy bash rules).
+# After removing our lines, make sure no empty lines at end of file, except for one required before our lines
+# Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
+sed -i 's/[ \t]*$//' ~/.bashrc     # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
+# Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
+sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc
+echo "" | tee --append ~/.bashrc   # Finally, add an empty line back in as a separator before our .custom call lines
+
+# Add lines to trigger .custom to end of .bashrc (-q silent show no output, -x full line match, -F fixed string / no regexp)
+echo $HEADERCUSTOM | tee --append ~/.bashrc
+echo $GETCUSTOM | tee --append ~/.bashrc
+echo $RUNCUSTOM | tee --append ~/.bashrc
+
+### .bash_profile checks ###
+# If ".bash_profile" is ever created, it takes precedence over .bashrc, *and* .bashrc will NOT load in this case (just one of the crazy bash rules).
 # To avoid this need to check for its existence:
-# - Check for .bash_profile => if it is zero-length, remove it. [[ ! - ~/.bash_profile ]]
-# - If .bash_profile is not zero length, load a line to dotsource .bashrc
+# - If .bash_profile exists and is zero-length, simply remove it.
+# - If .bash_profile exists is not zero length, then create a line to dotsource .bashrc so that the above .custom will also be called.
+# - If .bash_profile exists and .bashrc does NOT exist, then add .custom lines to .bash_profile
 
 if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
     echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
@@ -234,10 +259,16 @@ if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (c
 fi
 
 if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size file exists
-    echo "Existing ~/.bash_profile is not empty, so adding line to include ~/bashrc (and so then run ~/.custom) at end of ~/.bash_profile"
-    # Need to also deal with case when .bashrc is not there ...
+    echo "Existing ~/.bash_profile is not empty, so ensure line in ~/.bash_profile loads ~/.bashrc (and so then runs ~/.custom)"
     FIXBASHPROFILE='[ -f ~/.bashrc ] && . ~/.bashrc'
-    grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | sudo tee --append ~/.bash_profile
+    grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | tee --append ~/.bash_profile
+fi
+
+if [ -s ~/.bash_profile ] && [ ! ~/.bashrc ]; then   # Only do this if a greater than zero size file exists
+    echo "Existing ~/.bash_profile is not empty, but ~/.bashrc does not exist. Ensure lines are in ~/.bash_profile to load ~/.custom"
+    grep -qxF "$HEADERCUSTOM" ~/.bash_profile || echo "$HEADERCUSTOM" | tee --append ~/.bash_profile
+    grep -qxF "$GETCUSTOM" ~/.bash_profile || echo "$GETCUSTOM" | tee --append ~/.bash_profile
+    grep -qxF "$RUNCUSTOM" ~/.bash_profile || echo "$RUNCUSTOM" | tee --append ~/.bash_profile
 fi
 
 
@@ -280,22 +311,22 @@ print_header "Common changes to .vimrc"
 # Note that cannot >> back to the same file being read, so use "| sudo tee --append ~/.vimrc"
 
 VIMLINE='color industry'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 # VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'   # Variant for elevating Vim, not using for now
 VIMLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='" Set F3 to toggle line numbers on/off'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='noremap <F3> :set invnumber<CR>'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 VIMLINE='inoremap <F3> <C-O>:set invnumber<CR>'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | sudo tee --append ~/.vimrc
+grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
 
 
 
@@ -533,7 +564,7 @@ echo "Run 'locale' to view the current settings before changing."
 
 ####################
 #
-print_header "To get full-screen if running in Hyper-V"
+print_header "For Hyper-V VMs: Run full-screen and disable sleep"
 #
 ####################
 
@@ -542,8 +573,13 @@ echo '   Change: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
 echo '   To:     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080"'
 echo "Adjust 1920x1080 to your current monitor resolution."
 echo "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
-echo "From Hyper-V Manager dashboard find your virtual machine, and open Settings."
+echo ""
+echo "From Hyper-V Manager dashboard, find the VM, and open Settings."
 echo "Go to Integration Services tab > Make sure Guest services section is checked."
+echo ""
+echo "systemctl status sleep.target   # Show current sleep settings"
+echo "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
+echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
 
 
 

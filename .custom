@@ -69,8 +69,8 @@ if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
 # Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
-[ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && c='cat' && alias b='bat' # alias if 'bat' installed
-[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias c 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
+[ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && alias b='bat' # alias if 'bat' installed
+[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
 
 ####################
 # Standard color for LESS/MAN pages (as some distros do not provide this by default, such as CentOS).

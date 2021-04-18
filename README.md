@@ -666,6 +666,21 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 # custom_loader.sh and .custom tools
 
+To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses a few `grep`, `sed`, and `tee` techniques to selectively remove only specific lines and then replace them. For `.bashrc`, the goal is to make sure that the `.custom` lines are always positioned at the end of file so that this only loads after `.bashrc` so that this project makes sure to alter core files as little as possible.  
+**Using `grep` to prune lines**  
+First define the exact line to be pruned (I could use a smaller subset like `[ ! -f ~/.custom ]` as that would be enough, since it relates to .custom so can only be relating to this project, but in this case, we prune the entire line).  
+`GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'`  
+Then search only for this specific line (-q silent show no output, -x full line match, -F fixed string / no regexp), and then appends directly onto the file (have to use `tee` here as you cannot `>` directly onto the file as that operation will happen while the grep is happening; by using `tee` the entire `grep` will finish then append to the file).  
+`grep -qxF "$GETCUSTOM" ~/.bashrc || echo $HEADERCUSTOM | tee --append ~/.bashrc`  
+Note: if doing this with a system file (like `/etc/bashrc`), you have to *also* sudo the `tee` command:
+`grep -qxF "$GETCUSTOM" /etc/bashrc || echo $HEADERCUSTOM | sudo tee --append ~/.bashrc`  
+This is because even though you might be able to read `/etc/bashrc`, writing to it must be elevated, and note that putting `sudo` before the `grep` command will not do that (elevates only the `grep` process and not the `tee` process).
+
+**Removing empty lines but only from the end of a file**
+This is to make sure no empty lines at end of file, except for one required before our lines.  
+`sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc`   # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687  
+`echo "" | tee --append ~/.bashrc`   # Add an empty line back in as a separator before our the lines to call .custom  
+
 **.inputrc changes**.  
 `set completion-ignore-case On`   really useful to prevent case-sensitivity taking over when trying to tab complete into folders
 
@@ -673,5 +688,4 @@ After doing this, `wsl -l -v` will show the registered distro.
 
 **`sudoers`**  
 
-To inject into the configurations files (`.bashrc`, `.vimrc`, `.intputrc`, `sudoers`), `custom_loader.sh` uses `sed` to find matching lines to remove them, and then replace them. e.g. For `.bashrc`, it looks for `[ -f ~/.custom ]`, removes it, then appends `[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom; else curl ...` at the end of `.bashrc` so that `.custom` will always load as the last step of  `~/.bashrc`.
 

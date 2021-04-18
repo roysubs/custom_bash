@@ -244,20 +244,27 @@ Set your email as follows command (setting name and email you use on your Git ac
 `git config --global user.email "youremail@domain.com"`  
   
 **Git Credential Manager setup**  
-Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager. To set up Git Credential Manager for use with a WSL distribution, open your distribution and enter this command:  
-`git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`  
+Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager.  
 
-[Better guide here...](https://blog.anaisbetts.org/using-github-credentials-in-wsl2/)
-• Install Git for Windows  
-• In Windows-land, clone any private repo - this will pop up a GitHub dialog allowing you to log in (including handling 2FA correctly - you have 2FA enabled right? Right???).
+I have found that the below setups don't always work. Due to this, and in cases where you don't need more than the `git` command on its own, it is possible to just alias `git.exe` from Git for Windows from WSL and just use that for managing repos.  
+`alias git="'/mnt/c/Program Files/Git/bin/git.exe'"`  
+Also make sure that the following lines are in `~/.gitconfig`:  
+`[credential]`  
+`helper = manager`  
+
+If you want git in WSL to use the Git for Windows Credential Manager however, [this guide](https://blog.anaisbetts.org/using-github-credentials-in-wsl2/) explains the steps:  
+• Install Git for Windows.  
+• In Windows-land, clone any private repo to generate the token. This will open a GitHub dialog allowing you to log in (including handling 2FA correctly).  
 • In your WSL distro, run `sudo vi /usr/bin/git-credential-manager`, then type this in:  
 `#!/bin/sh`  
 `exec "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe" $@`  
+Alternatively to the above, the following command should achieve the same thing:  
+`git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`  
 • Run `sudo chmod +x /usr/bin/git-credential-manager`  
-Now, open up your .gitconfig and add the following lines:  
+Now, open up `~/.gitconfig` and add the following lines:  
 `[credential]`  
 `helper = manager`  
-And there you have it! Make sure you clone all your repos with **https://** URLs (Pro-Tip: you can just use the URL to the repo, no need for .git) or re-configure them via git remote set-url, and you’ll be pushing and pulling, annoyance free.
+• Make sure you clone all your repos with **https://** URLs (you do not need to put `.git` on the end of projects though, just use the URL) or re-configure them via git remote set-url.  
 
 Now any git operation you perform within your WSL distribution will use the credential manager. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
 

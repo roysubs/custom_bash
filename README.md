@@ -26,6 +26,8 @@ Then run `. custom_loader.sh` from the current directory.
 `curl https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash`  
 We can use **git.io** to shorten github utl's, but this does not work for `curl xxx | bash`, so using long form here. This method is least resilient, but works fine in most situations.  
   
+**Note:** It is not possible to invoke a script *with switches* via `curl` (Option 3 above), which is why downloading first then running is a better approach (could instead have the script look for flag files on disk, e.g. `.custom_install_system_wide` then delete that file after running `custom_loader.sh` from Github, or maybe a specific variable). **ToDo:** Optionally make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.  
+  
 **`custom_loader.sh`** configures the environment. This simply adds a single line to `.bashrc` to dotsource `~/.custom` for all new shell instances (whether console or terminal inside a GUI environment as there is a distinction!). It also installs / updates some small core tools that are generically useful (`vim, openssh, curl, wget, dpkg, net-tools, git, zip, p7zip, figlet, cowsay, fortune-mod` etc), then adjust some generic settings for `~/.vimrc`, and `~/.inputrc`. and describes the correct way to update localisation settings. `~/.custom` will then be dotsourced into the currently running session to be immediately available without a new login. To install the latest version on any WSL distro, use the above `curl` command from inside the WSL instance.  
   
 **`.custom`** is called from `~/.bashrc` using two lines that ensure that the changes only apply to *interactive* shells (i.e. will load equally in either `ssh login` shells or `terminal` windows inside a Linux Gnome/KDE UI, and will *not* load during non-interactive shells such as when a script is invoked, as discussed [here](https://askubuntu.com/questions/1293474/which-bash-profile-file-should-i-use-for-each-scenario/1293679#1293679)).  
@@ -67,11 +69,6 @@ It is often useful to have multiple copies of a distro available. With the above
 # WSL Startup  
 You can start the distro from the Ubuntu icon on the Start Menu, or by running `wsl` or `bash` from a console. Additionally, registered distros will be automatically added to the new Windows Terminal, so it is a good idea to install that before setting up WSL.  
   
-WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.
-[Good overview of WSL 2](https://www.sitepoint.com/wsl2/)
-
-
-
 # WSL VMs, how to terminate (shutdowns/reboot), and how to reset  
 
 It is important to understand that there is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance (and any services, websites, containers) continue to run in the background. Only terminating the WSL distro will stop those services. More on that [here](https://stackoverflow.com/questions/66375364shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137).  
@@ -102,7 +99,14 @@ From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).
 
 # WSL Windows Integration (Windows Explorer and VS Code)
   
-**Setup 'Quick access' link to the WSL distro's home folder** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows Explorer to see files in the distro home folder.  
+[Good overview of WSL 2](https://www.sitepoint.com/wsl2/)  
+
+WSL gives seamless access between WSL and the Windows filesystem, including opening/editing files in WSL with Windows tools (like Notepad++ or VS Code), and opening/editing files in Windows with Linux tools.  
+
+**VS Code:** The WSL VS Code extension loads a VS Code server inside WSL that handles seamless integration (`~/.vscode-server`) which can be around 100 MB. If the 
+Alternatively, it is possible to just navigate to `\\wsl$\Ubuntu\home\<user>` even when the WSL window is closed (but NOT if the session is terminated).
+
+**Setup 'Quick access' link to the WSL distro's home folder:** Open Windows Explorer, then navigate to `\\wsl$\Ubuntu\home\<user>`. Drag this folder into 'Quick access' for eacy access from Windows Explorer to see files in the distro home folder.  
 
 If `choco install lxrunoffline` is installed, from Windows Explorer, note the "LxRunOffline" right-click item to let you open a bash shell at that folder location with the chosen distro.  
 From inside a WSL shell, to [open the current folder in Windows Explorer](https://superuser.com/questions/1338991/how-to-open-windows-explorer-from-current-working-directory-of-wsl-shell#1385493), use `explorer.exe .`  
@@ -246,30 +250,30 @@ Set your email as follows command (setting name and email you use on your Git ac
 **Git Credential Manager setup**  
 Git Credential Manager enables you to authenticate a remote Git server, even if you have a complex authentication pattern like two-factor authentication, Azure Active Directory, or using SSH remote URLs that require an SSH key password for every git push. Git Credential Manager integrates into the authentication flow for services like GitHub and, once you're authenticated to your hosting provider, requests a new authentication token. It then stores the token securely in the Windows Credential Manager. After the first time, you can use git to talk to your hosting provider without needing to re-authenticate. It will just access the token in the Windows Credential Manager.  
 
-I have found that the below setups don't always work. Due to this, and in cases where you don't need more than the `git` command on its own, it is possible to just alias `git.exe` from Git for Windows from WSL and just use that for managing repos.  
-`alias git="'/mnt/c/Program Files/Git/bin/git.exe'"`  
-Also make sure that the following lines are in `~/.gitconfig`:  
+I have had some failures getting `/usr/bin/git` to work. A quick way that always works, if you don't need more than the `git` command on its own, is to just alias `git.exe` from Git for Windows from WSL and just use that for managing repos.  
+`alias git="'/mnt/c/Program Files/Git/bin/git.exe'"` (note that `"'` / `'"` are required for this alias). Also make sure that the following section is in `~/.gitconfig`:  
 `[credential]`  
 `helper = manager`  
+With the above setup, you do not need `git` installed in WSL at all.  
 
-If you want git in WSL to use the Git for Windows Credential Manager however, [this guide](https://blog.anaisbetts.org/using-github-credentials-in-wsl2/) explains the steps:  
+If you want git in WSL (`/usr/bin/git`) to use the Git for Windows Credential Manager however, [this guide](https://blog.anaisbetts.org/using-github-credentials-in-wsl2/) explains the steps:  
 • Install Git for Windows.  
-• In Windows-land, clone any private repo to generate the token. This will open a GitHub dialog allowing you to log in (including handling 2FA correctly).  
-• In your WSL distro, run `sudo vi /usr/bin/git-credential-manager`, then type this in:  
+• In Windows-land, clone any single private repo to generate the token. This will open a GitHub dialog allowing you to log in, and this will also handle 2FA (two-factor authentication) correctly.  
+• In your WSL distro, run `sudo vi /usr/bin/git-credential-manager`, then add the following lines:  
 `#!/bin/sh`  
 `exec "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe" $@`  
 Alternatively to the above, the following command should achieve the same thing:  
 `git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`  
 • Run `sudo chmod +x /usr/bin/git-credential-manager`  
-Now, open up `~/.gitconfig` and add the following lines:  
+Now, open up `~/.gitconfig` and add the following section:  
 `[credential]`  
 `helper = manager`  
-• Make sure you clone all your repos with **https://** URLs (you do not need to put `.git` on the end of projects though, just use the URL) or re-configure them via git remote set-url.  
+• Make sure you clone all your repos with **https://** URLs. You do not need `www.`, just `github.com`, and you do not need to put `.git` at the end of a project URL, just use the URL for the project page) or re-configure them via git remote set-url.  
 
-Now any git operation you perform within your WSL distribution will use the credential manager. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
+This is done as WSL has no GUI, so can't run the credential manager inside the WSL Linux VM. Now any git operation you perform within your WSL distribution should use the credential manager token from Windows seamlessly. If you already have credentials cached for a host, it will access them from the credential manager. If not, you'll receive a dialog response requesting your credentials, even if you're in a Linux console. If you are using a GPG key for code signing security, you may need to associate your GPG key with your GitHub email.
 
 **Git Ignore file**  
-It is useful to add a `.gitignore` file (must be in the root folder of a project) to exclude certain files from the project. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
+It is usually important to add `.gitignore` files to most projects (must be in the root folder of a project) to exclude certain files. GitHub offers a collection of useful `.gitignore` templates with recommended `.gitignore` file setups organized according to your use-case. For example, here are [GitHub's default `.gitignore` templates](https://github.com/github/gitignore). If you choose to create a new repo using the GitHub website, there are check boxes available to initialize your repo with a README file, .gitignore file set up for your specific project type, and options to add a license if you need one.  
 Add one line per exclude mask (can use wildcards). If a file is already in the project, it must be removed:  
 `git rm --cached <filename>`  
 To create a global ignore file (e.g. could put `*.tmp` to exclude all files like that in all projects):  
@@ -298,14 +302,14 @@ Unfortunately, Ubuntu will now use root as the default user. To go back to your 
 [Multiple instances of same Linux distro in WSL](https://medium.com/swlh/why-you-should-use-multiple-instances-of-same-linux-distro-on-wsl-windows-10-f6f140f8ed88)  
 To use Ctrl+Shift+C/V for Copy/Paste operations in the console, need to enable the "Use Ctrl+Shift+C/V as Copy/Paste" option in the Console “Options” properties page (done this way to ensure not breaking any existing behaviors).
 
-**ToDo** Looks like it is not possible to invoke a script *with switches* via `curl`, so could use a local file to check if specific changes need to be made. e.g. overwriting `.custom`, or to load everything to `/etc` instead of `/home` maybe have a `.custom_install_system_wide` flag then delete that file after the change. Make all of the above load system-wide, i.e. create `/etc/.custom` and make changes to `/etc/bashrc`, `/etc/vimrc`, `/etc/inputrc` instead of `~`. If doing this, must also clean up `~` to remove the details there.
-  
 # Managing WSL Distros
 Note that doing this will break all connections to open sessions, e.g. open VS Code editor sessions to scripts inside WSL.
 When you restart the instance, VS Code sessions will not reconnect, but just close VS Code (it will cache the scripts). When you restart  
 VS Code (e.g. `code .`) against the same files, VS Code will reopen with a connection to the scripts and you can continue.  
   
-# Motr on systemd incompatibility
+
+
+# More on systemd incompatibility
 
 You can terminate a single WSL instance from PowerShell as follows (will terminate the Hyper-V VN immediately):  
 `wsl -t <distro-name>   # or --terminate`   

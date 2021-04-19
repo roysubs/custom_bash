@@ -275,18 +275,30 @@ fi
 
 ####################
 #
-print_header "Download latest .custom to ~/.custom"
+print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
 #
 ####################
 
-# If ~/.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory
+echo "You *must* be in the git project folder for this to work properly, i.e. do not run . ~/custom_bash/custom_loader.sh ..."
+echo "Test if script is running locally ..."
+echo "Test if pwd is same as location of custom_loader.sh"
+
+# echo "$0" / dirname "$0"   # Normally would give path to script, but useless as dotsourcing returns /bin/bash as path to script
+
+cmd0=$0
+cmd1=$1
+echo "$0 $1 $(pwd)"
+# Array example:
+# pwd_arr=($(dirname \"$0\" | tr "/", "\n"))     # split path script is running from into array
+# for i in "${pwd_arr[@]}"; do echo $i; done   # loop through elements of the array
+# pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
+read -e -p "Any 'Enter' to continue ..."; "$@"
+
+echo "If ./.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory"
 [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]] && cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
+
 # If ~/.custom still does not exist, then get it from Github
 [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-
-# [ -f ./.custom ] && [[ $- == *"i"* ]] && cp ./.custom ~/.custom   # If .custom is in current directory, use it and copy over
-# [ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-# [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom   # Dotsource new .custom
 
 
 
@@ -581,7 +593,63 @@ echo "systemctl status sleep.target   # Show current sleep settings"
 echo "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
 
+####################
+#
+print_header "Learn to use byobu instead of tmux / screen, great enhancement for WSL"
+#
+####################
 
+echo "Learn byobu (enhancement for tmux) while listening to Mozart:"
+echo "https://www.youtube.com/watch?v=NawuGmcvKus"
+echo ""
+echo "Byobu is a suite of enhancements to tmux, as a command line"
+echo "tool providing live system status, dynamic window management,"
+echo "and some convenient keybindings:"
+echo ""
+echo "F1                             * Used by X11 *"
+echo "  Shift-F1                     Display this help"
+echo "F2                             Create a new window"
+echo "  Shift-F2                     Create a horizontal split"
+echo "  Ctrl-F2                      Create a vertical split"
+echo "  Ctrl-Shift-F2                Create a new session"
+echo "F3/F4                          Move focus among windows"
+echo "  Alt-Left/Right               Move focus among windows"
+echo "  Alt-Up/Down                  Move focus among sessions"
+echo "  Shift-Left/Right/Up/Down     Move focus among splits"
+echo "  Shift-F3/F4                  Move focus among splits"
+echo "  Ctrl-F3/F4                   Move a split"
+echo "  Ctrl-Shift-F3/F4             Move a window"
+echo "  Shift-Alt-Left/Right/Up/Down Resize a split"
+echo "F5                             Reload profile, refresh status"
+echo "  Alt-F5                       Toggle UTF-8 support, refresh status"
+echo "  Shift-F5                     Toggle through status lines"
+echo "  Ctrl-F5                      Reconnect ssh/gpg/dbus sockets"
+echo "  Ctrl-Shift-F5                Change status bar's color randomly"
+echo "F6                             Detach session and then logout"
+echo "  Shift-F6                     Detach session and do not logout"
+echo "  Alt-F6                       Detach all clients but yourself"
+echo "  Ctrl-F6                      Kill split in focus"
+echo "F7                             Enter scrollback history"
+echo "  Alt-PageUp/PageDown          Enter and move through scrollback"
+echo "  Shift-F7                     Save history to \$BYOBU_RUN_DIR/printscreen"
+echo "F8                             Rename the current window"
+echo "  Ctrl-F8                      Rename the current session"
+echo "  Shift-F8                     Toggle through split arrangements"
+echo "  Alt-Shift-F8                 Restore a split-pane layout"
+echo "  Ctrl-Shift-F8                Save the current split-pane layout"
+echo "F9                             Launch byobu-config window"
+echo "  Ctrl-F9                      Enter command and run in all windows"
+echo "  Shift-F9                     Enter command and run in all splits"
+echo "  Alt-F9                       Toggle sending keyboard input to all splits"
+echo "F10                            * Used by X11 *"
+echo "F11                            * Used by X11 *"
+echo "  Alt-F11                      Expand split to a full window"
+echo "  Shift-F11                    Zoom into a split, zoom out of a split"
+echo "  Ctrl-F11                     Join window into a vertical split"
+echo "F12                            Escape sequence"
+echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
+echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
+echo "  Ctrl-Shift-F12               Mondrian squares"
 
 ####################
 #

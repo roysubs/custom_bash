@@ -39,7 +39,7 @@ print_header() {
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 printf "\n"
-[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Any key to continue..."; "$@"; } 
+[[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; } 
 
 
 
@@ -307,7 +307,7 @@ echo "If ./.custom exists and session is an interactive login (maybe add: and pw
 print_header "Common changes to .vimrc"
 #
 ####################
-# read -e -p "Any key to continue ..."; "$@"
+# read -e -p "Press 'Enter' to continue ..."; "$@"
 
 # https://topic.alibabacloud.com/article/ubuntu-system-vimrc-configuration-file_3_12_513382.html
 # https://linuxhint.com/vimrc_tutorial/
@@ -550,7 +550,7 @@ echo "Run 'locale' to view the current settings before changing."
 # echo ""
 # echo "The new locale will not be applied until a new shell is started"
 # echo ""
-# read -e -p "Any key to continue ..."; "$@"
+# read -e -p "Press 'Enter' to continue ..."; "$@"
 # echo "Try regenerating the supported locale list by running:"
 # echo "sudo dpkg-reconfigure locales"
 # echo ""

@@ -9,6 +9,10 @@
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom                    # Download .custom
 # git clone https://github.com/roysubs/custom_bash      # Downloads full git project, then run '. custom_loader.sh'
 ####################
+
+####################
+# Exports
+####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
 alias hs='history | grep -A 2 -B 2'    # Search history, and only show matches plus the 2 lines before and after each match
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
@@ -16,7 +20,25 @@ alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux fr
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
-[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd    # if bash ver 4+, then autocd. i.e. if type a directory name to cd into it, without needing to type 'cd'
+# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see VISUAL vs. EDITOR).
+# Additionally, unless you know why, you should set it to vim instead of vi.
+export VISUAL=vim
+export EDITOR="$VISUAL"
+# Standard color for LESS/MAN pages (as some distros do not provide this by default, such as CentOS).
+export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
+export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
+export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
+export LESS_TERMCAP_so=$'\E[01;44;33m' # begin reverse video
+export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
+export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
+export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
+export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
+# Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
+[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
+
+####################
+# Aliases
+####################
 alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # YYYYY-MM-DD__HHH-Min-Sec format, very useful to add to filename output.
 alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
 alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
@@ -27,11 +49,8 @@ alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
 alias zipex="printf \"Zip examples:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\""
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl^C
-
-####################
 # Standardised 'ls' output. Adding colour, showing '.' prefix files, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
 # ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only, 'lss' uses 'stat' to show both security formats (i.e. drwxr-xr-x and 755 formats)
-####################
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc. Note that the "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias ls='ls -FAh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)
 alias l='\ls --color=auto --group-directories-first'       # Do not show hidden (.*) (this is the more normal 'ls' alias output, but putting to 'l' as usually always want "A" flag
@@ -39,21 +58,16 @@ alias ll='ls -l'       # A (almost all, ignores ./ and ../ but show all .* files
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
-
-####################
 # git: g, gst, ga, gcm, gcl, gstash, glog
 # gc, gcg, gcname, gadu, gall, git-push
-####################
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
-
-####################
-# Abbreviate package management tools in all Linux environments
-####################
-# Tired of typing out 'sudo apt install' a lot so abbreviated these. Just have to be careful to avoid standard commands like 'du'
+# Abbreviated package management tools in all Linux environments
+# e.g. instead of endlessly typing 'sudo apt install ...', just use 'ai' (apt install) and similar abbreviations
+# Just have to be careful to avoid standard commands like 'du' (would have been 'dnf update' but cannot use)
 # di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptup = update + upgrade + dist-update
 # ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), use default tool for that OS.
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
@@ -67,25 +81,12 @@ if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo 
 if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
-
 # Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && alias b='bat' # alias if 'bat' installed
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
 
 ####################
-# Standard color for LESS/MAN pages (as some distros do not provide this by default, such as CentOS).
-####################
-export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
-export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
-export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
-export LESS_TERMCAP_so=$'\E[01;44;33m' # begin reverse video
-export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
-export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
-export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
-export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
-
-####################
-# Some basic/useful functions (and to use as templates to demonstrate some function syntax)
+# Functions: Useful in general and also as templates for bash function syntax
 ####################
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
@@ -134,13 +135,8 @@ update-distro() {
     fi
 }
 
-login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
-# login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
-if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
-# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
-
 ####################
-# Aliases for Windows apps (this section only runs if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL").
+# WSL: This section will only run if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL".
 # https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
 ####################
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
@@ -179,6 +175,14 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # Run CMD scripts from within WSL, note that you must use the Windows path, so cmd D:\test.cmd, and not cmd /mnt/d/test.cmd
     run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 fi
+
+####################
+# Display simple login banner (unless this is a new tmux session)
+####################
+login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
+# login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
+if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if this is not a new tmux session
+# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
 
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.

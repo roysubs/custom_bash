@@ -13,11 +13,30 @@
 # Also can use the middle mouse button to paste selected text in a Linux Terminal (i.e. if in a Hyper-V Ubuntu session)
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
+# Dotsourcing custom_loader.sh is required to update the running environment, but causes
+# problems with exiting scripts, since exit 0 / exit 1 will quit the bash shell since that
+# is what you are running when you are dotsourcing. e.g. This will close the whole shell:
+# if [ $(pwd) == $HOME ]; then echo "custom_loader.sh should not be run from \$HOME"; exit 0; fi 
+# So, instead, we'll just notify the user and let them take action:
+echo "\$BASH_SOURCE = $BASH_SOURCE"   # $BASH_SOURCE gets the source being used, always use this when dotsourcing
+if [ $(pwd) == $HOME ]; then echo "It is not advised to run custom_loader.sh from \$HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
+if [ -f "$HOME/custom_loader.sh" ]; then read -e -p "A copy of custom_loader.sh cannot be in \$HOME = $HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
+if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run when currently in same folder as custom_loader.sh location. 'cd' to the correct folder and rerun."; read -e -p "Press 'Ctrl-C' to exit script..."; fi
+# if the path starts "/" then it is absolute
+# if the path starts with "~/" or "./" or just the name of the subfolder then it is not absolute
+# if the path is not absolute, add $(pwd) to get the full path
 
+### Note that read -e -p will be ignored when running via curl, so this is actually ok since it is ok to
+### run from internet even when in $HOME
+
+# Array example, splitting a path:
+# pwd_arr=($(dirname \"$0\" | tr "/", "\n"))     # split path script is running from into array
+# for i in "${pwd_arr[@]}"; do echo $i; done   # loop through elements of the array
+# pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
 
 ####################
 #
-# print_header() and exe() functions
+# Setup the print_header() and exe() functions
 #
 ####################
 
@@ -279,27 +298,19 @@ print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .cu
 #
 ####################
 
-echo "You *must* be in the git project folder for this to work properly, i.e. do not run . ~/custom_bash/custom_loader.sh ..."
-echo "Test if script is running locally ..."
-echo "Test if pwd is same as location of custom_loader.sh"
+echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory"
+if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
+    cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
+fi
 
-# echo "$0" / dirname "$0"   # Normally would give path to script, but useless as dotsourcing returns /bin/bash as path to script
+echo "If ~/.custom still does not exist, then get it from Github"
+if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
+    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
 
-cmd0=$0
-cmd1=$1
-echo "$0 $1 $(pwd)"
-# Array example:
-# pwd_arr=($(dirname \"$0\" | tr "/", "\n"))     # split path script is running from into array
-# for i in "${pwd_arr[@]}"; do echo $i; done   # loop through elements of the array
-# pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
 read -e -p "Any 'Enter' to continue ..."; "$@"
-
-echo "If ./.custom exists and session is an interactive login (maybe add: and pwd is not "~"), then copy it to the home directory"
-[ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]] && cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
-
-# If ~/.custom still does not exist, then get it from Github
-[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-
 
 
 ####################

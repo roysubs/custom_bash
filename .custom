@@ -20,8 +20,11 @@ alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux fr
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
-# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see VISUAL vs. EDITOR). https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
-# Additionally, unless you know why, you should set it to vim instead of vi. Also note:   sudo update-alternatives --config editor
+# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see VISUAL vs. EDITOR).
+# Additionally, unless you know why, you should set it to vim instead of vi. Also note:
+# https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
+# select-editor   # update-alternatives --config editor   # update-alternatives --list editor
+update-alternatives --set editor /usr/bin/vim.basic
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
@@ -45,7 +48,7 @@ alias sudo='sudo '                        # Fixes alias expansion when using sud
 alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
 alias q='exit'                            # Quit immediately
 alias v='vim'                             # Short vim access
-alias cd..='cd ..'; alias cd.='cd /'      # Common typos
+alias cd..='cd ..'; alias cd...='cd ..; cd ..'; alias cd....='cd ..; cd ..; cd ..'; alias cd.='pwd'
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
 alias zipex="printf \"Zip examples:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\""

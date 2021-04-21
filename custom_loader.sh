@@ -310,7 +310,7 @@ if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
-read -e -p "Any 'Enter' to continue ..."; "$@"
+# read -e -p "Press 'Enter' to continue ..."; "$@"
 
 
 ####################

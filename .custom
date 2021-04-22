@@ -48,10 +48,9 @@ alias sudo='sudo '                        # Fixes alias expansion when using sud
 alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
 alias q='exit'                            # Quit immediately
 alias v='vim'                             # Short vim access
-alias cd..='cd ..'; alias cd...='cd ..; cd ..'; alias cd....='cd ..; cd ..; cd ..'; alias cd.='pwd'
+alias cd..='cd ..'; alias up1='cd ..'; up2='cd ..; cd ..'; alias up3='cd ..; cd ..; cd ..'; alias up4='cd ..; cd ..; cd ..; cd ..'; alias cd.='pwd'
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
-alias zipex="printf \"Zip examples:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\""
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl^C
 # Standardised 'ls' output. Adding colour, showing '.' prefix files, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
 # ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only, 'lss' uses 'stat' to show both security formats (i.e. drwxr-xr-x and 755 formats)
@@ -126,6 +125,7 @@ update-distro() {
     if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
     # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
     exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
+    which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
     if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
         echo "A reboot is required (/var/run/reboot-required is present)." >&2
@@ -187,5 +187,15 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Ctrl-R : (reverse-i-search)`':  Press once and type part of a command in history, Ctrl-R again to go back in the list
-
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
+
+####################
+# Help topics using printf to output basic syntax to help with various tasks
+####################
+# printf requires the ", \, % to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
+# However, it seems that it is encouraged to stop using aliases and only ever use functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
+# alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
+helplistdirs() { printf "Several ways to list directories only (no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links)\n# Also note:   -p (permissions), -u (user/UID), --du (disk usage)\n\n"; }
+helpzip() { printf "Ways to use '7z/7za' and 'zip' to create archives:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n"; }
+helpquerypackages() { printf "Package Management Notes\napt-file searches available packages for specific files. It's similar to using dpkg -L, but apt-file can search *all* available packages, not just those already installed. It accomplishes this by maintaining a local cache of package contents (update that with: sudo apt-file update)\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages\napt show vim         # show details on the 'vim' package"\n; }
+helpmountcifs() { printf "Connect to a Windows box\nmkdir ~/winpc\nsudo mount.cifs //192.168.1.20/Drives ~/winpc -o user=Boss   # or: sudo mount -t cifs -o ip=<ip>, username=<win-user> //<pc>/<share> /mnt/mountpoint\n"; }

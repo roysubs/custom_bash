@@ -79,7 +79,12 @@ echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup ta
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
-exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
+exe sudo $MANAGER update -y
+exe sudo $MANAGER upgrade -y
+exe sudo $MANAGER dist-upgrade -y
+exe sudo $MANAGER install ca-certificates -y
+exe sudo $MANAGER autoremove -y
+which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
@@ -99,18 +104,20 @@ print_header "Check and install small/essential packages"
 check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe sudo $MANAGER install $2 -y; }
 # which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
+check_and_install dpkg dpkg     # 'Debian package' is the low level package management from Debian ('apt' is a higher level tool)
+check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install git git
 check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
-check_and_install dpkg dpkg
 check_and_install dos2unix dos2unix
 check_and_install mount.cifs mount.cifs
 check_and_install neofetch neofetch
 # check_and_install screenfetch screenfetch   # Same as neofetch
 check_and_install fortune fortune
 check_and_install cowsay cowsay
-check_and_install tmux tmux
+check_and_install tree tree
+check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
 check_and_install unzip unzip
 # check_and_install bat bat   # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually

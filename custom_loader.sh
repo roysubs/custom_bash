@@ -88,6 +88,7 @@ which apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
 which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
 which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=yum if both dnf and yum are present
 which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
+which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 printf "\nCheck updates:\n\n"
 echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
 echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."

@@ -13,12 +13,51 @@
 # Also can use the middle mouse button to paste selected text in a Linux Terminal (i.e. if in a Hyper-V Ubuntu session)
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
+
+
+####################
+#
+# Setup the print_header() and exe() functions
+#
+####################
+
+### print_header() is used to create a simple section banner to output during execution
+print_header() {
+    printf "\n\n\n####################\n"
+    printf "#\n"
+    if [ "$1" != "" ]; then printf "# $1\n"; fi
+    if [ "$2" != "" ]; then printf "# $2\n"; fi
+    if [ "$3" != "" ]; then printf "# $3\n"; fi
+    printf "#\n"
+    printf "####################\n\n"
+}
+
+### exe() is used to display a command and then run that same command, so you can see what the script is about to run
+# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
+# By default, the following exe() will run run unattended, i.e. will show the command and then execute immediately
+# Howeve, if "y" is chosen, the exe() function is altered to display the command, then display a pause before running
+# the command so the user can control what runs and what does not.
+# ToDo: modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
+# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
+exe() { printf "\n"; echo "\$ ${@/eval/}"; "$@"; }
+
+
+
+####################
+#
+print_header "Start common cross-distro configuration steps" "and setup common tools (.custom / .vimrc / .inputrc)" "without creating complex changes in .bashrc etc"
+#
+####################
+
+[ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release);   # RedHat / Fedora / CentOS
+[ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "   # Debian / Ubuntu and variants
+printf "OS : $RELEASE" ; if grep -qEi "WSL2" /proc/version &> /dev/null ; then printf " (Running in WSL2)"; fi ; printf "\n\n"
 # Dotsourcing custom_loader.sh is required to update the running environment, but causes
 # problems with exiting scripts, since exit 0 / exit 1 will quit the bash shell since that
 # is what you are running when you are dotsourcing. e.g. This will close the whole shell:
 # if [ $(pwd) == $HOME ]; then echo "custom_loader.sh should not be run from \$HOME"; exit 0; fi 
 # So, instead, we'll just notify the user and let them take action:
-echo "\$BASH_SOURCE = $BASH_SOURCE"   # $BASH_SOURCE gets the source being used, always use this when dotsourcing
+# echo "\$BASH_SOURCE = $BASH_SOURCE"   # $BASH_SOURCE gets the source being used, always use this when dotsourcing
 if [ $(pwd) == $HOME ]; then echo "It is not advised to run custom_loader.sh from \$HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
 if [ -f "$HOME/custom_loader.sh" ]; then read -e -p "A copy of custom_loader.sh cannot be in \$HOME = $HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
 if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run when currently in same folder as custom_loader.sh location. 'cd' to the correct folder and rerun."; read -e -p "Press 'Ctrl-C' to exit script..."; fi
@@ -34,30 +73,6 @@ if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run whe
 # for i in "${pwd_arr[@]}"; do echo $i; done   # loop through elements of the array
 # pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
 
-####################
-#
-# Setup the print_header() and exe() functions
-#
-####################
-
-### print_header() is used to create a simple section banner to output during execution
-print_header() {
-    printf "\n####################\n"
-    printf "#\n"
-    printf "# $1\n"
-    printf "#\n"
-    printf "####################\n"
-}
-
-### exe() is used to display a command and then run that same command, so you can see what the script is about to run
-# https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
-# By default, the following exe() will run run unattended, i.e. will show the command and then execute immediately
-# Howeve, if "y" is chosen, the exe() function is altered to display the command, then display a pause before running
-# the command so the user can control what runs and what does not.
-# ToDo: modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
-# https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
-printf "\n"
 [[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; } 
 
 
@@ -79,13 +94,43 @@ echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup ta
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
-exe sudo $MANAGER update -y
-exe sudo $MANAGER upgrade -y
-exe sudo $MANAGER dist-upgrade -y
-exe sudo $MANAGER install ca-certificates -y
-exe sudo $MANAGER autoremove -y
-which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+
+function getLastAptGetUpdate()
+{
+    local aptDate="$(stat -c %Y '/var/cache/apt')"
+    local nowDate="$(date +'%s')"
+    echo $((nowDate - aptDate))
+}
+
+function runAptGetUpdate()
+{
+    local updateInterval="${1}"
+    local lastAptGetUpdate="$(getLastAptGetUpdate)"
+
+    if [[ "$(isEmptyString "${updateInterval}")" = 'true' ]]
+    then
+        # Default To 24 hours
+        updateInterval="$((24 * 60 * 60))"
+    fi
+
+    if [[ "${lastAptGetUpdate}" -gt "${updateInterval}" ]]
+    then
+        echo -e "apt-get update"
+        exe sudo $MANAGER update -y
+        exe sudo $MANAGER upgrade -y
+        exe sudo $MANAGER dist-upgrade -y
+        exe sudo $MANAGER install ca-certificates -y
+        exe sudo $MANAGER autoremove -y
+        which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+        apt-get update -m
+    else
+        local lastUpdate="$(date -u -d @"${lastAptGetUpdate}" +'%-Hh %-Mm %-Ss')"
+
+        echo -e "\nSkip apt-get update because its last run was '${lastUpdate}' ago"
+    fi
+}
+
 if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
     echo "Re-run this script after reboot to finish the install." >&2
@@ -177,7 +222,6 @@ which figlet &> /dev/null || exe sudo snap install figlet -y
 # which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
 
-
 ####################
 #
 print_header "Download extended fonts for 'figlet'"
@@ -194,11 +238,19 @@ print_header "Download extended fonts for 'figlet'"
 # mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 # rmdir /usr/share/figlet/fonts'
 echo "# Download and setup figlet extended fonts"
-[ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
-[ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
-[ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-[ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
+# [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+# [ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
+# [ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+# [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
 
+if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one font file to decide
+    sudo mkdir -p /usr/share/figlet/fonts
+    [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+    [ -f /tmp/figletfonts40.zip ]   && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip  # unzip to destination -d, with overwrite -o
+    [ -d /usr/share/figlet/fonts ]  && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+    [ -d /usr/share/figlet/fonts ]  && exe sudo rmdir /usr/share/figlet/fonts
+    [ -f /tmp/figletfonts40.zip ]   && exe sudo rm /tmp/figletfonts40.zip                            # cleanup
+fi
 
 
 # [ ! $(which bat) ]   will resolve 'which bat' and if empty will trigger the 'if-fi' condition
@@ -239,9 +291,11 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 
 # Backup ~/.custom
 if [ -f ~/.custom ]; then
-    exe cp ~/.custom /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
+    echo "Create Backup : /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+    cp ~/.custom /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
+    echo "Create Backup : /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
     exe cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
@@ -254,7 +308,6 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 # Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
 rc=~/.bashrc
 rctmp=/tmp/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
-
 grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
 grep -vxF "$GETCUSTOM" $rc > $rctmp.2 && cp $rctmp.2 $rc
 grep -vxF "$RUNCUSTOM" $rc > $rctmp.3 && cp $rctmp.3 $rc
@@ -273,13 +326,23 @@ echo $GETCUSTOM | tee --append ~/.bashrc
 echo $RUNCUSTOM | tee --append ~/.bashrc
 
 ### .bash_profile checks ###
-# If ".bash_profile" is ever created, it takes precedence over .bashrc, *and* .bashrc will NOT load in this case (just one of the crazy bash rules).
-# To avoid this need to check for its existence:
+# In practice, the usage of the .bash_profile file is the same as the usage for the .bashrc file.
+# Most .bash_profile files call the .bashrc file for the user by default. Then why do we have two
+# different configuration files? Why can’t we do everything using a single file?
+# Well, the short answer is freedom and convenience. The longer answer is as follows: Suppose, you
+# wish to run a system diagnostic every time you log in to your Linux system. You can edit the
+# configuration file to print the results or save it in a file. But you only wish to see it at
+# startup and not every time you open your terminal. This is when you need to use the .bash_profile
+# file instead of .bashrc
+# Also: https://www.golinuxcloud.com/bashrc-vs-bash-profile/
+# If ".bash_profile" is ever created, it takes precedence over .bashrc, *even* if it is empty, and
+# so .bashrc will NOT load in this case (just one of the crazy bash rules).
+# To avoid this need to check for its existence and whether it has contents.
 # - If .bash_profile exists and is zero-length, simply remove it.
 # - If .bash_profile exists is not zero length, then create a line to dotsource .bashrc so that the above .custom will also be called.
 # - If .bash_profile exists and .bashrc does NOT exist, then add .custom lines to .bash_profile
 
-if [ -z ~/.bash_profile ]; then   # This is specifically only for zero-length (could also use "! -s", where -s "size is greater than zero")
+if [ ! -s ~/.bash_profile ]; then   # This is specifically only if .bash_profile is zero-length (-z for zero-length is not available on some OS)
     echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
     rm ~/.bash_profile &> /dev/null
 fi
@@ -452,16 +515,22 @@ print_header "Common changes to /etc/sudoers"
 #
 ####################
 
-echo ToDo: This part is dangerous and can completely break a system if /etc/sudoers ends up in an
-echo invalid state. If editing of the sodoers file goes wrong, run:   pkexec visudo
-echo Then, add the contents of the copy of /etc/sodoers backed up in /tmp in here and save
+echo "ToDo: This part is tricky to automate as mistakes in /etc/sudoers can make a system unbootable."
+echo "There is a fix for this in some distros, you can run:   pkexec visudo"
+echo "Then, fix any issues, or add contents from a backed up /etc/sodoers"
 echo ""
-echo The goal is to add a 10 hour timeout for sudo passwords. See all options with 'man sudoers'
-echo This will be something like the following, but don\'t try this as it will break the system:
-echo    sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers
+echo "The goal is to add a 10 hr timeout for sudo passwords to be re-entered as it gets annoying to"
+echo "have to continually retype this on a home system (i.e. not advised on a production system)."
+echo "See all options with 'man sudoers'. To manually make this change:"
 echo ""
-echo Until find a safe solution, just do this manually, run visudo and then add:
-echo    env_reset,timestamp_timeout=600 
+echo "sudo visudo   # To open /etc/sudoers safely (will not permit saving unless syntax is correct)"
+echo "Add ',timestamp_timeout=600' to the 'Defaults env_reset' line, or just ad an extra Defaults line:"
+echo "Defaults    timestamp_timeout=600   # For 600 minutes, or set to whatever you prefer"
+echo ""
+echo "Automating this change will look something like the following, but do not do this as it will"
+echo "break /etc/sudoers in this format (so don't do this!):"
+echo "   # sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers"
+echo ""
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
 #     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to
@@ -479,7 +548,7 @@ echo    env_reset,timestamp_timeout=600
 # other user) are authorized to run programs as root with PolicyKit, you can enter your password, and then it will run
 # visudo as root, and you can fix your /etc/sudoers by running:   pkexec visudo
 # If you need to edit one of the configuration files in /etc/sudoers.d (which is uncommon in this situation, but possible), use:
-#   pkexec visudo -f /etc/sudoers.d/filename.
+#     pkexec visudo -f /etc/sudoers.d/filename.
 # If you have a related situation where you have to perform additional system administration commands as root to fix the problem
 # (also uncommon in this circumstance, but common in others), you can start an interactive root shell with pkexec bash. Generally
 # speaking, any non-graphical command you'd run with sudo can be run with pkexec instead.
@@ -488,10 +557,7 @@ echo    env_reset,timestamp_timeout=600
 
 # First, check if this system has a line ending "env_reset" (seems to normally be there in all Ubuntu / CentOs systems)
 # SUDOTMP="/tmp/sudoers.$(date +"%Y-%m-%d__%H-%M-%S")"
-# exe sudo cp /etc/sudoers $SUDOTMP
-
-# This completely broke my environment, had to reinstall ...
-# exe sudo sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers | sudo tee /etc/sudoers
+# sudo cp /etc/sudoers $SUDOTMP
 
 # Require "sudo tee" as /etc/sudoers does not even have 'read' permissiong so "> sudoers.1" would not work
 # Can also use "--append" to tee, useful to adding to end of a file, but in this case we do not need
@@ -522,7 +588,6 @@ print_header "Configure Locale"
 # LC_MEASUREMENT=nl_NL.UTF-8
 # LC_IDENTIFICATION=nl_NL.UTF-8
 # LC_ALL=
-echo ""
 echo "To change locale for language and keyboard settings (e.g. GB, FR, NL, etc)"
 echo "we have to set LANG, LANGUAGE, and all LC variables (via LC_ALL):"
 echo '   # sudo update-locale LANG="en_GB.UTF-8" LANGUAGE="en_GB"   # for GB'
@@ -594,7 +659,7 @@ echo "Run 'locale' to view the current settings before changing."
 
 ####################
 #
-print_header "For Hyper-V VMs: Run full-screen and disable sleep"
+print_header "For Hyper-V VMs: How to run full-screen and disable sleep"
 #
 ####################
 
@@ -621,55 +686,8 @@ echo "byobu cheat sheet / keybindings:"
 echo "https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
 echo "Learn byobu (enhancement for tmux) while listening to Mozart:"
 echo "https://www.youtube.com/watch?v=NawuGmcvKus"
-# echo ""
-# echo "Byobu is a suite of enhancements to tmux, as a command line"
-# echo "tool providing live system status, dynamic window management,"
-# echo "and some convenient keybindings:"
-# echo ""
-# echo "F1                             * Used by X11 *"
-# echo "  Shift-F1                     Display this help"
-# echo "F2                             Create a new window"
-# echo "  Shift-F2                     Create a horizontal split"
-# echo "  Ctrl-F2                      Create a vertical split"
-# echo "  Ctrl-Shift-F2                Create a new session"
-# echo "F3/F4                          Move focus among windows"
-# echo "  Alt-Left/Right               Move focus among windows"
-# echo "  Alt-Up/Down                  Move focus among sessions"
-# echo "  Shift-Left/Right/Up/Down     Move focus among splits"
-# echo "  Shift-F3/F4                  Move focus among splits"
-# echo "  Ctrl-F3/F4                   Move a split"
-# echo "  Ctrl-Shift-F3/F4             Move a window"
-# echo "  Shift-Alt-Left/Right/Up/Down Resize a split"
-# echo "F5                             Reload profile, refresh status"
-# echo "  Alt-F5                       Toggle UTF-8 support, refresh status"
-# echo "  Shift-F5                     Toggle through status lines"
-# echo "  Ctrl-F5                      Reconnect ssh/gpg/dbus sockets"
-# echo "  Ctrl-Shift-F5                Change status bar's color randomly"
-# echo "F6                             Detach session and then logout"
-# echo "  Shift-F6                     Detach session and do not logout"
-# echo "  Alt-F6                       Detach all clients but yourself"
-# echo "  Ctrl-F6                      Kill split in focus"
-# echo "F7                             Enter scrollback history"
-# echo "  Alt-PageUp/PageDown          Enter and move through scrollback"
-# echo "  Shift-F7                     Save history to \$BYOBU_RUN_DIR/printscreen"
-# echo "F8                             Rename the current window"
-# echo "  Ctrl-F8                      Rename the current session"
-# echo "  Shift-F8                     Toggle through split arrangements"
-# echo "  Alt-Shift-F8                 Restore a split-pane layout"
-# echo "  Ctrl-Shift-F8                Save the current split-pane layout"
-# echo "F9                             Launch byobu-config window"
-# echo "  Ctrl-F9                      Enter command and run in all windows"
-# echo "  Shift-F9                     Enter command and run in all splits"
-# echo "  Alt-F9                       Toggle sending keyboard input to all splits"
-# echo "F10                            * Used by X11 *"
-# echo "F11                            * Used by X11 *"
-# echo "  Alt-F11                      Expand split to a full window"
-# echo "  Shift-F11                    Zoom into a split, zoom out of a split"
-# echo "  Ctrl-F11                     Join window into a vertical split"
-# echo "F12                            Escape sequence"
-# echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
-# echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
-# echo "  Ctrl-Shift-F12               Mondrian squares"
+
+
 
 ####################
 #
@@ -689,8 +707,8 @@ echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Scheme
 print_header "Run 'source ~/.custom' into this currently running session"
 #
 ####################
-echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
-read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
+# echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
+# read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
 echo ""
 echo ""
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
@@ -786,3 +804,54 @@ fi
 #     return
 # fi
 
+
+
+# echo ""
+# echo "Byobu is a suite of enhancements to tmux, as a command line"
+# echo "tool providing live system status, dynamic window management,"
+# echo "and some convenient keybindings:"
+# echo ""
+# echo "F1                             * Used by X11 *"
+# echo "  Shift-F1                     Display this help"
+# echo "F2                             Create a new window"
+# echo "  Shift-F2                     Create a horizontal split"
+# echo "  Ctrl-F2                      Create a vertical split"
+# echo "  Ctrl-Shift-F2                Create a new session"
+# echo "F3/F4                          Move focus among windows"
+# echo "  Alt-Left/Right               Move focus among windows"
+# echo "  Alt-Up/Down                  Move focus among sessions"
+# echo "  Shift-Left/Right/Up/Down     Move focus among splits"
+# echo "  Shift-F3/F4                  Move focus among splits"
+# echo "  Ctrl-F3/F4                   Move a split"
+# echo "  Ctrl-Shift-F3/F4             Move a window"
+# echo "  Shift-Alt-Left/Right/Up/Down Resize a split"
+# echo "F5                             Reload profile, refresh status"
+# echo "  Alt-F5                       Toggle UTF-8 support, refresh status"
+# echo "  Shift-F5                     Toggle through status lines"
+# echo "  Ctrl-F5                      Reconnect ssh/gpg/dbus sockets"
+# echo "  Ctrl-Shift-F5                Change status bar's color randomly"
+# echo "F6                             Detach session and then logout"
+# echo "  Shift-F6                     Detach session and do not logout"
+# echo "  Alt-F6                       Detach all clients but yourself"
+# echo "  Ctrl-F6                      Kill split in focus"
+# echo "F7                             Enter scrollback history"
+# echo "  Alt-PageUp/PageDown          Enter and move through scrollback"
+# echo "  Shift-F7                     Save history to \$BYOBU_RUN_DIR/printscreen"
+# echo "F8                             Rename the current window"
+# echo "  Ctrl-F8                      Rename the current session"
+# echo "  Shift-F8                     Toggle through split arrangements"
+# echo "  Alt-Shift-F8                 Restore a split-pane layout"
+# echo "  Ctrl-Shift-F8                Save the current split-pane layout"
+# echo "F9                             Launch byobu-config window"
+# echo "  Ctrl-F9                      Enter command and run in all windows"
+# echo "  Shift-F9                     Enter command and run in all splits"
+# echo "  Alt-F9                       Toggle sending keyboard input to all splits"
+# echo "F10                            * Used by X11 *"
+# echo "F11                            * Used by X11 *"
+# echo "  Alt-F11                      Expand split to a full window"
+# echo "  Shift-F11                    Zoom into a split, zoom out of a split"
+# echo "  Ctrl-F11                     Join window into a vertical split"
+# echo "F12                            Escape sequence"
+# echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
+# echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
+# echo "  Ctrl-Shift-F12               Mondrian squares"

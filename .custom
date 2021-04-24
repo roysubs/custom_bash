@@ -89,7 +89,7 @@ if which appimage &> /dev/null; then alias api='sudo appimage install'; alias ap
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
 
 ####################
-# Functions: Useful in general and also as templates for bash function syntax
+# Functions: Useful snippets and as templates for bash function syntax
 ####################
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
@@ -192,15 +192,14 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 
 ####################
-# Help topics using printf to output basic syntax to help with various tasks
+# Help topic reminders to output basic syntax for various tasks
 ####################
 # printf requires the ", \, % to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
-# However, it seems that it is encouraged to stop using aliases and only ever use functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
-# alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
-helplistdirs() { printf "Several ways to list directories only (no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links)\n# Also note:   -p (permissions), -u (user/UID), --du (disk usage)\n\n"; }
-helpzip() { printf "Ways to use '7z/7za' and 'zip' to create archives:\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders\n\n"; }
-helpmountcifs() { printf "Connect to a Windows box\nmkdir ~/winpc\nsudo mount.cifs //192.168.1.20/Drives ~/winpc -o user=Boss   # or: sudo mount -t cifs -o ip=<ip>, username=<win-user> //<pc>/<share> /mnt/mountpoint\n\n"; }
-
-helpquerypackages() { printf "Package Management Notes\napt-file searches available packages for specific files. It's similar to using dpkg -L, but apt-file can search *all* available packages, not just those already installed. It accomplishes this by maintaining a local cache of package contents (update that with: sudo apt-file update)\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages\napt show vim         # show details on the 'vim' package\napt list --installed | less\napt list --upgradeable | less\napt remove vim    # uninstall a package (note --purge will also remove all config files)\n"; }
-# https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu
-# https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
+# Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
+# Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
+fn_help() { printf "\n$1\n==========\n\n$2\n\n"; }
+help_listdirs() { fn_help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links)\n# Also note:   -p (permissions), -u (user/UID), --du (disk usage)"; }
+help_zip() { fn_help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
+help_mountcifs() { fn_help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>   # or: sudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path"; }
+# https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
+help_packages_apt() { fn_help "apt package management:" "apt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }

@@ -49,9 +49,14 @@ print_header "Start common cross-distro configuration steps" "and setup common t
 #
 ####################
 
-[ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release);   # RedHat / Fedora / CentOS
-[ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "   # Debian / Ubuntu and variants
-printf "OS : $RELEASE" ; if grep -qEi "WSL2" /proc/version &> /dev/null ; then printf " (Running in WSL2)"; fi ; printf "\n\n"
+[ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g')"   # Debian / Ubuntu and variants
+[ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release);   # RedHat / Fedora / CentOS, contains "generic release" information
+[ -f /etc/os-release ] && RELEASE="$(cat /etc/os-release | grep ^NAME= | sed 's/^.*=//g' | sed 's/\"//g')"   # This now contains the release name
+printf "OS : $RELEASE"
+if grep -qEi "WSL2" /proc/version &> /dev/null ; then printf " (Running in WSL2)"   # Ubuntu now lists WSL version in /proc/version
+elif grep -qEi "Microsoft" /proc/version &> /dev/null ; then printf " (Running in WSL)"   # Other distros don't list WSL version but do have "Microsoft" in the string
+fi
+printf "\n\n"
 # Dotsourcing custom_loader.sh is required to update the running environment, but causes
 # problems with exiting scripts, since exit 0 / exit 1 will quit the bash shell since that
 # is what you are running when you are dotsourcing. e.g. This will close the whole shell:

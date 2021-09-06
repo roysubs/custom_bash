@@ -1,6 +1,7 @@
 #!/bin/bash
 ####################
 # Bash Custom Configuration. Try to maintain below settings as compatible with as many distros as possible.
+# For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless)
 # Current settings work for Debian/Ubuntu/RedHat/Fedora/CentOS etc (but not very lightweight like Alpine).
 # Each alias or function should be self-contained if possible (to make as modular as possible)
 # This file is called from .bashrc so does not heavily modify core distro files.
@@ -24,11 +25,11 @@ export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m";
 # Additionally, unless you know why, you should set it to vim instead of vi. Also note:
 # https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
 # select-editor   # update-alternatives --config editor   # update-alternatives --list editor
-update-alternatives --set editor /usr/bin/vim.basic
+which update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
-# Standard color for LESS/MAN pages (as some distros do not provide this by default, such as CentOS).
+# Standard color for LESS/MAN pages (following was only way that I found that was cross-distro compatible, e.g. CentOS does not have by default)
 export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
 export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
 export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
@@ -37,30 +38,42 @@ export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
 export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
 export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
+
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
+
+# fzf
+export FZF_DEFAULT_COMMAND='fd --type f --color=never --hidden'
+export FZF_DEFAULT_OPTS='--no-height --color=bg+:#343d46,gutter:-1,pointer:#ff3c3c,info:#0dbc79,hl:#0dbc79,hl+:#23d18b'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+export FZF_ALT_C_COMMAND='fd --type d . --color=never --hidden'
+export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -50'"
 
 ####################
 # Aliases
 ####################
-alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # YYYYY-MM-DD__HHH-Min-Sec format, very useful to add to filename output.
+alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # YYYYY-MM-DD__HHH-Min-Sec format, very useful to add to filename output
 alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
-alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated
+alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 alias q='exit'                            # Quit immediately
 alias v='vim'                             # Short vim access
 alias cd..='cd ..'; alias up1='cd ..'; up2='cd ..; cd ..'; alias up3='cd ..; cd ..; cd ..'; alias up4='cd ..; cd ..; cd ..; cd ..'; alias cd.='pwd'
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }  # Command/function/alias definitions. Also note: command -v, type <aliasname>, bash -xl^C
-# Standardised 'ls' output. Adding colour, showing '.' prefix files, grouping directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../
-# ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only, 'lss' uses 'stat' to show both security formats (i.e. drwxr-xr-x and 755 formats)
+# Standardised 'ls' output (as it's generally a mess between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
+# Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
+# Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
+# 'lss' (ls with stat) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove any alias from .bashrc / .bash_profile etc. Note that the "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-alias ls='ls -FAh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files)
-alias l='\ls --color=auto --group-directories-first'       # Do not show hidden (.*) (this is the more normal 'ls' alias output, but putting to 'l' as usually always want "A" flag
-alias ll='ls -l'       # A (almost all, ignores ./ and ../ but show all .* files), long format
+alias ls='ls -AFh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
+alias l='\ls --color=auto --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form.
+alias ll='ls -l'       # long format (-AFh and also -l)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
+alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
 # git: g, gst, ga, gcm, gcl, gstash, glog
 # gc, gcg, gcname, gadu, gall, git-push
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
@@ -68,7 +81,19 @@ alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --g
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
-# Abbreviated package management tools in all Linux environments
+alias b='byobu'
+alias t='tmux'
+
+# Abbreviated package management tools in all Linux environments. dpkg/apt/yum/dnf/zypper/snap/flatpak all get confusing
+# - Only creates the alias if the package manager is found on the system(!)
+# - Common tasks aliases: inst/setup => sudo apt install / sudo dnf install, remove/del => remove
+if which apk &> /dev/null; then alias ii='apk add'; alias rr='apk del'; fi   # apk, does not require 'sudo'
+if which apt &> /dev/null; then alias ii='sudo apt install'; alias rr='sudo apt remove'; fi   # apt
+if which yum &> /dev/null; then alias ii='sudo yum install'; alias rr='sudo yum remove'; fi   # yum
+if which dnf &> /dev/null; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; fi   # dnf
+if type ii > /dev/null 2>&1; then alias install='ii'; alias inst='ii'; fi    # only create alias if ii is defined
+if type rr > /dev/null 2>&1; then alias remove='rr'; fi
+# - Common search to find a) what package managers are here, and b) search for the string in all of them
 # e.g. instead of endlessly typing 'sudo apt install ...', just use 'ai' (apt install) and similar abbreviations
 # Just have to be careful to avoid standard commands like 'du' (would have been 'dnf update' but cannot use)
 # di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptup = update + upgrade + dist-update
@@ -76,23 +101,27 @@ git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
 # alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
+if which apk &> /dev/null; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias aup='sudo apt update && sudo apt upgrade'; fi   # apt
 if which apt &> /dev/null; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias al='sudo apt list --upgradable'; alias aptup='sudo apt update && sudo apt upgrade'; fi   # apt
 if which dnf &> /dev/null; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 if which yum &> /dev/null; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumup='sudo yum update && sudo yum upgrade'; fi   # yum
+if which dnf &> /dev/null; then alias yi='sudo dnf install'; alias yr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # override yum by dnf!
+if which dnf &> /dev/null; then alias ai='sudo dnf install'; alias ar='sudo dnf remove'; alias as='dnf search'; alias ah='dnf history'; alias anfup='sudo dnf update && sudo dnf upgrade'; fi   # also alias apt commands if on redhat/centos/fedora
 if which zypper &> /dev/null; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if which dpkg &> /dev/null; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
 if which snap &> /dev/null; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
 if which flatpak &> /dev/null; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if which appimage &> /dev/null; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
-# Replace 'cat' by 'bat'. Only do this if 'bat' is present. 'unalias cat' to revert to normal 'cat' if wanted.
-[ -f /usr/bin/bat ] && alias cat='bat -pp' && alias cats='sudo cat' && alias b='bat' # alias if 'bat' installed
-[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias cats 2>/dev/null && unalias b 2>/dev/null # remove if uninstalled
+# If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'.
+[ -f /usr/bin/bat ] && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # alias if 'bat' installed
+[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # remove if uninstalled
 
 ####################
 # Functions: Useful snippets and as templates for bash function syntax
 ####################
 md() { [ $# = 1 ] && mkdir -p "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
+duall() { du -hsc .; }   # Just return a total size for everything under PWD (including hidden ones)..
 dux() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # Extended du. This is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large).
 duxm() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 duxg() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
@@ -197,9 +226,9 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 # printf requires the ", \, % to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
 # Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
 # Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
-fn_help() { printf "\n$1\n==========\n\n$2\n\n"; }
-help_listdirs() { fn_help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links)\n# Also note:   -p (permissions), -u (user/UID), --du (disk usage)"; }
-help_zip() { fn_help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
-help_mountcifs() { fn_help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>   # or: sudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path"; }
+fn-help() { printf "\n$1\n==========\n\n$2\n\n"; }
+help-listdirs() { fn-help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, including hidden), -i (don't show tree structure), -l (don't follow symbolic links). Show additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable), tree . -fail --du -h\nlr   # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/."; }
+help-zip() { fn-help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
+help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>   # or: sudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path"; }
 # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
-help_packages_apt() { fn_help "apt package management:" "apt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
+help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }

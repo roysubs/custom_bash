@@ -2,9 +2,15 @@
 ####################
 #
 # Configure consistent bash environemt
+#    https://github.com/roysubs/custom_bash/
+#    https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh  =>  https://git.io/Jt0fZ  (using git.io)
 #
 # Can download custom_loader.sh before running with:
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > ~/custom_loader.sh
+#    curl -L https://git.io/Jt0fZ > ~/custom_loader.sh
+# To run unattended (all read -e -p will be ignored, script will run in full):
+#    curl -L https://git.io/Jt0fZ | bash
+# To run attended (prompts like read -e -p will be respected):
+#    curl -L https://git.io/Jt0fZ > custom_loader.sh ; bash custom_loader.sh
 #
 ####################
 
@@ -13,13 +19,27 @@
 # Also can use the middle mouse button to paste selected text in a Linux Terminal (i.e. if in a Hyper-V Ubuntu session)
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
+# Useful Toolkits to look through:
+# Nam Nguyen : https://github.com/gdbtek/ubuntu-cookbooks/blob/master/libraries/util.bash referenced from https://serverfault.com/questions/20747/find-last-time-update-was-performed-with-apt-get
+# SSH keys setup : https://github.com/creynoldsaccenture/bash-toolkit
 
+# Easiest comment structure using printf that I've found is:
+# VARNAME="
+# line1
+#
+# line3
+# "
+# printf "$VARNAME\n"
+# Also note on echo: https://www.shellscript.sh/tips/echo/
 
 ####################
 #
 # Setup the print_header() and exe() functions
 #
 ####################
+
+TMP="/tmp/custom_bash"
+mkdir $TMP &> /dev/null
 
 ### print_header() is used to create a simple section banner to output during execution
 print_header() {
@@ -78,6 +98,7 @@ if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run whe
 # for i in "${pwd_arr[@]}"; do echo $i; done   # loop through elements of the array
 # pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
 
+echo "Default is to skip confirmation, but may require a sudo password"
 [[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; } 
 
 
@@ -173,9 +194,10 @@ check_and_install tree tree
 check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
 check_and_install unzip unzip
-# check_and_install bat bat   # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
-check_and_install ifconfig net-tools   # Does not have the same name as the binary
-check_and_install 7z p7zip-full        # Does not have the same name as the binary
+check_and_install lr lr          # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+# check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
+check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
+check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
 
@@ -299,12 +321,12 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 
 # Backup ~/.custom
 if [ -f ~/.custom ]; then
-    echo "Create Backup : /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
-    cp ~/.custom /tmp/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
+    echo "Create Backup : $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+    cp ~/.custom $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
-    echo "Create Backup : /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
-    exe cp ~/.bashrc /tmp/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
+    echo "Create Backup : $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
+    exe cp ~/.bashrc $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
@@ -315,7 +337,7 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 
 # Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
 rc=~/.bashrc
-rctmp=/tmp/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
+rctmp=$TMP/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
 grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
 grep -vxF "$GETCUSTOM" $rc > $rctmp.2 && cp $rctmp.2 $rc
 grep -vxF "$RUNCUSTOM" $rc > $rctmp.3 && cp $rctmp.3 $rc
@@ -411,23 +433,28 @@ print_header "Common changes to .vimrc"
 #
 # Note that cannot >> back to the same file being read, so use "| sudo tee --append ~/.vimrc"
 
-VIMLINE='color industry'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-# VIMLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'   # Variant for elevating Vim, not using for now
-VIMLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='" Set F3 to toggle line numbers on/off'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='noremap <F3> :set invnumber<CR>'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
-VIMLINE='inoremap <F3> <C-O>:set invnumber<CR>'
-grep -qxF "$VIMLINE" ~/.vimrc || echo $VIMLINE | tee --append ~/.vimrc
+ADDLINE='" Set simple syntax highlighting that is more readable than the default (also   :set koehler)'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='color industry'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='set expandtab tabstop=4 shiftwidth=4'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='" Set F3 to toggle line numbers on/off'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='noremap <F3> :set invnumber<CR>'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDLINE='inoremap <F3> <C-O>:set invnumber<CR>'
+grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+
+# Alternative auto-elevate vim
+# ADDLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
+
 
 
 
@@ -525,7 +552,7 @@ print_header "Common changes to /etc/sudoers"
 
 echo "ToDo: This part is tricky to automate as mistakes in /etc/sudoers can make a system unbootable."
 echo "There is a fix for this in some distros, you can run:   pkexec visudo"
-echo "Then, fix any issues, or add contents from a backed up /etc/sodoers"
+echo "Then, fix any issues, or add contents from a backed up /etc/sudoers"
 echo ""
 echo "The goal is to add a 10 hr timeout for sudo passwords to be re-entered as it gets annoying to"
 echo "have to continually retype this on a home system (i.e. not advised on a production system)."
@@ -539,6 +566,10 @@ echo "Automating this change will look something like the following, but do not 
 echo "break /etc/sudoers in this format (so don't do this!):"
 echo "   # sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers"
 echo ""
+
+echo "Create Backup : $TMP/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+sudo cp /etc/sudoers $TMP/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
+
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
 #     minute granularity is insufficient, for example 2.5.  The default is 15.  Set this to 0 to always prompt for a password.  If set to
@@ -686,15 +717,68 @@ echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-
 
 ####################
 #
-print_header "Learn to use byobu / tmux / screen"
+print_header "Learn to use byobu (using tmux) terminal multiplexer"
 #
 ####################
 
-echo "byobu cheat sheet / keybindings:"
-echo "https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
-echo "Learn byobu (enhancement for tmux) while listening to Mozart:"
-echo "https://www.youtube.com/watch?v=NawuGmcvKus"
+BYOBUNOTES="
+Just makes all work on Linux easier to get comfortable with terminal multiplexers. byobu makes using tmux
+nice and simple with convenient shortcuts and simpler customised defualts.
+byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/
+Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus
+Tutorial, Part 1: https://www.youtube.com/watch?v=R0upAE692fY , Part 2: https://www.youtube.com/watch?v=2sD5zlW8a5E&list=PLJGDHERh23x8SAVC4uFyuR6dmauAXQBoF&index=2&t=2554s , His .dotfiles: https://github.com/agilesteel/.dotfiles
+Byobu: https://byobu.org/​ tmux: https://tmux.github.io/​ Screen: https://www.gnu.org/software/screen/​
 
+F1: Interactive help, Shift-F1: Quick help, 'q' to exit.
+F2: New session on top of current
+Shift-F2: Horizontoal Split, Ctrl-F2: Vertical split
+Ctrl-S­hift-F2: Create new session. '0:-*'
+F3/F4  *or*  Alt-Le­ft/­Right: Move focus among windows.
+  Shift-­F3/F4: Move focus among splits.
+  Ctrl-F3/F4: Move a split.   Ctrl-S­hif­t-F3/F4: Move a window.
+  Alt-Up­/Down: Move focus among sessions.
+  Shift-­Lef­t/R­igh­t/U­p/Down: Move focus among splits.
+Shift-­Alt­-Le­ft/­Rig­ht/­Up/Down: Resize a split.
+F5, Alt-F5: Toggle UTF-8 support, refresh status
+  Shift-F5: Toggle status lines.
+  Ctrl-F5: Reconnect ssh/gp­g/dbus sockets.
+  Ctrl-S­hift-F5: Change status bar's color randomly (if on tmux)
+F6 / Shift-F6: Detach session and do not logout. Alt-F6: Detach all clients but yourself. Ctrl-F6: Kill split in focus.
+F7 / Alt-Pa­geU­p/P­ageDown: Enter and move through scroll­back.
+Shift-F7: Save history to $BYOBU­_RU­N_D­IR/­pri­nts­creen.
+F8 / Ctrl-F8: Rename the current session, Shift-F8: Toggle through split arrang­ements.
+Alt-Sh­ift-F8: Restore a split-pane layout, Ctrl-S­hift-F8: Save the current split-pane layout.
+F9 / Ctrl-F9: Enter command and run in all windows.
+Shift-F9: Enter command and run in all splits.
+Alt-F9: Toggle sending keyboard input to all splits.
+F10: ?
+F11 / Alt-F11: Expand split to a full window.
+Shift-F11: Zoom into a split, zoom out of a split.
+Ctrl-F11: Join window into a vertical split.
+F12 / Shift-F12: Toggle on/off keybin­dings.
+Alt-F12: Toggle on/off mouse support.
+Ctrl-S­hif­t-F12: Mondrian squares.
+
+
+
+
+
+byobu by default will connect to already open sessions, but tmux will just open a new session by default
+Quick refresher:
+   alias b='byobu' , then type b to start byobu , then press x to make a vertical split then x to make a horizontal split
+   Press x to jump to the first terminal , press x to rename the terminal , run 'htop' to start that , now just close the bash shell
+   All sessions will continue to run, so restart bash and then type b to start byobu
+
+$ byobu ls   |   $ byobu list-session   |   $ byobu list-sessions   # Note this is using tmux by default, not screen
+no server running on /tmp/tmux-1000/default
+# On starting byobu:
+ u  20.04 0:-*                11d12h 0.00 4x3.4GHz 12.4G3% 251G2% 2021-04-27 08:41:50
+u = Ubuntu, 20.04 = version, 0:~* is the session
+11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores
+12.4G3% = 12.4 G free memory, 3% CPU usage,   251G2% = 251 G free space, 2% used
+2021-04-27 08:41:50 = date/time
+"
+printf "$BYOBUNOTES\n"
 
 
 ####################

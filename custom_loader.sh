@@ -158,7 +158,9 @@ function runAptGetUpdate()
 }
 
 if [ -f /var/run/reboot-required ]; then
+    echo "" >&2
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
+    echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME" >&2
     echo "Re-run this script after reboot to finish the install." >&2
     return
 fi
@@ -717,7 +719,7 @@ echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-
 
 ####################
 #
-print_header "Learn to use byobu (using tmux) terminal multiplexer"
+print_header "Notes for byobu (which uses tmux) terminal multiplexer (also note screen)"
 #
 ####################
 
@@ -726,7 +728,8 @@ Just makes all work on Linux easier to get comfortable with terminal multiplexer
 nice and simple with convenient shortcuts and simpler customised defualts.
 byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/
 Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus
-Tutorial, Part 1: https://www.youtube.com/watch?v=R0upAE692fY , Part 2: https://www.youtube.com/watch?v=2sD5zlW8a5E&list=PLJGDHERh23x8SAVC4uFyuR6dmauAXQBoF&index=2&t=2554s , His .dotfiles: https://github.com/agilesteel/.dotfiles
+Tutorial Part 1: https://www.youtube.com/watch?v=R0upAE692fY
+Tutorial Part 2: https://www.youtube.com/watch?v=2sD5zlW8a5E&list=PLJGDHERh23x8SAVC4uFyuR6dmauAXQBoF&index=2&t=2554s , His .dotfiles: https://github.com/agilesteel/.dotfiles
 Byobu: https://byobu.org/​ tmux: https://tmux.github.io/​ Screen: https://www.gnu.org/software/screen/​
 
 F1: Interactive help, Shift-F1: Quick help, 'q' to exit.
@@ -759,11 +762,9 @@ F12 / Shift-F12: Toggle on/off keybin­dings.
 Alt-F12: Toggle on/off mouse support.
 Ctrl-S­hif­t-F12: Mondrian squares.
 
+byobu will connect to already open sessions by default
+tmux will just open a new session by default
 
-
-
-
-byobu by default will connect to already open sessions, but tmux will just open a new session by default
 Quick refresher:
    alias b='byobu' , then type b to start byobu , then press x to make a vertical split then x to make a horizontal split
    Press x to jump to the first terminal , press x to rename the terminal , run 'htop' to start that , now just close the bash shell

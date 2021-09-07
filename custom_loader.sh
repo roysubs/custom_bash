@@ -723,31 +723,119 @@ print_header "Notes for byobu (which uses tmux) terminal multiplexer (also note 
 #
 ####################
 
+# When using printf, remember that "%" has to be escaped as "%%" or "\045"
 BYOBUNOTES="
 Learning terminal multiplexers makes Linux easier to work with.
-byobu simplifies tmux (on which it is built) with convenient shortcuts and simpler customised defualts.
+byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts.
 Note that byobu will connect to already open sessions by default )tmux just opens a new session by default).
 
-Quick refresher:   alias b='byobu', then 'b' to start , F1 or Shift-F1 for help ('q' to exit help)
-- SPLITS: Shift-F2 (add horizontal), Ctrl-F2 (add vertical), Shift-<cursor-keys> or Shift-F3/F4 (move between splits)
-  Shift-F9: Enter command and run in all splits.
-- SESSIONS: F2 (new session), Ctrl-Shift-F2 (new sessions '0:-*'), Alt-Left/Right or F3/F4 (toggle through sessions)
-  F9: Enter command and run in all sessions.
-- byobu ls   |   byobu list-session   |   byobu list-sessions   # Note this is using tmux by default, not screen
-  All sessions will continue to run, so restart bash and then type b to start byobu
-- On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3% 251G2% 2021-04-27 08:41:50
-  u = Ubuntu, 20.04 = version, 0:~* is the session
-  11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores
-  12.4G3% = 12.4 G free memory, 3% CPU usage,   251G2% = 251 G free space, 2% used
-  2021-04-27 08:41:50 = date/time
+- alias b='byobu' then 'b' to start, man byobu
+  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)
+
+- PANES: Ctrl-F2 (vertical split F12-%), Shift-F2 (horizontal split, F12-|) (I would have thought '|' was vertical, so a bit confusing)
+  Shift-F3/F4 (move focus between panes), Ctrl-F3/F4 (move current pane), Ctrl-D (close current pane)
+  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)
+  Shift-F8 (toggle panes through the grid templates), F12-z (toggle fullscreen/restore for a pane)
+  Alt-PgUp (scroll up in current pane/window), Alt-PgDn (scroll down in current pane/window)
+  Shift-F9 (enter command to run in all visible panes), Ctrl-F6 (kill the current pane that is in focus)
+
+- WINDOWS: F2 (new window in current session)
+  Alt-Left/Right or F3/F4 (toggle through windows), Ctrl-Shift-F3/F4 (move a window left or right)  
+
+- SESSIONS: Ctrl-Shift-F2 (new session i.e. a new tmux instance with only '0:-*'), Alt-Up/Down (toggle through sessions)
+  F12-S (toggle through sessions with preview)
+  F9: Enter command and run in all sessions
+  F6 (detach the current session, leaving session running in background, and logout of byobu/tmux)
+  Shift-F6 (detach the current, leaving session running in background, but do not logout of byobu/tmux)
+
+- F5 (reload profile, refresh status), Shift-F5 (toggle different status lines), Ctrl-Shift-F5 randomises status bar colours, to reset, use: rm ~/.byobu/color.tmux
+  Alt-F5 (toggle UTF-8 support, refresh), Ctrl-F5 (reconnect ssh/gpg/dbus sockets)
+
+- F6 (detach session and logout), Shift-F6 (detach session and do not logout)
+  Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)
+
+- F7 (enter scrollback history), Alt-PgUp/PgDn (enter and move through scrollback), Shift-F7 (save history to '\$BYOBU_RUN_DIR/printscreen')
+
+- F8 (rename window), Ctrl-F8 (rename session), Shift-F8 (toggle panes through the grid templates)
+
+- F12-: (to enable the internal terminal), then 'set mouse on', then ENTER to enable mouse mode. With it you can do several actions with the mouse:
+  Switch between active panes and windows. Click on a window name or pane to switch. Scroll, with the mouse wheel or trackpad. Resize panes by dragging and dropping
+  For other commands, 'list-commands'
+  F12-T (fullscreen graphical clock)
+  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'
+
+- 'b ls', 'b list-session' or 'b list-sessions'
+- On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3%% 251G2%% 2021-04-27 08:41:50
+  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores
+  12.4G3%% = 12.4 G free memory, 3%% CPU usage,   251G2%% = 251 G free space, 2%% used, 2021-04-27 08:41:50 = date/time
 
 byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/
+byobu good tutorial: https://simonfredsted.com/1588
 Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus
 Tutorial Part 1: https://www.youtube.com/watch?v=R0upAE692fY
 Tutorial Part 2: https://www.youtube.com/watch?v=2sD5zlW8a5E&list=PLJGDHERh23x8SAVC4uFyuR6dmauAXQBoF&index=2&t=2554s , His .dotfiles: https://github.com/agilesteel/.dotfiles
 Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​
 "
 printf "$BYOBUNOTES\n"
+
+# echo "F8                             Rename the current window"
+# echo "  Ctrl-F8                      Rename the current session"
+# echo "  Shift-F8                     Toggle through split arrangements"
+# echo "  Alt-Shift-F8                 Restore a split-pane layout"
+# echo "  Ctrl-Shift-F8                Save the current split-pane layout"
+# echo "F9                             Launch byobu-config window"
+# echo "  Ctrl-F9                      Enter command and run in all windows"
+# echo "  Shift-F9                     Enter command and run in all splits"
+# echo "  Alt-F9                       Toggle sending keyboard input to all splits"
+# echo "F10                            * Used by X11 *"
+# echo "F11                            * Used by X11 *"
+# echo "  Alt-F11                      Expand split to a full window"
+# echo "  Shift-F11                    Zoom into a split, zoom out of a split"
+# echo "  Ctrl-F11                     Join window into a vertical split"
+# echo "F12                            Escape sequence"
+# echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
+# echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
+# echo "  Ctrl-Shift-F12               Mondrian squares"
+
+# F1: Interactive help, Shift-F1: Quick help, 'q' to exit.
+#
+# F2: New session on top of current
+# Shift-F2: Horizontoal Split, Ctrl-F2: Vertical split
+# Ctrl-S­hift-F2: Create new session. '0:-*'
+#
+# F3/F4  *or*  Alt-Le­ft/­Right: Move focus among windows.
+#   Shift-­F3/F4: Move focus among splits.
+#   Ctrl-F3/F4: Move a split.   Ctrl-S­hif­t-F3/F4: Move a window.
+#   Alt-Up­/Down: Move focus among sessions.
+#   Shift-<CursorKeys>: Move focus among splits.
+#   Shift-­Alt­-<CursorKeys>: Resize a split.
+#
+# F5, Alt-F5: Toggle UTF-8 support, refresh status
+#   Shift-F5: Toggle status lines. (Ctrl-S­hift-F5: Randomise status bar (if on tmux), reset with rm ~/.byobu/color.tmux)
+#   Ctrl-F5: Reconnect ssh/gp­g/dbus sockets. 
+#
+# F6 / Shift-F6: Detach session and do not logout. Alt-F6: Detach all clients but yourself. Ctrl-F6: Kill split in focus.
+#
+# F7 / Alt-Pa­geU­p/P­ageDown: Enter and move through scroll­back.
+# Shift-F7: Save history to \$BYOBU­_RU­N_D­IR/­pri­nts­creen.
+#
+# F8 / Ctrl-F8: Rename the current session, Shift-F8: Toggle through split arrang­ements.
+# Alt-Sh­ift-F8: Restore a split-pane layout, Ctrl-S­hift-F8: Save the current split-pane layout.
+#
+# F9 / Ctrl-F9: Enter command and run in all windows.
+# Shift-F9: Enter command and run in all splits.
+# Alt-F9: Toggle sending keyboard input to all splits.
+#
+# F10: ?
+#
+# F11 / Alt-F11: Expand split to a full window.
+# Shift-F11: Zoom into a split, zoom out of a split.
+# Ctrl-F11: Join window into a vertical split.
+#
+# F12 / Shift-F12: Toggle on/off keybin­dings.
+# Alt-F12: Toggle on/off mouse support.
+# Ctrl-S­hif­t-F12: Mondrian squares.
+
 
 
 ####################
@@ -777,6 +865,11 @@ echo "Note the above configuration details for any useful additional manual acti
 echo "'update-distro' to run through all update/upgrade actions (def 'distro-update' to check)."
 echo "'update-custom-tools' will update .custom to latest version from Github."
 echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+    echo "WSL consoles: Can go into fullscreen mode with Shift-Alt-Enter."
+    echo "WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste"
+    echo "To access WSL folders: from bash, type 'explorer.exe .' (note the .exe), or from Explorer, '\\wsl$'"
+fi
 echo ""
 echo ""
 echo ""
@@ -865,84 +958,38 @@ fi
 #     return
 # fi
 
-
-
-# echo ""
-# echo "Byobu is a suite of enhancements to tmux, as a command line"
-# echo "tool providing live system status, dynamic window management,"
-# echo "and some convenient keybindings:"
-# echo ""
-# echo "F1                             * Used by X11 *"
-# echo "  Shift-F1                     Display this help"
-# echo "F2                             Create a new window"
-# echo "  Shift-F2                     Create a horizontal split"
-# echo "  Ctrl-F2                      Create a vertical split"
-# echo "  Ctrl-Shift-F2                Create a new session"
-# echo "F3/F4                          Move focus among windows"
-# echo "  Alt-Left/Right               Move focus among windows"
-# echo "  Alt-Up/Down                  Move focus among sessions"
-# echo "  Shift-Left/Right/Up/Down     Move focus among splits"
-# echo "  Shift-F3/F4                  Move focus among splits"
-# echo "  Ctrl-F3/F4                   Move a split"
-# echo "  Ctrl-Shift-F3/F4             Move a window"
-# echo "  Shift-Alt-Left/Right/Up/Down Resize a split"
-# echo "F5                             Reload profile, refresh status"
-# echo "  Alt-F5                       Toggle UTF-8 support, refresh status"
-# echo "  Shift-F5                     Toggle through status lines"
-# echo "  Ctrl-F5                      Reconnect ssh/gpg/dbus sockets"
-# echo "  Ctrl-Shift-F5                Change status bar's color randomly"
-# echo "F6                             Detach session and then logout"
-# echo "  Shift-F6                     Detach session and do not logout"
-# echo "  Alt-F6                       Detach all clients but yourself"
-# echo "  Ctrl-F6                      Kill split in focus"
-# echo "F7                             Enter scrollback history"
-# echo "  Alt-PageUp/PageDown          Enter and move through scrollback"
-# echo "  Shift-F7                     Save history to \$BYOBU_RUN_DIR/printscreen"
-# echo "F8                             Rename the current window"
-# echo "  Ctrl-F8                      Rename the current session"
-# echo "  Shift-F8                     Toggle through split arrangements"
-# echo "  Alt-Shift-F8                 Restore a split-pane layout"
-# echo "  Ctrl-Shift-F8                Save the current split-pane layout"
-# echo "F9                             Launch byobu-config window"
-# echo "  Ctrl-F9                      Enter command and run in all windows"
-# echo "  Shift-F9                     Enter command and run in all splits"
-# echo "  Alt-F9                       Toggle sending keyboard input to all splits"
-# echo "F10                            * Used by X11 *"
-# echo "F11                            * Used by X11 *"
-# echo "  Alt-F11                      Expand split to a full window"
-# echo "  Shift-F11                    Zoom into a split, zoom out of a split"
-# echo "  Ctrl-F11                     Join window into a vertical split"
-# echo "F12                            Escape sequence"
-# echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
-# echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
-# echo "  Ctrl-Shift-F12               Mondrian squares"
-
-# F1: Interactive help, Shift-F1: Quick help, 'q' to exit.
-# F2: New session on top of current
-# Shift-F2: Horizontoal Split, Ctrl-F2: Vertical split
-# Ctrl-S­hift-F2: Create new session. '0:-*'
-# F3/F4  *or*  Alt-Le­ft/­Right: Move focus among windows.
-#   Shift-­F3/F4: Move focus among splits.
-#   Ctrl-F3/F4: Move a split.   Ctrl-S­hif­t-F3/F4: Move a window.
-#   Alt-Up­/Down: Move focus among sessions.
-#   Shift-­Lef­t/R­igh­t/U­p/Down: Move focus among splits.
-# Shift-­Alt­-Le­ft/­Rig­ht/­Up/Down: Resize a split.
-# F5, Alt-F5: Toggle UTF-8 support, refresh status
-#   Shift-F5: Toggle status lines.
-#   Ctrl-F5: Reconnect ssh/gp­g/dbus sockets.
-#   Ctrl-S­hift-F5: Change status bar's color randomly (if on tmux)
-# F6 / Shift-F6: Detach session and do not logout. Alt-F6: Detach all clients but yourself. Ctrl-F6: Kill split in focus.
-# F7 / Alt-Pa­geU­p/P­ageDown: Enter and move through scroll­back.
-# Shift-F7: Save history to \$BYOBU­_RU­N_D­IR/­pri­nts­creen.
-# F8 / Ctrl-F8: Rename the current session, Shift-F8: Toggle through split arrang­ements.
-# Alt-Sh­ift-F8: Restore a split-pane layout, Ctrl-S­hift-F8: Save the current split-pane layout.
-# F9 / Ctrl-F9: Enter command and run in all windows.
-# Shift-F9: Enter command and run in all splits.
-# Alt-F9: Toggle sending keyboard input to all splits.
-# F10: ?
-# F11 / Alt-F11: Expand split to a full window.
-# Shift-F11: Zoom into a split, zoom out of a split.
-# Ctrl-F11: Join window into a vertical split.
-# F12 / Shift-F12: Toggle on/off keybin­dings.
-# Alt-F12: Toggle on/off mouse support.
-# Ctrl-S­hif­t-F12: Mondrian squares.
+# KEYBINDINGS
+# byobu keybindings can be user defined in /usr/share/byobu/keybindings/ (or within .screenrc
+# if byobu-export was used). The common key bindings are:
+# 
+#    F2 - Create a new window
+#    F3 - Move to previous window
+#    F4 - Move to next window
+#    F5 - Reload profile
+#    F6 - Detach from this session
+#    F7 - Enter copy/scrollback mode
+#    F8 - Re-title a window
+#    F9 - Configuration Menu
+#    F12 -  Lock this terminal
+#
+#    shift-F2 - Split horizontally         ctrl-F2  - Split the screen vertically
+#    shift-F3 - Shift to previous split    shift-F4 - Shift the focus to the next split region
+#    shift-F5 - Join all splits            ctrl-F6  - Remove this split
+#
+#    ctrl-F5 - Reconnect GPG and SSH sockets
+#    shift-F6 - Detach, but do not logout
+#    alt-pgup - Enter scrollback mode      alt-pgdn - Enter scrollback mode
+#
+#    Ctrl-a $ - show detailed status       Ctrl-a R - Reload profile
+#    Ctrl-a k - Kill the current window    Ctrl-a ~ - Save the current window's scrollback buffer
+#    Ctrl-a ! - Toggle key bindings on and off
+#
+# Most of Byobu's documentation exists in the form of traditional UNIX manpages.
+# Although generated by Ubuntu, these HTML renderings of Byobu's manpages are generally applicable:
+# 
+# byobu, byobu-config, byobu-ctrl-a, byobu-disable, byobu-enable, byobu-export, byobu-janitor,
+# byobu-launch, byobu-launcher, byobu-launcher-install, byobu-launcher-uninstall, byobu-layout,
+# byobu-quiet, byobu-reconnect-sockets, byobu-screen, byobu-select-backend, byobu-select-profile,
+# byobu-select-session, byobu-shell, byobu-silent, byobu-status, byobu-status-detail, byobu-tmux
+# 
+# /usr/share/doc/byobu/help.tmux.txt   

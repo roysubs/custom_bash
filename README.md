@@ -92,10 +92,12 @@ e.g. if you now run a command that uses `wsl.exe` it will use the default distro
 From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
 
 `wsl -l -v`  
-`  NAME            STATE           VERSION`  
-`* fedoraremix     Running         1`  
-`* Debian          Running         1`  
-`  Ubuntu-20.04    Running         2`  
+```
+  NAME            STATE           VERSION
+* fedoraremix     Running         1
+* Debian          Running         1  
+  Ubuntu-20.04    Running         2
+```  
 
 
 

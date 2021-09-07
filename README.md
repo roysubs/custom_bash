@@ -67,7 +67,7 @@ It is often useful to have multiple copies of a distro available. With the above
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
 
 # WSL Startup  
-You can start the distro from the Ubuntu icon on the Start Menu, or by running `wsl` or `bash` from a PowerShell or cmd console. You can go into fullscreen with `Shift-Alt-Enter`. Additionally, registered distros will be automatically added to the new Windows Terminal, so it is a good idea to install that before setting up WSL. Have not found a way to go into fullscreen with Windows Terminal.
+You can start the distro from the Ubuntu icon on the Start Menu, or by running `wsl` or `bash` from a PowerShell or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions) with `Alt-Enter`. Registered distros are automatically added to Windows Terminal (how to add a new Windows Terminal console type?).
 [Remove scrollbar in fullscreen](https://github.com/Microsoft/WSL/issues/407#issuecomment-295761589)  
 
   

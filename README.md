@@ -89,9 +89,8 @@ Upgrade a WSL distro from WSL 1 to WSL 2 with `wsl --set-version Ubuntu 2` (cann
 Set the default distro with `wsl --setdefault Ubuntu` (it will now start when `wsl` or `bash` are invoked from DOS/PowerShell).  
 e.g. if you now run a command that uses `wsl.exe` it will use the default distro: `Get-Process | wsl grep -i Win`
   
-From PowerShell, list current images with `wsl -l -v` ( --list --verbose ).  
+From PowerShell, list current images with `wsl -l -v` ( --list --verbose ):  
 
-`wsl -l -v`  
 ```
   NAME            STATE           VERSION
 * fedoraremix     Running         1
@@ -343,15 +342,17 @@ To upgrade an existing distro to v2:
 `   For information on key differences with WSL 2 please visit https://aka.ms/wsl2`  
   
 You cannot use `sudo reboot` or any similar systemd command:  
-  
-`Systemd command                 Sysvinit command`  
-`systemctl start service_name    service service_name start`  
-`systemctl stop service_name     service service_name stop`  
-`systemctl restart service_name  service service_name restart`  
-`systemctl status service_name   service service_name status`  
-`systemctl enable service_name   chkconfig service_name on`  
-`systemctl disable service_name  chkconfig service_name off`  
-  
+
+```  
+Systemd command                 Sysvinit command  
+systemctl start service_name    service service_name start  
+systemctl stop service_name     service service_name stop  
+systemctl restart service_name  service service_name restart  
+systemctl status service_name   service service_name status  
+systemctl enable service_name   chkconfig service_name on  
+systemctl disable service_name  chkconfig service_name off  
+```  
+
 [Why you probably don't need systemd on WSL](https://dev.to/bowmanjd/you-probably-don-t-need-systemd-on-wsl-windows-subsystem-for-linux-49gn)  
 Most popular Linux distributions use systemd as the init system for startup, shutdown, service monitoring, etc, but WSL has it's own initialization system, and so no WSL distros use systemd, and do not generally employ a traditional init system.  
   

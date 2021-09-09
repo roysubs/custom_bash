@@ -717,124 +717,95 @@ echo "systemctl status sleep.target   # Show current sleep settings"
 echo "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
 
+
+
 ####################
 #
-print_header "Notes for byobu (which uses tmux) terminal multiplexer (also note screen)"
+print_header "Create a help-file for byobu terminal multiplexer in /tmp/ and alias that in .custom"
 #
 ####################
 
-# When using printf, remember that "%" has to be escaped as "%%" or "\045"
-BYOBUNOTES="
-Learning terminal multiplexers makes Linux easier to work with.
-byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts.
-Note that byobu will connect to already open sessions by default )tmux just opens a new session by default).
+# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
+# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
+# This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
+# In .custom, we can then simply create aliases if the files exist:
+# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh'
+# [ -f /tmp/help-byobu.sh ] && alias help-b='/tmp/help-byobu.sh'
+echox() { echo "$1" >> /tmp/help-byobu.sh; }
 
-- alias b='byobu' then 'b' to start, man byobu
-  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)
+echo "#!/bin/bash" > /tmp/help-byobu.sh
+echox "HELPNOTES=\""
+echox "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
+echox "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
+echox "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
+echox "byobu keybindings can be user defined in /usr/share/byobu/keybindings/"
+echox ""
+echox "byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
+echox "byobu good tutorial: https://simonfredsted.com/1588   https://gist.github.com/jshaw/5255721"
+echox "Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus"
+echox "Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo"
+echox "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
+echox "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
+echox ""
+echox "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu termina commands"
+echox "  byobu-<tab><tab> to see all bash commands, can 'man' on each of these"
+echox "  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)"
+echox "  Alt-F12 (toggle mouse support on/off), or F12-: then 'set mouse on' / 'set mouse off'"
+echox "  With mouse, click on panes and windows to switch. Scroll on panes with the mouse wheel or trackpad. Resize panes by dragging from edges"
+echox "  Mouse support *breaks* copy/paste, but just hold down 'Shift' while selecting text and it works fine."
+echox "  Byobu shortcuts can interfere with other application shortcuts. To toggle enabling/disabling byobu, use Shift-F12."
+echox "  Ctrl-Shift-F12 for Mondrian Square (just a toy). Press Ctrl-D to kill this window."
+echox ""
+echox "- PANES: Ctrl-F2 (vertical split F12-%%), Shift-F2 (horizontal split, F12-|) ('|' feels like it should be for 'vertical', so this is a little confusing)"
+echox "  Shift-F3/F4 (jump between panes), Ctrl-F3/F4 (move a pane to a different location)"
+echox "  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)"
+echox "  Shift-F9 (enter command to run in all visible panes)"
+echox "  Shift-F8 (toggle panes through the grid templates), F12-z (toggle fullscreen/restore for a pane)"
+echox "  Alt-PgUp (scroll up in current pane/window), Alt-PgDn (scroll down in current pane/window)"
+echox "  Ctrl-F6 or Ctrl-D (kill the current pane that is in focus), or 'exit' in that pane"
+echox "  Note: if the pane dividers disappear, press F5 to refresh status, including rebuilding the pane dividers."
+echox ""
+echox "- WINDOWS: F2 (new window in current session)"
+echox "  Alt-Left/Right or F3/F4 (toggle through windows), Ctrl-Shift-F3/F4 (move a window left or right)  "
+echox "  Ctrl-F6 or Ctrl-D (kill the current pane, *or* will kill the current window if there is only one pane), or 'exit' in that window"
+echox ""
+echox "- SESSIONS: Ctrl-Shift-F2 (new session i.e. a new tmux instance with only '0:-*'), Alt-Up/Down (toggle through sessions)"
+echox "  F12-S (toggle through sessions with preview)"
+echox "  F9: Enter command and run in all sessions"
+echox "  F6 (detach the current session, leaving session running in background, and logout of byobu/tmux)"
+echox "  Shift-F6 (detach the current, leaving session running in background, but do not logout of byobu/tmux)"
+echox ""
+echox "- F5 (reload profile, refresh status), Shift-F5 (toggle different status lines), Ctrl-Shift-F5 randomises status bar colours, to reset, use: rm ~/.byobu/color.tmux"
+echox "  Alt-F5 (toggle UTF-8 support, refresh), Ctrl-F5 (reconnect ssh/gpg/dbus sockets)"
+echox ""
+echox "- F6 (detach session and logout), Shift-F6 (detach session and do not logout)"
+echox "  Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)"
+echox ""
+echox "- F7 (enter scrollback history), Alt-PgUp/PgDn (enter and move through scrollback), Shift-F7 (save history to '\$BYOBU_RUN_DIR/printscreen')"
+echox ""
+echox "- F8 (rename window), Ctrl-F8 (rename session), Shift-F8 (toggle panes through the grid templates)"
+echox ""
+echox "- F12-: (to enable the internal terminal), then 'set mouse on', then ENTER to enable mouse mode."
+echox "  For other commands, 'list-commands'"
+echox "  F12-T (fullscreen graphical clock)"
+echox "  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'"
+echox ""
+echox "- 'b ls', 'b list-session' or 'b list-sessions'"
+echox "  On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3%% 251G2%% 2021-04-27 08:41:50"
+echox "  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores"
+echox "  12.4G3%% = 12.4 G free memory, 3%% CPU usage,   251G2%% = 251 G free space, 2%% used, 2021-04-27 08:41:50 = date/time"
+echox ""
+echox "- byobu-<tab><tab> to see all byobu bash commands, can 'man <command>' on each of these"
+echox "  byobu-config              byobu-enable-prompt       byobu-launcher            byobu-quiet               byobu-select-session      byobu-tmux"
+echox "  byobu-ctrl-a              byobu-export              byobu-launcher-install    byobu-reconnect-sockets   byobu-shell               byobu-ugraph"
+echox "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
+echox "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
+echox "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
+echox ""
+echox "\""
+echox "echo -e \"\$HELPNOTES\\n\""
+chmod 755 /tmp/help-byobu.sh
 
-- PANES: Ctrl-F2 (vertical split F12-%), Shift-F2 (horizontal split, F12-|) (I would have thought '|' was vertical, so a bit confusing)
-  Shift-F3/F4 (move focus between panes), Ctrl-F3/F4 (move current pane), Ctrl-D (close current pane)
-  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)
-  Shift-F8 (toggle panes through the grid templates), F12-z (toggle fullscreen/restore for a pane)
-  Alt-PgUp (scroll up in current pane/window), Alt-PgDn (scroll down in current pane/window)
-  Shift-F9 (enter command to run in all visible panes), Ctrl-F6 (kill the current pane that is in focus)
-
-- WINDOWS: F2 (new window in current session)
-  Alt-Left/Right or F3/F4 (toggle through windows), Ctrl-Shift-F3/F4 (move a window left or right)  
-
-- SESSIONS: Ctrl-Shift-F2 (new session i.e. a new tmux instance with only '0:-*'), Alt-Up/Down (toggle through sessions)
-  F12-S (toggle through sessions with preview)
-  F9: Enter command and run in all sessions
-  F6 (detach the current session, leaving session running in background, and logout of byobu/tmux)
-  Shift-F6 (detach the current, leaving session running in background, but do not logout of byobu/tmux)
-
-- F5 (reload profile, refresh status), Shift-F5 (toggle different status lines), Ctrl-Shift-F5 randomises status bar colours, to reset, use: rm ~/.byobu/color.tmux
-  Alt-F5 (toggle UTF-8 support, refresh), Ctrl-F5 (reconnect ssh/gpg/dbus sockets)
-
-- F6 (detach session and logout), Shift-F6 (detach session and do not logout)
-  Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)
-
-- F7 (enter scrollback history), Alt-PgUp/PgDn (enter and move through scrollback), Shift-F7 (save history to '\$BYOBU_RUN_DIR/printscreen')
-
-- F8 (rename window), Ctrl-F8 (rename session), Shift-F8 (toggle panes through the grid templates)
-
-- F12-: (to enable the internal terminal), then 'set mouse on', then ENTER to enable mouse mode. With it you can do several actions with the mouse:
-  Switch between active panes and windows. Click on a window name or pane to switch. Scroll, with the mouse wheel or trackpad. Resize panes by dragging and dropping
-  For other commands, 'list-commands'
-  F12-T (fullscreen graphical clock)
-  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'
-
-- 'b ls', 'b list-session' or 'b list-sessions'
-- On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3%% 251G2%% 2021-04-27 08:41:50
-  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores
-  12.4G3%% = 12.4 G free memory, 3%% CPU usage,   251G2%% = 251 G free space, 2%% used, 2021-04-27 08:41:50 = date/time
-
-byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/
-byobu good tutorial: https://simonfredsted.com/1588
-Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus
-Tutorial Part 1: https://www.youtube.com/watch?v=R0upAE692fY
-Tutorial Part 2: https://www.youtube.com/watch?v=2sD5zlW8a5E&list=PLJGDHERh23x8SAVC4uFyuR6dmauAXQBoF&index=2&t=2554s , His .dotfiles: https://github.com/agilesteel/.dotfiles
-Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​
-"
-printf "$BYOBUNOTES\n"
-
-# echo "F8                             Rename the current window"
-# echo "  Ctrl-F8                      Rename the current session"
-# echo "  Shift-F8                     Toggle through split arrangements"
-# echo "  Alt-Shift-F8                 Restore a split-pane layout"
-# echo "  Ctrl-Shift-F8                Save the current split-pane layout"
-# echo "F9                             Launch byobu-config window"
-# echo "  Ctrl-F9                      Enter command and run in all windows"
-# echo "  Shift-F9                     Enter command and run in all splits"
-# echo "  Alt-F9                       Toggle sending keyboard input to all splits"
-# echo "F10                            * Used by X11 *"
-# echo "F11                            * Used by X11 *"
-# echo "  Alt-F11                      Expand split to a full window"
-# echo "  Shift-F11                    Zoom into a split, zoom out of a split"
-# echo "  Ctrl-F11                     Join window into a vertical split"
-# echo "F12                            Escape sequence"
-# echo "  Shift-F12                    Toggle on/off Byobu's keybindings"
-# echo "  Alt-F12                      Toggle on/off Byobu's mouse support"
-# echo "  Ctrl-Shift-F12               Mondrian squares"
-
-# F1: Interactive help, Shift-F1: Quick help, 'q' to exit.
-#
-# F2: New session on top of current
-# Shift-F2: Horizontoal Split, Ctrl-F2: Vertical split
-# Ctrl-S­hift-F2: Create new session. '0:-*'
-#
-# F3/F4  *or*  Alt-Le­ft/­Right: Move focus among windows.
-#   Shift-­F3/F4: Move focus among splits.
-#   Ctrl-F3/F4: Move a split.   Ctrl-S­hif­t-F3/F4: Move a window.
-#   Alt-Up­/Down: Move focus among sessions.
-#   Shift-<CursorKeys>: Move focus among splits.
-#   Shift-­Alt­-<CursorKeys>: Resize a split.
-#
-# F5, Alt-F5: Toggle UTF-8 support, refresh status
-#   Shift-F5: Toggle status lines. (Ctrl-S­hift-F5: Randomise status bar (if on tmux), reset with rm ~/.byobu/color.tmux)
-#   Ctrl-F5: Reconnect ssh/gp­g/dbus sockets. 
-#
-# F6 / Shift-F6: Detach session and do not logout. Alt-F6: Detach all clients but yourself. Ctrl-F6: Kill split in focus.
-#
-# F7 / Alt-Pa­geU­p/P­ageDown: Enter and move through scroll­back.
-# Shift-F7: Save history to \$BYOBU­_RU­N_D­IR/­pri­nts­creen.
-#
-# F8 / Ctrl-F8: Rename the current session, Shift-F8: Toggle through split arrang­ements.
-# Alt-Sh­ift-F8: Restore a split-pane layout, Ctrl-S­hift-F8: Save the current split-pane layout.
-#
-# F9 / Ctrl-F9: Enter command and run in all windows.
-# Shift-F9: Enter command and run in all splits.
-# Alt-F9: Toggle sending keyboard input to all splits.
-#
-# F10: ?
-#
-# F11 / Alt-F11: Expand split to a full window.
-# Shift-F11: Zoom into a split, zoom out of a split.
-# Ctrl-F11: Join window into a vertical split.
-#
-# F12 / Shift-F12: Toggle on/off keybin­dings.
-# Alt-F12: Toggle on/off mouse support.
-# Ctrl-S­hif­t-F12: Mondrian squares.
 
 
 
@@ -849,7 +820,18 @@ echo ""
 echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
 
-
+# Create a template help-wsl for this and other important WSL points (only create if running WSL)
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+    echox() { echo "$1" >> /tmp/help-wsl.sh; }
+    echo "#!/bin/bash" > /tmp/help-byobu.sh
+    echox "HELPNOTES=\""
+    echox "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
+    echox "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
+    echox ""
+    echox "\""
+    echox "echo -e \"\$HELPNOTES\\n\""
+    chmod 755 /tmp/help-wsl.sh
+fi
 
 ####################
 #

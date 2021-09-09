@@ -232,3 +232,7 @@ help-zip() { fn-help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t
 help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>   # or: sudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path"; }
 # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
 help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
+
+[ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh'
+[ -f /tmp/help-byobu.sh ] && alias help-b='/tmp/help-byobu.sh'
+[ -f /tmp/help-wsl.sh ] && alias help-b='/tmp/help-wsl.sh'

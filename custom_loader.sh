@@ -731,9 +731,9 @@ print_header "Create a help-file for byobu terminal multiplexer in /tmp/ and ali
 # In .custom, we can then simply create aliases if the files exist:
 # [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh'
 # [ -f /tmp/help-byobu.sh ] && alias help-b='/tmp/help-byobu.sh'
-echox() { echo "$1" >> /tmp/help-byobu.sh; }
-
-echo "#!/bin/bash" > /tmp/help-byobu.sh
+HELPFILE=/tmp/help-byobu.sh
+echox() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
 echox "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
 echox "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
@@ -756,7 +756,7 @@ echox "  Mouse support *breaks* copy/paste, but just hold down 'Shift' while sel
 echox "  Byobu shortcuts can interfere with other application shortcuts. To toggle enabling/disabling byobu, use Shift-F12."
 echox "  Ctrl-Shift-F12 for Mondrian Square (just a toy). Press Ctrl-D to kill this window."
 echox ""
-echox "- PANES: Ctrl-F2 (vertical split F12-%%), Shift-F2 (horizontal split, F12-|) ('|' feels like it should be for 'vertical', so this is a little confusing)"
+echox "- PANES: Ctrl-F2 (vertical split F12-%), Shift-F2 (horizontal split, F12-|) ('|' feels like it should be for 'vertical', so this is a little confusing)"
 echox "  Shift-F3/F4 (jump between panes), Ctrl-F3/F4 (move a pane to a different location)"
 echox "  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)"
 echox "  Shift-F9 (enter command to run in all visible panes)"
@@ -791,9 +791,9 @@ echox "  F12-T (fullscreen graphical clock)"
 echox "  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'"
 echox ""
 echox "- 'b ls', 'b list-session' or 'b list-sessions'"
-echox "  On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3%% 251G2%% 2021-04-27 08:41:50"
+echox "  On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3% 251G2% 2021-04-27 08:41:50"
 echox "  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores"
-echox "  12.4G3%% = 12.4 G free memory, 3%% CPU usage,   251G2%% = 251 G free space, 2%% used, 2021-04-27 08:41:50 = date/time"
+echox "  12.4G3% = 12.4 G free memory, 3% CPU usage,   251G2% = 251 G free space, 2% used, 2021-04-27 08:41:50 = date/time"
 echox ""
 echox "- byobu-<tab><tab> to see all byobu bash commands, can 'man <command>' on each of these"
 echox "  byobu-config              byobu-enable-prompt       byobu-launcher            byobu-quiet               byobu-select-session      byobu-tmux"
@@ -801,36 +801,91 @@ echox "  byobu-ctrl-a              byobu-export              byobu-launcher-inst
 echox "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
 echox "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
 echox "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
-echox ""
-echox "\""
+echox "\""   # require line with a single " to end the multi-line text
 echox "echo -e \"\$HELPNOTES\\n\""
-chmod 755 /tmp/help-byobu.sh
+chmod 755 $HELPFILE
 
 
 
 
 ####################
 #
-print_header "To disable annoying/loud Windows Event sounds if running in WSL or Putty"
+print_header "Create a help-file for vim refresher notes (if have been away from Linux for a while!)"
 #
 ####################
 
-echo "Run the following lines in a PowerShell console on Windows to soften the Windows Event sounds:"
+# [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh'  # for .custom
+# [ -f /tmp/help-vim.sh ] && alias help-vi='/tmp/help-vim.sh'   # for .custom
+HELPFILE=/tmp/help-vim.sh
+echox() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+echox "HELPNOTES=\""
+echox "vim refresher notes..."
+echox ""
+echox "- Using Visual Block mode to insert an indent to lines by 4 spaces:"
+echox "  Move to start of the lines to change, press CTRL-V to enter Visual mode, press down cursor key to go to bottom of region,"
+echox "  press SHIFT-I (must be capital i!) to block insert, press space 4 times, then ESC to apply the block insert."
+echox ""
+echox "To enable spell checking, type the following:"
+echox "  :setl spell spl=en All regions (default)"
+echox "  :setl spell spl=en gb,en us GB, USA"
+echox ""
+echox "/ (search forward), ? are well known but * and # are less so."
+echox "* (search for word nearest to the cursor forward), and # (backwards)"
+echox "Use n instead of /-ENTER to repeat a search. N to do it backwards. "
+echox ""
+echox "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result?"
+echox "Fix that with 'type :set paste' to put Vim in paste mode before you paste,"
+echox "so Vim will not do anything fancy and will just paste all the stuff verbatim."
+echox "After you have finished pasting, type :set nopaste to go back to normal,"
+echox "where indentation will take place again (you only need this option when"
+echox "pasting in terminal, not in GUI gVim)."
+echox ""
+echox "Newer Vim allows tabbed multi-file editing. :e <filename> to open a file, but"
+echox "now :tabe to open the file in a new tab. Jump between tabs with Ctrl-PgUp/PgDn."
+echox "Combine this command with window splitting (:new, :vnew, :split, :vsplit, ...)."
+echox ""
+echox "Vim, Tips and tricks : https://www.cs.umd.edu/~yhchan/vim.pdf"
+echox "Vim, Tips And Tricks : https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
+echox "Vim, Tips And Tricks : https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
+echox "8 Vim Tips And Tricks That Will Make You A Pro User : https://itsfoss.com/pro-vim-tips/"
+echox ""
+echox "\""   # require line with a single " to end the multi-line text
+echox "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+####################
+#
+print_header "Help file for WSL integration"
+#
+####################
+
+echo "Run the following lines in a PowerShell console on Windows to damp the jarring Windows Event sounds that affect WSL sessions:"
 echo ""
 echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+echo ""
+echo "Could also do from WSL to access the registry as follows:"
+echo " ??? "
 
 # Create a template help-wsl for this and other important WSL points (only create if running WSL)
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    echox() { echo "$1" >> /tmp/help-wsl.sh; }
-    echo "#!/bin/bash" > /tmp/help-byobu.sh
+    # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'  # for .custom
+    HELPFILE=/tmp/help-wsl.sh
+    echox() { echo "$1" >> $HELPFILE; }
+    echo "#!/bin/bash" > $HELPFILE
     echox "HELPNOTES=\""
-    echox "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
-    echox "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
+    echox "Quick WSL notes to remember..."
+    echox "Right-click on WSL title bar and select Properties, then go to options and enable Ctrl-Shift-C and Ctrl-Shift-V"
+    echox "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
+    echox "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
     echox ""
+    echox "Run the following in a PowerShell console to damp the jarring Windows Event sounds that affect WSL sessions:"
+    echox '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
+    echox 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
     echox "\""
     echox "echo -e \"\$HELPNOTES\\n\""
-    chmod 755 /tmp/help-wsl.sh
+    chmod 755 $HELPFILE
 fi
 
 ####################

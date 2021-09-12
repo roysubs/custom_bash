@@ -74,6 +74,7 @@ alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown,
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
+alias lx='ll *.sh *.py *.exe *.bat *.cmd *.ps1'
 # git: g, gst, ga, gcm, gcl, gstash, glog
 # gc, gcg, gcname, gadu, gall, git-push
 alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
@@ -182,23 +183,38 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     alias home='cd ~' 
     # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
     
-    # If in WSL, bypass need for git in Linux and use Git for Windows for all projects
+    # If in WSL, bypass need for git in Linux and use Git for Windows for all projects (do I need this anymore after git tokens?)
     [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
     # Open Windows apps from WSL console
     alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # Chrome, can use with URLs:       chrome www.google.com
-    alias chromecustom='chrome https://github.com/roysubs/custom_bash'
+    alias webgitcustombash='chrome https://github.com/roysubs/custom_bash'
+    alias webgitcustomps='chrome https://github.com/roysubs/Custom-Tools'
+    alias webgitbasicsahk='chrome https://github.com/roysubs/Basics-AHK'
     alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
     alias n='notepad++'                                                         # Set 'n' also to Notepad++:       n C:\Temp\Test.txt
-    # Don't use code.exe from a full installation or the chocolatey shim at /mnt/c/ProgramData/chocolatey/bin/code.exe.
-    # Both of these generate errors. # Microsoft already provides the "code" shell script for this purpose. Try three
-    # main locations to create an alias for the VS Code "code" shell script.
+    # Alias locations in the Windows filesystem if using WSL
+    [ -d /mnt/c ] && alias llc='cd /mnt/c && ll'
+    [ -d /mnt/d ] && alias lld='cd /mnt/d && ll'
+    [ -d /mnt/e ] && alias lle='cd /mnt/e && ll'
+    [ -d /mnt/c ] && alias goc='cd /mnt/c && ll'
+    [ -d /mnt/d ] && alias god='cd /mnt/d && ll'
+    [ -d /mnt/e ] && alias goe='cd /mnt/e && ll'
+    [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && ll'
+    [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ll' && alias pf64:='cd /mnt/c/Program\ Files && ll'
+    [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ll' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ll'
+    [ -d /mnt/d/0\ Cloud ] && alias cloud:='cd /mnt/d/0\ Cloud && ll'
+    # Microsoft already provides the "code" shell script to call from WSL, so do not use code.exe from a full installation or the
+    # chocolatey shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as both of these will generate errors inside WSL.
+    # Look in these default locations to create the best alias for the VS Code "code" shell script (the last found will be what is used)
     [ -f /mnt/c/tools/vscode/bin/code ] && alias code="\"/mnt/c/tools/vscode/bin/code\""   # Default Portable Edition location with Chocolatey package
     [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="\"/mnt/c/Program Files/Microsoft VS Code/bin/code\""   # Default System Install location
     [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
-    alias c='code'
+    alias c='code'   # Also make it easy to get to code.exe via 'c'
 
-    alias clip_ip='hostname -I | clip.exe'
-    # Run CMD scripts from within WSL, note that you must use the Windows path, so cmd D:\test.cmd, and not cmd /mnt/d/test.cmd
+    # Demonstrate clip.exe from WSL to get a string into the clipboard. Use Ctrl-Shift-V to paste on console
+    alias get-ip='hostname -I | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
+
+    # Run CMD scripts from within WSL, note that you must use the Windows path, so run-cmd D:\test.cmd, and not run-cmd /mnt/d/test.cmd
     # https://github.com/microsoft/WSL/issues/4547
 
     run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
@@ -221,9 +237,9 @@ if [ -z "$TMUX" ]; then login_banner; fi   # Only display the login banner if th
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 
 ####################
-# Help topic reminders to output basic syntax for various tasks
+# Quick help topics that can be defined in one-liners, basic syntax reminders for various tasks
 ####################
-# printf requires the ", \, % to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
+# printf requires "\% characters to to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
 # Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
 # Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
 fn-help() { printf "\n$1\n==========\n\n$2\n\n"; }
@@ -233,6 +249,10 @@ help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "
 # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
 help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
 
+####################
+# Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
+####################
+[ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'
+[ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'
+[ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
 [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'
-[ -f /tmp/help-wsl.sh ] && alias help-b='/tmp/help-wsl.sh'
-[ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh'

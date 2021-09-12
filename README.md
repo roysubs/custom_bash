@@ -2,9 +2,13 @@
 
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
-This project auto-configure common settings for most Linux distros (CentOS/Ubuntu/Debian based plus others). Additional specific tools for WSL are included that only load when WSL is detected. A single script `custom_loader.sh` sets everything up and the project can be easily uninstalled simply by removing the two lines at the end of `~/.bashrc` that call `.custom`.  
+Auto-configure common settings to be cross-platform for most Linux distros (CentOS/Ubuntu/Debian etc). Specific tools for WSL are included but that only load if WSL is detected. By sourcing a single script `custom_loader.sh`, this sets everything up and puts the `.custom` script into `~` which is then invoked by `~/.bashrc` at shell startup.  
 
-The project keeps all modifications outside of main bash configuration files so does not create a confusing setup. The goal is to setup a usable / comfortable environment with essential settings in `~/.vimrc`, `~/.inputrc` and useful tools without a few hours of setup. The project can also be used a template. Run `git clone` then customise as required. If there are any fixes or additional tools that this project would benefit from, please email me at **roysubs@hotmail.com** and we can add into the main project.  
+Goal was to keep all modifications outside of main bash configuration files, so that the changes do not pollute main configuration files to create a hard to maintain environment. Removal is then as simple as removing the two lines added at the end of `~/.bashrc` where it calls `~/.custom`.  
+
+The goal is to setup a usable / comfortable environment with essential settings in `~/.vimrc`, `~/.inputrc` and useful tools without requiring the time it normally takes to setup a sensible environment. Run `git clone` to take a copy and then customise by adding other settings as required. For fixes / additional tools that would be useful in the main project would benefit from, email **roysubs@hotmail.com** and we can add into the main project.  
+
+Default setups: Installation of various small packages that are a useful baseline to have on any new system. Setup of colour syntax highlighting on all `cat` output (by using the `bat` tool). Functions to help with various system tasks. Some simple banner setups that are cosmetic but can be nice to have. Many aliases and functions to make for a more consistent cross-platform setup.
 
 # Install the Linux custom tools  
   
@@ -77,7 +81,7 @@ It is important to understand that there is no systemd in WSL, so distros cannot
 
 **Shutdown and Reboot:** There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands have been added to WSL section of `.custom` (i.e. this section is only run if a distro is detected to be WSL) to replace the built-in (systemd) `shutdown` and `reboot`:
 `alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'`  
-`alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d$WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'`  
+`alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'`  
   
 **Reset a WSL distro back to an initial state**  
 `Settings > Apps > Apps & features > select the Linux Distro Name`  
@@ -240,7 +244,7 @@ In any Windows 10 version, you can move the distribution to another drive using 
 
 # Git with WSL and Windows
 
-Git direct passwords will be deprecated on 21st August 2021, so need to move over to tokens.
+Git direct passwords were deprecated on 21st August 2021, so need to move over to tokens.
 
 [WSL-Git](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)  
 [Use WSL Git instead of Git for Windows (StackOverflow)](https://stackoverflow.com/questions/44441830/vscode-use-wsl-git-instead-of-git-for-windows)
@@ -485,7 +489,7 @@ This is very important for seamless integration between WSL sessions and Windows
 https://stackoverflow.com/questions/36585496/error-when-using-git-credential-helper-with-gnome-keyring-as-sudo/40312117#40312117  
 
 `netstat -plan | grep :80  | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nk1`  
-Above command will give the sorted list of IP’s with number of connections to the port 80.
+Above command will give a sorted list of IP’s with number of connections to port 80.
 
 `https://aka.ms/wsl`  
 `https://docs.microsoft.com/en-us/windows/wsl/wsl-config#list-distributions`  

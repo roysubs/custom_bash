@@ -204,8 +204,14 @@ check_and_install 7z p7zip-full        # Package name is different from the '7z'
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
 
 check_and_install figlet figlet
-# This was odd, Ubuntu 20.04 only had this as a snap package out of the box, only after full update could it see the normal package
+# Ubuntu 20.04 only had this as a snap package on first install, but after full update, it could see package in dnf repository
 which figlet &> /dev/null || exe sudo snap install figlet -y
+
+# More complex installers
+curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
+git clone https://github.com/zakkor/shortcut.git .config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
+
+
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -443,7 +449,7 @@ ADDLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, inde
 grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
 ADDLINE='set expandtab tabstop=4 shiftwidth=4'
 grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='" Allow saving of files as sudo when I forgot to start vim using sudo.'
+ADDLINE='" Allow saving of files as sudo if did not start vim with sudo'
 grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
 ADDLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
 grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
@@ -729,8 +735,7 @@ print_header "Create a help-file for byobu terminal multiplexer in /tmp/ and ali
 # Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
 # This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
 # In .custom, we can then simply create aliases if the files exist:
-# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh'
-# [ -f /tmp/help-byobu.sh ] && alias help-b='/tmp/help-byobu.sh'
+# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'   # for .custom
 HELPFILE=/tmp/help-byobu.sh
 echox() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
@@ -746,8 +751,9 @@ echox "Learn byobu (enhancement for tmux) while listening to Mozart: https://www
 echox "Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo"
 echox "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
 echox "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
+echox "tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/"
 echox ""
-echox "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu termina commands"
+echox "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu terminal commands"
 echox "  byobu-<tab><tab> to see all bash commands, can 'man' on each of these"
 echox "  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)"
 echox "  Alt-F12 (toggle mouse support on/off), or F12-: then 'set mouse on' / 'set mouse off'"
@@ -807,30 +813,89 @@ chmod 755 $HELPFILE
 
 
 
+####################
+#
+print_header "bash quick notes (if have been away from Linux for a while)"
+#
+####################
+
+# [ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'   # for .custom
+HELPFILE=/tmp/help-bash.sh
+echox() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+echox "HELPNOTES=\""
+echox "bash refresher notes..."
+echox ""
+echox ""
+echox ""
+echox ""
+echox ""
+echox "https://ostechnix.com/navigate-directories-faster-linux/"
+echox "https://itsfoss.com/linux-command-tricks/"
+echox ""
+echox "\""   # require line with a single " to end the multi-line text
+echox "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
 
 ####################
 #
-print_header "Create a help-file for vim refresher notes (if have been away from Linux for a while!)"
+print_header "vim quick notes (if have been away from Linux for a while)"
 #
 ####################
 
-# [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh'  # for .custom
-# [ -f /tmp/help-vim.sh ] && alias help-vi='/tmp/help-vim.sh'   # for .custom
+# [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
 HELPFILE=/tmp/help-vim.sh
 echox() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
-echox "vim refresher notes..."
+echox "vim quick notes..."
 echox ""
-echox "- Using Visual Block mode to insert an indent to lines by 4 spaces:"
+echox "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). 3 main modes ones are normal, insert, and visual, :h vim-modes-intro."
+echox ": to go into Command mode, ESC to go back to Normal mode."
+echox "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
+echox "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
+echox "Ctrl-V to go into Visual mode, then navigate to define region, then Shift-I for visual insert (i.e. not 'i'), ESC to go back to normal mode."
+echox "v to select by char, hjkl to select region, then could r to replace, or d to delete."
+echox "Shift-V to select whole lines visually, cursors / hjkl to expand region, then could >> to indent, or << to predent."
+echox ""
+echox ""
+echox "Motions   :h motions"
+echox "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, also 'e' end of word"
+echox "^ start of line, $ end of line, 80% go to 80% position in the whole document."
+echox "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
+echox "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
+echox "'x' delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words."
+echox ":10,18d delete lines 10 to 18 inclusive, "
+echox "Copy/Paste: '5y' yank (copy)) 5 chars, '5yy' yank 5 lines => move cursor to location to paste, then 'p' to paste."
+echox "Cut/Paste: '5x' cut 5 chars (or '5d<space>'), '5dd' cut down 5 lines => move cursor to location to paste, then 'p' to paste."
+echox "r<char> replace char under cursor by another."
+echox ""
+echox "Get used to consulting ':h' for more info, it's more useful than you think. ':h A' ':h I' ':h ctrl-w'"
+echox "To zoom on the help pane, Ctrl-w,o to close all windows except this, but that's a bit harsh, so Ctrl-w,10+ to increase current window by 10 lines"
+echox "Also, Ctrl-w _ and Ctrl-w | to temporarily max the window vertically '_' or horizontally '|'."
+echox "Even better, open the help in a new tab with ':tab help ctrl-w', then :q when done with help, put this into .vimrc with:  cnoremap help tab help"
+echox "Tabbed multi-file editing are a newer feature. :e <filename> to open a file, but :tabe <name> to open in a new tab."
+echox "Jump between tabs with Ctrl-PgUp/PgDn. Combine this command with window splitting (:new, :vnew, :split, :vsplit, ...)."
+echox ""
+echox "color industry   # change syntax highlighting"
+echox "set expandtab tabstop=4 shiftwidth=4   # Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops to 4 chars, indents are 4 chars"
+echox "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit   # Allow saving of files as sudo if did not start vim with sudo"
+echox ""
+echox ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle line numbers)"
+echox "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
+echox "inoremap <F3> <C-O>:set invnumber<CR>"
+echox ""
+echox "Visual Mode to insert an indent some lines by 4 spaces:"
 echox "  Move to start of the lines to change, press CTRL-V to enter Visual mode, press down cursor key to go to bottom of region,"
 echox "  press SHIFT-I (must be capital i!) to block insert, press space 4 times, then ESC to apply the block insert."
 echox ""
-echox "To enable spell checking, type the following:"
+echox "Spell checking in Vim"
 echox "  :setl spell spl=en All regions (default)"
 echox "  :setl spell spl=en gb,en us GB, USA"
 echox ""
-echox "/ (search forward), ? are well known but * and # are less so."
+echox "/ (search forwards), ? (search backwards) are well known but * and # are less so."
 echox "* (search for word nearest to the cursor forward), and # (backwards)"
 echox "Use n instead of /-ENTER to repeat a search. N to do it backwards. "
 echox ""
@@ -841,18 +906,19 @@ echox "After you have finished pasting, type :set nopaste to go back to normal,"
 echox "where indentation will take place again (you only need this option when"
 echox "pasting in terminal, not in GUI gVim)."
 echox ""
-echox "Newer Vim allows tabbed multi-file editing. :e <filename> to open a file, but"
-echox "now :tabe to open the file in a new tab. Jump between tabs with Ctrl-PgUp/PgDn."
-echox "Combine this command with window splitting (:new, :vnew, :split, :vsplit, ...)."
-echox ""
-echox "Vim, Tips and tricks : https://www.cs.umd.edu/~yhchan/vim.pdf"
-echox "Vim, Tips And Tricks : https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
-echox "Vim, Tips And Tricks : https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
-echox "8 Vim Tips And Tricks That Will Make You A Pro User : https://itsfoss.com/pro-vim-tips/"
+echox "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
+echox "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
+echox "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
+echox "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
+echox "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
+echox "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
+echox "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
 echox ""
 echox "\""   # require line with a single " to end the multi-line text
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
+
+
 
 ####################
 #
@@ -870,12 +936,17 @@ echo " ??? "
 
 # Create a template help-wsl for this and other important WSL points (only create if running WSL)
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'  # for .custom
+    # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
     HELPFILE=/tmp/help-wsl.sh
     echox() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
     echox "HELPNOTES=\""
     echox "Quick WSL notes to remember..."
+    echox ""
+    echox "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
+    echox "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
+    echox "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
+    echox ""
     echox "Right-click on WSL title bar and select Properties, then go to options and enable Ctrl-Shift-C and Ctrl-Shift-V"
     echox "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
     echox "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
@@ -902,10 +973,12 @@ echo "Note the above configuration details for any useful additional manual acti
 echo "'update-distro' to run through all update/upgrade actions (def 'distro-update' to check)."
 echo "'update-custom-tools' will update .custom to latest version from Github."
 echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
+# Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    echo "WSL consoles: Can go into fullscreen mode with Shift-Alt-Enter."
-    echo "WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste"
-    echo "To access WSL folders: from bash, type 'explorer.exe .' (note the .exe), or from Explorer, '\\wsl$'"
+    echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."
+    echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste."
+    echo "Access WSL folders from Windows Eplorer: from bash, type 'explorer.exe .' (note the '.exe'), or from Explorer, '\\wsl$'."
+    echo "Access Windows from bash: 'cd /mnt/c', 'cd /mnt/d', 'cd /mnt/e', etc, can use 'alias c='cd /mnt/c && ll' and same for 'd', 'e' etc"
 fi
 echo ""
 echo ""
@@ -914,7 +987,6 @@ if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
     echo "Re-run this script after reboot to finish the install." >&2
 fi
-
 
 
 

@@ -123,9 +123,9 @@ if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check
 
 function getLastAptGetUpdate()
 {
-    local aptDate="$(stat -c %Y '/var/cache/apt')"
-    local nowDate="$(date +'%s')"
-    echo $((nowDate - aptDate))
+    local aptDate="$(stat -c %Y '/var/cache/apt')"   # %Y  time of last data modification, in seconds since Epoch
+    local nowDate="$(date +'%s')"                    # %s  seconds since 1970-01-01 00:00:00 UTC
+    echo $((nowDate - aptDate))                      # returns from the function the number of seconds since last /var/cache/apt update
 }
 
 function runAptGetUpdate()
@@ -133,15 +133,15 @@ function runAptGetUpdate()
     local updateInterval="${1}"
     local lastAptGetUpdate="$(getLastAptGetUpdate)"
 
-    if [[ "$(isEmptyString "${updateInterval}")" = 'true' ]]
+    if [[ -z "$updateInterval" ]]   # "$(isEmptyString "${updateInterval}")" = 'true'
     then
-        # Default To 24 hours
-        updateInterval="$((24 * 60 * 60))"
+        updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, setting to 24 hours in seconds
     fi
 
-    if [[ "${lastAptGetUpdate}" -gt "${updateInterval}" ]]
+    if [[ "${lastAptGetUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
-        echo -e "apt-get update"
+        print_header "apt updates will run as last update was more than '${updateInterval}' seconds ago"
+        # echo -e "apt-get update"
         exe sudo $MANAGER update -y
         exe sudo $MANAGER upgrade -y
         exe sudo $MANAGER dist-upgrade -y
@@ -152,17 +152,21 @@ function runAptGetUpdate()
         apt-get update -m
     else
         local lastUpdate="$(date -u -d @"${lastAptGetUpdate}" +'%-Hh %-Mm %-Ss')"
-
-        echo -e "\nSkip apt-get update because its last run was '${lastUpdate}' ago"
+        # echo -e "\nSkip apt-get update because its last run was '${lastUpdate}' ago"
+        print_header "Skip apt-get update because its last run was '${lastUpdate}' ago"
     fi
 }
+
+runAptGetUpdate
+
+
 
 if [ -f /var/run/reboot-required ]; then
     echo "" >&2
     echo "A reboot is required (/var/run/reboot-required is present)." >&2
     echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME" >&2
     echo "Re-run this script after reboot to finish the install." >&2
-    return
+    return   # Script will exit here if a reboot is required
 fi
 
 
@@ -173,9 +177,8 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-# 
-$INSTALL="sudo $MANAGER install"
-if [ "$MANAGER" = "apk" ]; then $INSTALL="$MANAGER add"; fi
+INSTALL="sudo $MANAGER install"
+if [ "$MANAGER" = "apk" ]; then INSTALL="$MANAGER add"; fi
 # Only install each if not already installed
 check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
 # which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
@@ -187,7 +190,7 @@ check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
 check_and_install dos2unix dos2unix
-check_and_install mount.cifs mount.cifs
+check_and_install mount mount.cifs
 check_and_install neofetch neofetch
 # check_and_install screenfetch screenfetch   # Same as neofetch
 check_and_install fortune fortune
@@ -209,7 +212,7 @@ which figlet &> /dev/null || exe sudo snap install figlet -y
 
 # More complex installers
 curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
-git clone https://github.com/zakkor/shortcut.git .config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
+git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
 
 
 
@@ -300,12 +303,14 @@ if [ ! $(which bat) ]; then
     ####################
     echo "# Download and setup 'bat' and alias 'cat' to use 'bat' instead (same as 'cat' but with syntax highlighting)"
     echo "# Check here for latest updates: https://github.com/sharkdp/bat/releases"
-    REL=v0.18.0
-    BAT=bat_0.18.0_amd64.deb
+    # Use that system from PowerShell to extract latest version and path ...
+    REL=v0.18.3
+    BAT=bat_0.18.3_amd64.deb
     [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/$REL/$BAT   # 64-bit version
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
     # sudo dpkg -r bat   # to remove after install
     # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
+    rm /tmp/$BAT
 fi
 
 
@@ -439,28 +444,33 @@ print_header "Common changes to .vimrc"
 # First, check if the full line is already in the file. If there, do nothing, then check the ~ version, only add if not there
 # ToDo: extend this to check both /etc/vimrc and then ~/.vimrc, possibly a function with parameteres $1=(line to check or add), $2=(/etc/xxx admin file), $3=(~/.vimrc user file)
 #
-# Note that cannot >> back to the same file being read, so use "| sudo tee --append ~/.vimrc"
+# Note: cannot >> back to the same file being read, so use "| sudo tee --append ~/.vimrc"
+# Note: cannot have multiple spaces "   " in a line or can't grep -qxF on that as the spaces are stripped
 
-ADDLINE='" Set simple syntax highlighting that is more readable than the default (also   :set koehler)'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='color industry'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='set expandtab tabstop=4 shiftwidth=4'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='" Allow saving of files as sudo if did not start vim with sudo'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE="cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='" Set F3 to toggle line numbers on/off'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='noremap <F3> :set invnumber<CR>'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
-ADDLINE='inoremap <F3> <C-O>:set invnumber<CR>'
-grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+ADDFILE=~/.vimrc
+function addToFile() { grep -qxF "$1" ~/.vimrc || echo $1 | tee --append $ADDFILE; }
 
-# Alternative auto-elevate vim
+addToFile '" Set simple syntax highlighting that is more readable than the default (also :set koehler)'
+addToFile 'color industry'
+addToFile '" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
+addToFile 'set expandtab tabstop=4 shiftwidth=4'
+addToFile '" Allow saving of files as sudo if did not start vim with sudo'
+addToFile "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit"
+addToFile '" Set F3 to toggle line numbers on/off'
+addToFile 'noremap <F3> :set invnumber<CR>'
+addToFile 'inoremap <F3> <C-O>:set invnumber<CR>'
+addToFile '" Jump between windows with Ctrl-h/j/k/l'
+addToFile 'nnoremap <C-H> <C-W>h'
+addToFile 'nnoremap <C-J> <C-W>j'
+addToFile 'nnoremap <C-K> <C-W>k'
+addToFile 'nnoremap <C-L> <C-W>l'
+
+# ADDLINE='" Set simple syntax highlighting that is more readable than the default (also :set koehler)'
+# grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+# ADDLINE='color industry'
+# grep -qxF "$ADDLINE" ~/.vimrc || echo $ADDLINE | tee --append ~/.vimrc
+
+# Alternative way to auto-elevate vim (not sure if this works)
 # ADDLINE='" command W w !sudo tee % >/dev/nullset expandtab tabstop=4 shiftwidth=4'
 
 
@@ -489,11 +499,21 @@ if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
 # echo  >> ~/.inputrc
 
-INPUTRC='$include /etc/inputrc'   # Set Tab completion to be non-case sensitive
+# You’ll be able to browse through your command line history, simply start typing a few letters of the command and then use the arrow up and arrow down keys to browse through your history. This is similar to using Ctrl+r to do a reverse-search in your Bash, but a lot more powerful, and a feature I use every day.
+
+The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
+ADDFILE=~/.vimrc
+function addToFile() { grep -qxF "$1" ~/.vimrc || echo $1 | tee --append $ADDFILE; }
+
+INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
-INPUTRC='# Set tab completion for 'cd' to be non-case sensitive'
+INPUTRC='# Set tab completion for cd to be non-case sensitive'
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
-INPUTRC='set completion-ignore-case On'
+INPUTRC='set completion-ignore-case On'   # Set Tab completion to be non-case sensitive
+grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='"\C-p":history-search-backward'
+grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='"\C-n":history-search-forward'
 grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
 # https://superuser.com/questions/241187/how-do-i-reload-inputrc
@@ -752,6 +772,7 @@ echox "Learn tmux (all commands work in byobu also): https://www.youtube.com/wat
 echox "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
 echox "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
 echox "tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/"
+echox "https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397"
 echox ""
 echox "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu terminal commands"
 echox "  byobu-<tab><tab> to see all bash commands, can 'man' on each of these"
@@ -807,7 +828,7 @@ echox "  byobu-ctrl-a              byobu-export              byobu-launcher-inst
 echox "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
 echox "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
 echox "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
-echox "\""   # require line with a single " to end the multi-line text
+echox "\""   # require final line with a single " to end the multi-line text variable
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -826,14 +847,14 @@ echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
 echox "bash refresher notes..."
 echox ""
-echox ""
-echox ""
-echox ""
-echox ""
+echox "https://www.tecmint.com/linux-command-line-bash-shortcut-keys/"
+echox "It doesn't make sense, but it's the convention. EDITOR used to be for instruction-based editors like ed. When editors with GUIs came about--and by GUI, I mean CLI GUI (vim, emacs, etc.--think ncurses), not desktop environment GUI--the editing process changed dramatically, so the need for another variable arose. In this context, CLI GUI and desktop environment GUI editors are more or less the same, so you can set VISUAL to either; however, EDITOR is meant for a fundamentally different workflow. Of course, this is all historical. Nobody uses ed these days."
+echox "just setting EDITOR is not enough e.g. for git on Ubuntu 12.04. Without VISUAL being set git ignores EDITOR and just uses nano (the compiled in default, I guess). "
+echox "\$VISUAL vs \$EDITOR C-x C-e to open vim automatically"
 echox "https://ostechnix.com/navigate-directories-faster-linux/"
 echox "https://itsfoss.com/linux-command-tricks/"
 echox ""
-echox "\""   # require line with a single " to end the multi-line text
+echox "\""   # require final line with a single " to end the multi-line text variable
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -850,61 +871,9 @@ HELPFILE=/tmp/help-vim.sh
 echox() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
-echox "vim quick notes..."
-echox ""
-echox "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). 3 main modes ones are normal, insert, and visual, :h vim-modes-intro."
-echox ": to go into Command mode, ESC to go back to Normal mode."
-echox "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
-echox "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
-echox "Ctrl-V to go into Visual mode, then navigate to define region, then Shift-I for visual insert (i.e. not 'i'), ESC to go back to normal mode."
-echox "v to select by char, hjkl to select region, then could r to replace, or d to delete."
-echox "Shift-V to select whole lines visually, cursors / hjkl to expand region, then could >> to indent, or << to predent."
-echox ""
-echox ""
-echox "Motions   :h motions"
-echox "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, also 'e' end of word"
-echox "^ start of line, $ end of line, 80% go to 80% position in the whole document."
-echox "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
-echox "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
-echox "'x' delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words."
-echox ":10,18d delete lines 10 to 18 inclusive, "
-echox "Copy/Paste: '5y' yank (copy)) 5 chars, '5yy' yank 5 lines => move cursor to location to paste, then 'p' to paste."
-echox "Cut/Paste: '5x' cut 5 chars (or '5d<space>'), '5dd' cut down 5 lines => move cursor to location to paste, then 'p' to paste."
-echox "r<char> replace char under cursor by another."
-echox ""
-echox "Get used to consulting ':h' for more info, it's more useful than you think. ':h A' ':h I' ':h ctrl-w'"
-echox "To zoom on the help pane, Ctrl-w,o to close all windows except this, but that's a bit harsh, so Ctrl-w,10+ to increase current window by 10 lines"
-echox "Also, Ctrl-w _ and Ctrl-w | to temporarily max the window vertically '_' or horizontally '|'."
-echox "Even better, open the help in a new tab with ':tab help ctrl-w', then :q when done with help, put this into .vimrc with:  cnoremap help tab help"
-echox "Tabbed multi-file editing are a newer feature. :e <filename> to open a file, but :tabe <name> to open in a new tab."
-echox "Jump between tabs with Ctrl-PgUp/PgDn. Combine this command with window splitting (:new, :vnew, :split, :vsplit, ...)."
-echox ""
-echox "color industry   # change syntax highlighting"
-echox "set expandtab tabstop=4 shiftwidth=4   # Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops to 4 chars, indents are 4 chars"
-echox "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit   # Allow saving of files as sudo if did not start vim with sudo"
-echox ""
-echox ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle line numbers)"
-echox "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
-echox "inoremap <F3> <C-O>:set invnumber<CR>"
-echox ""
-echox "Visual Mode to insert an indent some lines by 4 spaces:"
-echox "  Move to start of the lines to change, press CTRL-V to enter Visual mode, press down cursor key to go to bottom of region,"
-echox "  press SHIFT-I (must be capital i!) to block insert, press space 4 times, then ESC to apply the block insert."
-echox ""
-echox "Spell checking in Vim"
-echox "  :setl spell spl=en All regions (default)"
-echox "  :setl spell spl=en gb,en us GB, USA"
-echox ""
-echox "/ (search forwards), ? (search backwards) are well known but * and # are less so."
-echox "* (search for word nearest to the cursor forward), and # (backwards)"
-echox "Use n instead of /-ENTER to repeat a search. N to do it backwards. "
-echox ""
-echox "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result?"
-echox "Fix that with 'type :set paste' to put Vim in paste mode before you paste,"
-echox "so Vim will not do anything fancy and will just paste all the stuff verbatim."
-echox "After you have finished pasting, type :set nopaste to go back to normal,"
-echox "where indentation will take place again (you only need this option when"
-echox "pasting in terminal, not in GUI gVim)."
+echox "********************"
+echox "* Vim Notes..."
+echox "********************"
 echox ""
 echox "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
 echox "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
@@ -912,9 +881,149 @@ echox "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searc
 echox "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
 echox "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
 echox "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
+echox "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
 echox "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
 echox ""
-echox "\""   # require line with a single " to end the multi-line text
+echox ":Tutor<Enter>  30 min tutorial built into Vim."
+echox "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
+echox ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
+echox ""
+echox "***** MODES   :h vim-modes-intro"
+echox "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). The 3 main modes are normal, insert, and visual."
+echox "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
+echox "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
+echox "v visual mode (char), Shift-V to select whole lines, Ctrl-V to select visual block"
+echox "Can only do visual inserts with Ctrl-V, then select region with cursors or hjkl, then Shift-I for visual insert (not 'i'), type edits, then Esc to apply."
+echox "Could also use r to replace, or d to delete a selected visual region."
+echox "Also note '>' to indent a selected visual region, or '<' to predent (unindent) the region."
+echox ": to go into command mode, and Esc to get back to normal mode."
+echox ""
+echox "***** MOTIONS   :h motions"
+echox "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e' forward by end of word."
+echox "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
+echox "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
+echox "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
+echox "/Power/	Go to the first line containing the string 'Power'."
+echox "ddp	    Swap the current line with the next one."
+echox "g;	    Bring back cursor to the previous position."
+echox ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
+echox ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
+echox ""
+echox "***** EDITING   :h edits"
+echox "x  delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words, '5dd delete 5 lines."
+echox ":10,18d delete lines 10 to 18 inclusive, r<char> replace char under cursor by another character."
+echox "u  undo (or :u, :undo), Ctrl-r to redo (or :redo)."
+echox ":w  write/save the currect file, :wq  write and quit, :q  quit current file, :q!  quit without saving."
+echox "Copy/Paste: '5y' yank (copy)) 5 chars, '5yy' yank 5 lines. Then, move cursor to another location, then 'p' to paste."
+echox "Cut/Paste: '5x' cut 5 chars (or '5d<space>'), '5dd' 5 lines downwards. Then move cursor to another location, then 'p' to paste."
+echox ">> shift/indent current line, << unindent, 5>> indent 5 lines down from current position. 5<< unindent 5 lines, :h >>"
+echox ":10,20> indent lines 10 to 20 by standard indent amount. :10,20< unindent same lines."
+echox "(vim-commentary plugin), gc to comment visual block selected, gcgc to uncomment a region."
+echox ""
+echox "***** HELP SYSTEM   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
+echox "Even better, open the help in a new tab with ':tab help >>', then :q when done with help tab."
+echox "Open all help"
+echox "Maximise the window vertically with 'Ctrl-w _' or horizontally with 'Ctrl-w |' or 'Ctrl-w o' to leave only the help file open."
+echox "Usually don't want to close everything, so 'Ctrl-w 10+' to increase current window by 10 lines is also good.   :h ctrl-w"
+echox ""
+echox "***** SUBSTITUTION   :h :s   :h s_flags"
+echox "https://www.theunixschool.com/2012/11/examples-vi-vim-substitution-commands.html"
+echox "https://www.thegeekstuff.com/2009/04/vi-vim-editor-search-and-replace-examples/"
+echox ":s/foo/bar/  replace first occurence in current line only,  add 'g' to end for every occurence on line, and 'i' to be case insensitive."
+echox ":%s/foo/bar/gi   replace every occurence on every line and case insensitive (% every line, g every occurence in range, i insensitive)."
+echox ":5,10s/foo/bar/g   :5,\$s/foo/bar/g   replace in lines 5 to 10, replace in lines 5 to $ (end of file)."
+echox ":%s/foo/bar/gci   adding /c will require confirmation for each replace, and /i for case insensitive."
+echox ":s/\<his\>/her/   only replace 'his' if it is a complete word (caused by <>)."
+echox ":%s/\(good\|nice\)/awesome/g   replace good or nice by awesome."
+echox ":%s!\~!\= expand(\$HOME)!g   ~! will be replaced by the expansion of \$HOME ( /home/username/ )"
+echox "In Visual Mode, hit colon and the symbol '<,'> will appear, then do :'<,'>s/foo/bar/g for replace on the selected region."
+echox ":%s/example:.*\n/\0    tracker: ''\r/g   # finds any line with 'example: ...' and appends 'tracker: ''' underneath it"
+echox ":g/./ if getcurpos()[1] % 2 == 0 | s/foo/bar/g | endif   # for each line that has content, get the line number and if an even line number, then do a substitution"
+echox ":g/foo/ if getcurpos()[1] % 2 == 0 | s//bar/g | endif   # alternative approach to above where substitution pattern can be empty as it's part of the global pattern"
+echox ":for i in range(2, line('$'),2)| :exe i.'s/foo/bar/g'|endfor   # yet another way using a 'for' loop"   # https://gist.github.com/Integralist/042d1d6c93efa390b15b19e2f3f3827a
+echox "nmap <expr> <S-F6> ':%s/' . @/ . '//gc<LEFT><LEFT><LEFT>'   # Put into .vimrc then press Shift-F6 to interactively replace word at cursor globally (with confirmation)."
+echox ""
+echox "***** BUFFERS   :h buffers   Within a single window, can see buffers with :ls"
+echox "vim *   Open all files in current folder (or   'vim file1 file2 file3'   etc)."
+echox ":ls     List all open buffers (i.e. open files)   # https://dev.to/iggredible/using-buffers-windows-and-tabs-efficiently-in-vim-56jc"
+echox ":bn, :bp, :b #, :b name to switch. Ctrl-6 alone switches to previously used buffer, or #ctrl-6 switches to buffer number #."
+echox ":bnext to go to next buffer (:bprev to go back), :buffer <name> (Vim can autocomplete with <Tab>)."
+echox ":bufferN where N is buffer number. :buffer2 for example, will jump to buffer #2."
+echox "Jump between your last 'position' with <Ctrl-O> and <Ctrl-i>. This is not buffer specific, but it works. Toggle between previous file with <Ctrl-^>"
+echox ""
+echox "***** WINDOWS   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
+echox "vim -o *  Open all with horizontal splits,   vim -O *   Open all with vertical splits."
+echox "<C-W>W   to switch windows (note: do not need to take finger off Ctrl after <C-w> just double press on 'w')."
+echox "<C-W>N :sp (:split, :new, :winc n)  new horizontal split,   <C-W>V :vs (:vsplit, :winc v)  new vertical split"
+echox ""
+echox "***** TABS   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
+echox "vim -p *   Open all files in folder in tabs (or   'vim -p file1 file2 file3' etc)."
+echox ":tabnew, just open a new tab, :tabedit <filename> (or tabe), create a new file at filename; like :e, but in a new tab."
+echox "gt/gT  Go to next / previous tab (and loop back to first/last tab if at end). Also: 1gt go to tab 1, 5gt go to tab 5."
+echox "gt/gT are easier, but note :tabn (:tabnext or Ctrl-PgDn), :tabp (:tabprevious or Ctrl-PgUp), :tabfirst, :tablast, :tabrewind, tabmove 2 (or :tabm 2) to go to tab 2 (tabs are numbered from 1)"
+echox "Note window splitting commands,  :h :new,  :h :vnew,  :h :split,  :h :vsplit, ..."
+echox ":tabdo %s/foo/bar/g   # perform a substitution in all open tabs (the command following :tabdo operates on all tabs)."
+echox ":tabclose   close current tab,   :tabonly   close all other tab pages except current one."
+echox ":tabedit .   # Opens new tab, prompts for file to open in it. Use cursor keys to navigate and press enter on top of the file you wish to open."
+echox "tab names are prefixed with a '+' if they have unsaved changes,  :w  to write changes."
+echox ":set mouse=a   # Mouse support works with tabs, just click on a tab to move there."
+echox ""
+echox "***** VIMRC OPTIONS   /etc/vimrc, ~/.vimrc"
+echox ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle)"
+echox "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
+echox "inoremap <F3> <C-O>:set invnumber<CR>   # Also this line for the F3 toggle"
+echox "cnoremap help tab help   # To always open help screens in a new tab, put this into .vimrc"
+echox "color industry   # change syntax highlighting"
+echox "set expandtab tabstop=4 shiftwidth=4   # Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops to 4 chars, indents are 4 chars."
+echox "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit   # Allow saving of files as sudo if did not start vim with sudo"
+echox "cnoreabbrev <expr> h getcmdtype() == \\\":\\\" && getcmdline() == 'h' ? 'tab help' : 'h'   # Always expand ':h<space>' to ':tab help'"
+echox "nnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the current line (vim-commentry plugin)."
+echox "vnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the visual region (vim-commentry plugin)."
+echox ""
+echox "***** PLUGINS, VIM-PLUG    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
+echox "First, install vim-plug:"
+echox "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+echox "Then add the following lines to ~/.vimrc ("
+echox "call plug#begin()"
+echox "Plug 'tyru/open-browser.vim' \\\" opens url in browser"
+echox "Plug 'http://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
+echox "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' }"
+echox "Plug 'https://github.com/ap/vim-css-color' \\\" CSS Color Preview"
+echox "Plug 'https://github.com/tpope/vim-commentary' \\\" For Commenting gcc & gc"
+echox "call plug#end()"
+echox "Save ~/.vimrc with :w, and then source it with :source %"
+echox "Now install the plugins with :PlugInstall  (a side window will appear as the repo's clone to to ~/.vim/plugged)"
+echox "Restart Vim and test that the plugins have installed with :NERDTreeToggle (typing 'N'<tab> should be enough)"
+echox "vim-surround : \\\"Hello World\\\" => with cursor inside this region, press cs\\\"' and it will change to 'Hello World!'"
+echox "   cs'<q> will change to <q></q> tag, or ds' to remove the delimiter. When on Hello, ysiw] will surround the wordby []"
+echox "nerdtree : pop-up file explorer in a left side window, :N<tab> (or :NERDTree, or use :NERDTreeToggle to toggle) :h NERDTree.txt"
+echox "vim-css-color"
+echox "vim-commentary : comment and uncomment code, v visual mode to select some lines then 'gc'<space> to comment, 'gcgc' to uncomment."
+echox "Folloing will toggle comment/uncomment by pressing <space>/ on a line or a visual selected region."
+echox "nnoremap <space>/ :Commentary<CR>"
+echox "vnoremap <space>/ :Commentary<CR>"
+echox ""
+echox ""
+echox "***** SPELL CHECKING / AUTOCOMPLETE"
+echox ":setlocal spell spelllang=en   (default en, or en_us or en_uk)"
+echox "Then, ':set spell' to turn on and ':set nospell' to turn off. Most misspelled words will be highlighted."
+echox "]s to move to the next misspelled word, [s to move to the previous. When on a word, press z= to see list of possible corrections."
+echox "Type the number of the replacement spelling and press enter <enter> to replace, or just <enter> without selection to leave, mouse support can click on replacement."
+echox "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
+echox "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
+echox ""
+echox "***** SEARCH"
+echox "/ search forwards, ? search backwards are well known but * and # are less so."
+echox "* search for word nearest to the cursor (forward), and # (backwards)."
+echox "Can repeat a search with / then just press Enter, but easier to use n, or N to repeat a search in the opposite direction."
+echox ""
+echox "***** PASTE ISSUES IN TERMINALS"
+echox "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result, especially in Putty sessions etc."
+echox "Fix that with ':set paste' to put Vim in Paste mode before you paste, so Vim will just paste verbatim."
+echox "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
+echox "You normally only need :set paste in terminals, not in GUI gVim etc."
+echox ""
+echox "\""   # require final line with a single " to end the multi-line text variable
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -954,7 +1063,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echox "Run the following in a PowerShell console to damp the jarring Windows Event sounds that affect WSL sessions:"
     echox '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
     echox 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
-    echox "\""
+    echox ""
+    echox "\""   # require final line with a single " to end the multi-line text variable
     echox "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
 fi

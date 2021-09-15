@@ -14,18 +14,18 @@
 ####################
 # Exports
 ####################
-export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=100000 HISTFILESIZE=200000
+export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # very big and show date-time when run 'history'
 alias hs='history | grep -A 2 -B 2'    # Search history, and only show matches plus the 2 lines before and after each match
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
-# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see VISUAL vs. EDITOR).
+# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see $VISUAL vs. $EDITOR).
 # Additionally, unless you know why, you should set it to vim instead of vi. Also note:
 # https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
 # select-editor   # update-alternatives --config editor   # update-alternatives --list editor
-which update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
+# which update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
@@ -193,12 +193,12 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
     alias n='notepad++'                                                         # Set 'n' also to Notepad++:       n C:\Temp\Test.txt
     # Alias locations in the Windows filesystem if using WSL
-    [ -d /mnt/c ] && alias llc='cd /mnt/c && ll'
-    [ -d /mnt/d ] && alias lld='cd /mnt/d && ll'
-    [ -d /mnt/e ] && alias lle='cd /mnt/e && ll'
-    [ -d /mnt/c ] && alias goc='cd /mnt/c && ll'
-    [ -d /mnt/d ] && alias god='cd /mnt/d && ll'
-    [ -d /mnt/e ] && alias goe='cd /mnt/e && ll'
+    for d in /mnt/[a-z]; do       # [ -d /mnt/c ] && alias c:='cd /mnt/c'
+      [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"
+    done
+    for d in /mnt/[a-z]; do       # [ -d /mnt/c ] && alias llc='cd /mnt/c && ll'
+      [ -d /mnt/$(basename ${d}) ] && alias "ll$(basename ${d})"="cd $d && ll"
+    done
     [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && ll'
     [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ll' && alias pf64:='cd /mnt/c/Program\ Files && ll'
     [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ll' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ll'

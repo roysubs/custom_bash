@@ -118,7 +118,6 @@ which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
 echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
-if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
 function getLastAptGetUpdate()
@@ -142,6 +141,7 @@ function runAptGetUpdate()
     then
         print_header "apt updates will run as last update was more than '${updateInterval}' seconds ago"
         # echo -e "apt-get update"
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
         exe sudo $MANAGER update -y
         exe sudo $MANAGER upgrade -y
         exe sudo $MANAGER dist-upgrade -y
@@ -726,28 +726,39 @@ echo "Run 'locale' to view the current settings before changing."
 
 ####################
 #
-print_header "For Hyper-V VMs: How to run full-screen and disable sleep"
+print_header "HELP FILES : Will create various help files and alias them in .custom"
 #
 ####################
 
-echo "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
-echo '   Change: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
-echo '   To:     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080"'
-echo "Adjust 1920x1080 to your current monitor resolution."
-echo "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
-echo ""
-echo "From Hyper-V Manager dashboard, find the VM, and open Settings."
-echo "Go to Integration Services tab > Make sure Guest services section is checked."
-echo ""
-echo "systemctl status sleep.target   # Show current sleep settings"
-echo "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
-echo "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
+echo "Notes for when Linux instance is running inside a Hyper-V VM: How to run full-screen and disable sleep"
+
+HELPFILE=/tmp/help-hyperv.sh
+echox() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+echox "HELPNOTES=\""
+echox ""
+echox "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
+echox '   Change: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
+echox '   To:     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080"'
+echox "Adjust 1920x1080 to your current monitor resolution."
+echox "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
+echox ""
+echox "From Hyper-V Manager dashboard, find the VM, and open Settings."
+echox "Go to Integration Services tab > Make sure Guest services section is checked."
+echox ""
+echox "systemctl status sleep.target   # Show current sleep settings"
+echox "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
+echox "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
+echox "\""   # require final line with a single " to end the multi-line text variable
+echox "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+/tmp/help-hyperv.sh   # Display this immediately
 
 
 
 ####################
 #
-print_header "Create a help-file for byobu terminal multiplexer in /tmp/ and alias that in .custom"
+echo "Help / summary notes for byobu terminal multiplexer: /tmp/help-byobu.sh alias it in .custom"
 #
 ####################
 
@@ -836,7 +847,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-print_header "bash quick notes (if have been away from Linux for a while)"
+echo "Help / summary notes for bash shell: /tmp/help-bash.sh alias it in .custom (useful refresher notes)"
 #
 ####################
 
@@ -862,7 +873,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-print_header "vim quick notes (if have been away from Linux for a while)"
+echo "Help / summary notes for Vim: /tmp/help-vim.sh alias it in .custom (useful refresher notes)"
 #
 ####################
 
@@ -875,14 +886,16 @@ echox "********************"
 echox "* Vim Notes..."
 echox "********************"
 echox ""
-echox "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
-echox "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
-echox "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
-echox "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
-echox "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
-echox "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
-echox "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
-echox "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
+# echox "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
+# echox "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
+# echox "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
+# echox "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
+# echox "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
+# echox "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
+# echox "Vim, Advanced Cheat Sheet: https://vimsheet.com/advanced.html https://vim.fandom.com/wiki/Using_marks"
+# echox "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
+# echox "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
+# echox "https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai"
 echox ""
 echox ":Tutor<Enter>  30 min tutorial built into Vim."
 echox "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
@@ -1031,11 +1044,11 @@ chmod 755 $HELPFILE
 
 ####################
 #
-print_header "Help file for WSL integration"
+echo "Help / summary notes for WSL integration: /tmp/help-wsl.sh alias it in .custom (useful refresher notes)"
 #
 ####################
 
-echo "Run the following lines in a PowerShell console on Windows to damp the jarring Windows Event sounds that affect WSL sessions:"
+echo "Run the following lines in a PowerShell console on Windows to alter the jarring Windows Event sounds that affect WSL sessions:"
 echo ""
 echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
@@ -1060,7 +1073,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echox "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
     echox "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
     echox ""
-    echox "Run the following in a PowerShell console to damp the jarring Windows Event sounds that affect WSL sessions:"
+    echox "Run the following in a PowerShell console to alter the jarring Windows Event sounds inside WSL sessions:"
+    echox ""
     echox '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
     echox 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
     echox ""
@@ -1071,7 +1085,7 @@ fi
 
 ####################
 #
-print_header "Run 'source ~/.custom' into this currently running session"
+print_header "Run 'source ~/.custom' to load '.custom' into this current session"
 #
 ####################
 # echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
@@ -1087,8 +1101,8 @@ echo "'cat ~/.custom' to view the functions that will load in all new interactiv
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."
     echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste."
-    echo "Access WSL folders from Windows Eplorer: from bash, type 'explorer.exe .' (note the '.exe'), or from Explorer, '\\wsl$'."
-    echo "Access Windows from bash: 'cd /mnt/c', 'cd /mnt/d', 'cd /mnt/e', etc, can use 'alias c='cd /mnt/c && ll' and same for 'd', 'e' etc"
+    echo "From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\wsl$'."
+    echo "Access Windows from bash: 'cd /mnt/c' etc, can use 'alias c:='cd /mnt/c && ll' and same for 'd', 'e' etc"
 fi
 echo ""
 echo ""

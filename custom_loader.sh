@@ -189,6 +189,8 @@ check_and_install git git
 check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
+check_and_install perl perl
+check_and_install python python
 check_and_install dos2unix dos2unix
 check_and_install mount mount.cifs
 check_and_install neofetch neofetch
@@ -329,16 +331,46 @@ if [ ! $(which bat) ]; then
     content=$(curl -L google.com) # You can use the curl command for this aswell as:
     # We need to use the -L option as the page we are requesting might have moved. In which case we need to get the page from the new location. The -L or --location option helps us with this.
     REL=v0.18.3
-    BAT=bat_0.18.3_amd64.deb
+    FILE=bat_0.18.3_amd64
+    DEB=${FILE}.deb
     DL=https://github.com/sharkdp/bat/releases/download/$REL/$BAT
     [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ $DL   # 64-bit version
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
+
+    if [ "$MANAGER" == "dnf" ]; then
+        cd /tmp
+        REL=v0.18.3
+        FILE=bat_0.18.3_amd64
+        DEB=${FILE}.deb
+        # https://forums.centos.org/viewtopic.php?f=54&t=75913
+        dnf install perl-ExtUtils-Install
+        dnf install make -y
+        ALIENTAR=alien_8.95.tar.xz
+        ALIENDIR=alien-8.95
+        wget -c https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
+        tar xf $ALIENTAR
+        cd $ALIENDIR   # dnf install perl
+        sudo perl Makefile.PL
+        sudo make
+        sudo make install
+        alien --to-rpm $FILE.deb   # where file.deb is the DEB package you have downloaded.
+        rpm -ivh $FILE.rpm
+    fi
+
     # sudo dpkg -r bat   # to remove after install
     # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
     rm /tmp/$BAT
 fi
 
-
+# For CentOS
+# Get latest tar.xz from https://sourceforge.net/projects/alien-pkg-convert/files/release/
+# wget -c https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
+# tar xf alien_8.95.tar.xz
+# dnf install perl
+# perl Makefile.PL; make; make install
+# alien --to-rpm file.deb   # where file.deb is the DEB package you have downloaded.
+# rpm -ivh file.rpm
+# https://linuxconfig.org/how-to-install-deb-file-in-redhat-linux-8
 
 ####################
 #
@@ -886,6 +918,12 @@ echox() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
 echox "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
+echox ""
+echox "Essentials: tmux to start a new session called '"
+echox ""
+echox ""
+echox ""
+echox ""
 echox ""
 echox "tmux, tmux new, tmux new-session, :new   Start a new session"
 echox "tmux new -s mysession, new -s mysession   Start a new session with the name mysession"

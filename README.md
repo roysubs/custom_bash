@@ -1,6 +1,11 @@
-# Bash custom configuration & WSL Integration  
-
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
+
+# Quick Install  
+You *must* change the `core.autocrlf` settings when cloning on another WSL system or else scripts will be broken:  
+`git config --global core.autocrlf input`
+`git clone https://github.com/roysubs/custom_bash`  
+
+# Bash custom configuration & WSL Integration  
 
 Auto-configure common settings to be cross-platform for most Linux distros (CentOS/Ubuntu/Debian etc). Specific tools for WSL are included but that only load if WSL is detected. By sourcing a single script `custom_loader.sh`, this sets everything up and puts the `.custom` script into `~` which is then invoked by `~/.bashrc` at shell startup.  
 
@@ -16,6 +21,8 @@ Note that `sudo apt install curl git -y` is a useful first step as new installat
   
 **Option 1: Download full git project, then run `. custom_loader.sh`**:  
   
+You *must* change the `core.autocrlf` settings when cloning on another WSL system or else all scripts will be broken
+`git config --global core.autocrlf input`
 `git clone https://github.com/roysubs/custom_bash`  
 `git clone https://git.io/Jt0f6`   # git.io shortened url  
 This is useful as the `curl xxx | bash` method runs everything immediately without prompting. After cloning the repo, run the loader with: `. custom_loader.sh` (it is best to dotsource like this as it has no execute permissions after cloning, and to allow it to dotsource `.custom` into the currect session when running). There is no need to use `sudo` to run this as require elevated tasks will invoke `sudo` inside the script.  
@@ -44,14 +51,19 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance:  
   
 \# Install WSL using DISM  
-`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
-`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-\# Must reboot before using a distro (first setting defaults to v2)  
+Note: If you're running version 2004 of Windows 10 or later with all the latest optional updates,  
+WSL can now be setup with a single command. Inside a PowerShell window simply type:
+`wsl --install              # Just install WSL`  
+`wsl --install -d Ubuntu    # Install WSL and a named distribution (-d = --distribution)`  
+`wsl --install -d Debian    # Install WSL and a named distribution (-d = --distribution)`  
+`wsl --list --online        # Show compact and friendly names for available distributions`  
+`Current wsl --install -d: Ubuntu, Debian, kali-linux, openSUSE-42, SLES-12, Ubuntu-16.04, Ubuntu-18.04, Ubuntu-20.04`
+`# Deprecated: dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
+`# Deprecated: dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
+`# Deprecated: iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
+`# Deprecated: Add-AppxPackage .\Ubuntu.appx`  
+`# Install Location: C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`  
 `wsl --set-default-version 2`  
-`iwr -Uri https://aka.ms/wslubuntu2004 -OutFile Ubuntu.appx -UseBasicParsing`  
-`Add-AppxPackage .\Ubuntu.appx`  
-\# Will install to:
-`C:\Program Files\WindowsApps\CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2020.812.0_x64__79rhkp1fndgsc`  
 \# Note that `C:\Program Files\WindowsApps` is quite security-restricted, cannot enter easily even as Admin.  
 \# Also, this all bloats the system drive, so I normally move WSL distros to `D:\WSL\<distro-name>` (and can port distros to other systems in this way also):  
 `md D:\WSL\Ubuntu`  
@@ -70,11 +82,45 @@ It is often useful to have multiple copies of a distro available. With the above
 `wsl --import Ubuntu D:\WSL\Ubuntu1 D:\WSL\Ubuntu.tar`  
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
 
+# Other Distributions
+
+\# Optionally, can install alpine, arch, or fedoraremix from the Chocolatey repository:  
+`choco install wsl-alpine       # Use Chocolatey to get Alpine (not offered by Microsoft)`  
+`choco install wsl-archlinux    # Use Chocolatey to get Arch (not offered by Microsoft)`  
+`choco install wsl-fedoraremix  # Use Chocolatey to get Fedora (not offered by Microsoft)`  
+[wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine), [wsl-archlinux](https://community.chocolatey.org/packages/wsl-archlinux)  
+
+\# CentOS 8 Stream installer https://github.com/mishamosher/CentOS-WSL/releases/tag/8-stream-20210603  
+After extracting the zip into a folder, inside it you will see two files: `rootfs.tar.gz`, `CentOS.exe`.  
+Run `CentOS.exe` in order to extract the vhd (Hyper-V virtual hard-disk), and register it on WSL.  
+Now, right-click `CentOS.exe` again, and run as Administrator, and this time it will start CentOS.  
+To uninstall CentOS: `.\CentOS.exe clean` (from PowerShell).  
+If accidentally delete the CentOS folder, when unzipping it again, also should clean it again: `.\CentOS.exe clean`.
+\# CentOS 8 installer https://github.com/mishamosher/CentOS-WSL/releases/tag/8.4-2105  
+\# CentOS 7 installer https://github.com/mishamosher/CentOS-WSL/releases/tag/7.9-2009  
+\# CentOS 6 installer https://github.com/mishamosher/CentOS-WSL/releases/tag/6.10-1907  
+Working only on WSL2 with vsyscall=emulate. More info: [microsoft/WSL#5465](https://github.com/microsoft/WSL/issues/5465)  
+Detailed instructions:  
+Install via wsl `--import` or running `CentOS6.exe`  
+Make sure you use WSL2: `wsl --set-version <Distro> 2`  
+Configure WSL2 to use vsyscall=emulate: [microsoft/WSL#4694 (comment)](https://github.com/microsoft/WSL/issues/4694#issuecomment-556095344)  
+You have to restart the Windows service LxssManager for the step above to take effect.  
+\# Must reboot before using a distro, but first set all defaults to use WSL v2.  
+
 # WSL Startup  
+
+On first startup, you will be prompted to create a username and password. Note that each WSL instance will have it's own useraname and password that are not synced with the Windows user.  
 You can start the distro from the Ubuntu icon on the Start Menu, or by running `wsl` or `bash` from a PowerShell or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions) with `Alt-Enter`. Registered distros are automatically added to Windows Terminal (how to add a new Windows Terminal console type?).
 [Remove scrollbar in fullscreen](https://github.com/Microsoft/WSL/issues/407#issuecomment-295761589)  
 
-  
+You can also execute a number of Linux commands without having to first launch into the dedicated shell. This is handy for quick processes, for example running an update.  
+To do this you would use the template wsl `<argument> <options> <commandline>`  
+To run commands in your *default* Linux distro, you don't need to specify an argument at all.  
+e.g. To update Ubuntu if it's your default you would simply enter `wsl sudo apt update`  
+`wsl --distribution debian sudo apt update`
+`wsl -d debian sudo apt install youtube-dl -y`
+*What about creating a user/pass on a new instance?*
+
 # WSL VMs, how to terminate (shutdowns/reboot), and how to reset  
 
 It is important to understand that there is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance (and any services, websites, containers) continue to run in the background. Only terminating the WSL distro will stop those services. More on that [here](https://stackoverflow.com/questions/66375364shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137).  
@@ -663,19 +709,10 @@ https://code.visualstudio.com/docs/remote/wsl
 https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode  
 https://ajeet.dev/developing-in-wsl-using-visual-studio-code/  
 
-
-
-• Setup Virtual Machine Platform and Windows Subsystem for Linux from an Admin PowerShell console:  
-`dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart`  
-`dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart`  
-*Must reboot at this point before using a distro.*  
-  
-Note: the above is deprecated. The `wsl.exe` binary is now built into Windows in newer releases, so simply run `wsl --install` to do the above steps. A reboot is still required afterwards however.  
-  
 **Install a distro from App Store or Chocolatey or manually with iwr/curl**  
 • App Store: [Distros https://aka.ms/wslstore](https://aka.ms/wslstore)  
 • Chocolatey [wsl-ubuntu-2004](https://chocolatey.org/packages/wsl-ubuntu-2004), [wsl-fedoraremix](https://chocolatey.org/packages/wsl-fedoraremix), [wsl-alpine](https://chocolatey.org/packages/wsl-alpine)  
-`choco install choco install wsl-ubuntu-2004`  
+`choco install wsl-ubuntu-2004`  
 This chocolatey package can set the default user as root (default is false):  
 `choco install wsl-ubuntu-2004 --params "/InstallRoot:true"`  
 • Using [iwr/curl](https://docs.microsoft.com/en-us/windows/wsl/install-manual) (Invoke-WebRequest):  

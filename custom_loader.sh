@@ -34,14 +34,14 @@
 
 ####################
 #
-# Setup the print_header() and exe() functions
+# Setup print_header() and exe() functions
 #
 ####################
 
 TMP="/tmp/custom_bash"
 mkdir $TMP &> /dev/null
 
-### print_header() is used to create a simple section banner to output during execution
+### print_header() will display up to 3 arguments as a simple banner
 print_header() {
     printf "\n\n\n####################\n"
     printf "#\n"
@@ -52,12 +52,12 @@ print_header() {
     printf "####################\n\n"
 }
 
-### exe() is used to display a command and then run that same command, so you can see what the script is about to run
+### exe() will display a command and then run that same command, so you can see what is about to be run
 # https://stackoverflow.com/questions/2853803/how-to-echo-shell-commands-as-they-are-executed
 # By default, the following exe() will run run unattended, i.e. will show the command and then execute immediately
-# Howeve, if "y" is chosen, the exe() function is altered to display the command, then display a pause before running
-# the command so the user can control what runs and what does not.
-# ToDo: modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
+# However, if "y" is chosen, the exe() function is updated to display the command, then display a pause before running as follows:
+# exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; }
+# ToDo (might not be required): modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n"; echo "\$ ${@/eval/}"; "$@"; }
 
@@ -199,6 +199,7 @@ check_and_install tree tree
 check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
 check_and_install unzip unzip
+check_and_install pip pip
 check_and_install lr lr          # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
@@ -303,10 +304,34 @@ if [ ! $(which bat) ]; then
     ####################
     echo "# Download and setup 'bat' and alias 'cat' to use 'bat' instead (same as 'cat' but with syntax highlighting)"
     echo "# Check here for latest updates: https://github.com/sharkdp/bat/releases"
-    # Use that system from PowerShell to extract latest version and path ...
+    # Replicate that system from PowerShell Install-BitComet to always extract latest version and path ...
+    # $start_time = Get-Date   # Used with the timer on last line of function
+    # $url = "https://www.bitcomet.com/en/archive"
+    # ($page.Content -match 'https\:\/\/download\.bitcomet\.com\/achive\/BitComet_\d\.\d\d\.zip')
+    # $dl_link = $Matches[0]
+    # $dl_ver = (($dl_link.Split('_')[1]) -split '.zip')[0]
+    # $dl_file = ($dl_link -Split('/'))[-1]
+    # $dl_out = ($dl_file -split "_")[0]
+    # $dl
+    # $dl_ver
+    # $dl_file
+    # iwr -Uri $dl_link -OutFile .\$dl_file
+    # # Maybe test here: f not exist 7z.exe run Install-7zip to make sure it is available
+    # $7z = 'C:\Program Files\7-Zip\7z.exe' 
+    # & $7z "x" $dl_file "-o./$dl_out" "-y" "-r"
+    # & "$dl_out\BitComet.exe"
+    # Write-Output "Time to configure: $((Get-Date).Subtract($start_time).Seconds) second(s)"
+    # Try to get first from repo (might be available on arch, alpine, fedora, etc!)
+    URL=https://github.com/sharkdp/bat/releases/   # Need to look at /releases/ even though the downloads are under /releases/download/$REL/$BAT
+    content=$(wget $URL -q -O -)
+    # Need to then look for first link ending "_amd64.deb", e.g. href="/sharkdp/bat/releases/download/v0.18.3/bat_0.18.3_amd64.deb"
+    # We use the -O option of wget which allows us to specify the name of the file into which wget dumps the page contents. We specify - to get the dump onto standard output and collect that into the variable content. You can add the -q quiet option to turn off's wget output.
+    content=$(curl -L google.com) # You can use the curl command for this aswell as:
+    # We need to use the -L option as the page we are requesting might have moved. In which case we need to get the page from the new location. The -L or --location option helps us with this.
     REL=v0.18.3
     BAT=bat_0.18.3_amd64.deb
-    [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ https://github.com/sharkdp/bat/releases/download/$REL/$BAT   # 64-bit version
+    DL=https://github.com/sharkdp/bat/releases/download/$REL/$BAT
+    [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ $DL   # 64-bit version
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
     # sudo dpkg -r bat   # to remove after install
     # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
@@ -738,8 +763,8 @@ echo "#!/bin/bash" > $HELPFILE
 echox "HELPNOTES=\""
 echox ""
 echox "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
-echox '   Change: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
-echox '   To:     GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080"'
+echox "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
+echox "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
 echox "Adjust 1920x1080 to your current monitor resolution."
 echox "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
 echox ""
@@ -839,6 +864,246 @@ echox "  byobu-ctrl-a              byobu-export              byobu-launcher-inst
 echox "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
 echox "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
 echox "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
+echox "\""   # require final line with a single " to end the multi-line text variable
+echox "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Help / summary notes for tmux terminal multiplexer: /tmp/help-tmux.sh alias it in .custom"
+#
+####################
+
+# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
+# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
+# This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
+# In .custom, we can then simply create aliases if the files exist:
+# [ -f /tmp/help-tmux.sh ] && alias help-tmux='/tmp/help-tmux.sh' && alias help-t='/tmp/help-tmux.sh'   # for .custom
+HELPFILE=/tmp/help-tmux.sh
+echox() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+echox "HELPNOTES=\""
+echox "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
+echox ""
+echox "tmux, tmux new, tmux new-session, :new   Start a new session"
+echox "tmux new -s mysession, new -s mysession   Start a new session with the name mysession"
+echox "tmux kill-ses -t mysession, tmux kill-session -t mysession   Kill/delete session mysession"
+echox "tmux kill-session -a   Kill/delete all sessions but the current"
+echox "tmux kill-session -a -t mysession   Kill/delete all sessions but mysession"
+echox ""
+echox "Ctrl + b $   Rename session,   Ctrl + b d   Detach from session"
+echox "attach -d    Detach others on the session (Maximize window by detach other clients)"
+echox ""
+echox "tmux ls   tmux list-sessions"
+echox "Ctrl + b s"
+echox "Show all sessions"
+echox ""
+echox "tmux a / at / attach / attach-session   Attach to last session"
+echox "tmux a -t mysession   Attach to a session with the name mysession"
+echox ""
+echox "Ctrl + b w"
+echox "Session and Window Preview"
+echox ""
+echox "Ctrl + b ("
+echox "Move to previous session"
+echox ""
+echox "Ctrl + b )"
+echox "Move to next session"
+echox ""
+echox "Windows"
+echox "tmux new -s mysession -n mywindow"
+echox "start a new session with the name mysession and window mywindow"
+echox ""
+echox "Ctrl + b c"
+echox "Create window"
+echox ""
+echox "Ctrl + b ,"
+echox "Rename current window"
+echox ""
+echox "Ctrl + b &"
+echox "Close current window"
+echox ""
+echox "Ctrl + b p"
+echox "Previous window"
+echox ""
+echox "Ctrl + b n"
+echox "Next window"
+echox ""
+echox "Ctrl + b 0 ... 9"
+echox "Switch/select window by number"
+echox ""
+echox "swap-window -s 2 -t 1"
+echox "Reorder window, swap window number 2(src) and 1(dst)"
+echox ""
+echox "swap-window -t -1"
+echox "Move current window to the left by one position"
+echox ""
+echox "Panes"
+echox "Ctrl + b ;"
+echox "Toggle last active pane"
+echox ""
+echox "Ctrl + b %"
+echox "Split pane horizontally"
+echox ""
+echox "Ctrl + b \\\""
+echox "Split pane vertically"
+echox ""
+echox "Ctrl + b {"
+echox "Move the current pane left"
+echox ""
+echox "Ctrl + b }"
+echox "Move the current pane right"
+echox ""
+echox "Ctrl + b "
+echox "Ctrl + b "
+echox "Ctrl + b "
+echox "Ctrl + b "
+echox "Switch to pane to the direction"
+echox ""
+echox "setw synchronize-panes"
+echox "Toggle synchronize-panes(send command to all panes)"
+echox ""
+echox "Ctrl + b Spacebar"
+echox "Toggle between pane layouts"
+echox ""
+echox "Ctrl + b o"
+echox "Switch to next pane"
+echox ""
+echox "Ctrl + b q"
+echox "Show pane numbers"
+echox ""
+echox "Ctrl + b q 0 ... 9"
+echox "Switch/select pane by number"
+echox ""
+echox "Ctrl + b z"
+echox "Toggle pane zoom"
+echox ""
+echox "Ctrl + b !"
+echox "Convert pane into a window"
+echox ""
+echox "Ctrl + b + "
+echox "Ctrl + b Ctrl + "
+echox "Ctrl + b + "
+echox "Ctrl + b Ctrl + "
+echox "Resize current pane height(holding second key is optional)"
+echox ""
+echox "Ctrl + b + "
+echox "Ctrl + b Ctrl + "
+echox "Ctrl + b + "
+echox "Ctrl + b Ctrl + "
+echox "Resize current pane width(holding second key is optional)"
+echox ""
+echox "Ctrl + b x"
+echox "Close current pane"
+echox ""
+echox "Copy Mode"
+echox "setw -g mode-keys vi"
+echox "use vi keys in buffer"
+echox ""
+echox "Ctrl + b ["
+echox "Enter copy mode"
+echox ""
+echox "Ctrl + b PgUp"
+echox "Enter copy mode and scroll one page up"
+echox ""
+echox "q"
+echox "Quit mode"
+echox ""
+echox "g"
+echox "Go to top line"
+echox ""
+echox "G"
+echox "Go to bottom line"
+echox ""
+echox "Scroll up"
+echox ""
+echox "Scroll down"
+echox ""
+echox "h"
+echox "Move cursor left"
+echox ""
+echox "j"
+echox "Move cursor down"
+echox ""
+echox "k"
+echox "Move cursor up"
+echox ""
+echox "l"
+echox "Move cursor right"
+echox ""
+echox "w"
+echox "Move cursor forward one word at a time"
+echox ""
+echox "b"
+echox "Move cursor backward one word at a time"
+echox ""
+echox "/"
+echox "Search forward"
+echox ""
+echox "?"
+echox "Search backward"
+echox ""
+echox "n"
+echox "Next keyword occurance"
+echox ""
+echox "N"
+echox "Previous keyword occurance"
+echox ""
+echox "Spacebar"
+echox "Start selection"
+echox ""
+echox "Esc"
+echox "Clear selection"
+echox ""
+echox "Enter"
+echox "Copy selection"
+echox ""
+echox "Ctrl + b ]"
+echox "Paste contents of buffer_0"
+echox ""
+echox "show-buffer"
+echox "display buffer_0 contents"
+echox ""
+echox "capture-pane"
+echox "copy entire visible contents of pane to a buffer"
+echox ""
+echox "list-buffers"
+echox "Show all buffers"
+echox ""
+echox "choose-buffer"
+echox "Show all buffers and paste selected"
+echox ""
+echox "save-buffer buf.txt"
+echox "Save buffer contents to buf.txt"
+echox ""
+echox "delete-buffer -b 1"
+echox "delete buffer_1"
+echox ""
+echox "Misc"
+echox "Ctrl + b :"
+echox "Enter command mode"
+echox ""
+echox "set -g OPTION"
+echox "Set OPTION for all sessions"
+echox ""
+echox "setw -g OPTION"
+echox "Set OPTION for all windows"
+echox ""
+echox "set mouse on"
+echox "Enable mouse mode"
+echox ""
+echox "Help"
+echox "tmux list-keys"
+echox "list-keys"
+echox "Ctrl + b ?"
+echox "List key bindings(shortcuts)"
+echox ""
+echox "tmux info"
+echox "Show every session, window, pane, etc..."
+echox ""
+echox ""
 echox "\""   # require final line with a single " to end the multi-line text variable
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1016,11 +1281,10 @@ echox "Folloing will toggle comment/uncomment by pressing <space>/ on a line or 
 echox "nnoremap <space>/ :Commentary<CR>"
 echox "vnoremap <space>/ :Commentary<CR>"
 echox ""
-echox ""
 echox "***** SPELL CHECKING / AUTOCOMPLETE"
-echox ":setlocal spell spelllang=en   (default en, or en_us or en_uk)"
-echox "Then, ':set spell' to turn on and ':set nospell' to turn off. Most misspelled words will be highlighted."
-echox "]s to move to the next misspelled word, [s to move to the previous. When on a word, press z= to see list of possible corrections."
+echox ":setlocal spell spelllang=en   (default 'en', or can use 'en_us' or 'en_uk')."
+echox "Then,  :set spell  to turn on and  :set nospell  to turn off. Most misspelled words will be highlighted (but not all)."
+echox "]s to move to the next misspelled word, [s to move to the previous. When on any word, press z= to see list of possible corrections."
 echox "Type the number of the replacement spelling and press enter <enter> to replace, or just <enter> without selection to leave, mouse support can click on replacement."
 echox "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
 echox "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
@@ -1036,6 +1300,9 @@ echox "Fix that with ':set paste' to put Vim in Paste mode before you paste, so 
 echox "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
 echox "You normally only need :set paste in terminals, not in GUI gVim etc."
 echox ""
+echox "dos2unix can change line-endings in a file, or in Vim we can use  :%s/^M//g  (but use Ctrl-v Ctrl-m to generate the ^M)."
+echox "you can also use   :set ff=unix   and vim will do it for you. 'fileformat' help  :h ff,  vim wiki: https://vim.fandom.com/wiki/File_format."
+echox ""
 echox "\""   # require final line with a single " to end the multi-line text variable
 echox "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1048,13 +1315,13 @@ echo "Help / summary notes for WSL integration: /tmp/help-wsl.sh alias it in .cu
 #
 ####################
 
-echo "Run the following lines in a PowerShell console on Windows to alter the jarring Windows Event sounds that affect WSL sessions:"
+echo ""
+echo "The following lines in a PowerShell console on Windows will alter the jarring Windows Event sounds that affect WSL sessions:"
 echo ""
 echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
-echo ""
-echo "Could also do from WSL to access the registry as follows:"
-echo " ??? "
+# Following command will run the above PowerShell from within this session to inject the registry changes:
+powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
 
 # Create a template help-wsl for this and other important WSL points (only create if running WSL)
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
@@ -1073,7 +1340,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echox "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
     echox "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
     echox ""
-    echox "Run the following in a PowerShell console to alter the jarring Windows Event sounds inside WSL sessions:"
+    echox "The following has been run by custom_bash.sh to alter the jarring Windows Event sounds inside WSL sessions:"
     echox ""
     echox '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
     echox 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'

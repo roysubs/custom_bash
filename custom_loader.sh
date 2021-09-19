@@ -22,15 +22,12 @@
 # Useful Toolkits to look through:
 # Nam Nguyen : https://github.com/gdbtek/ubuntu-cookbooks/blob/master/libraries/util.bash referenced from https://serverfault.com/questions/20747/find-last-time-update-was-performed-with-apt-get
 # SSH keys setup : https://github.com/creynoldsaccenture/bash-toolkit
-
-# Easiest comment structure using printf that I've found is:
-# VARNAME="
-# line1
-#
-# line3
-# "
-# printf "$VARNAME\n"
-# Also note on echo: https://www.shellscript.sh/tips/echo/
+# BEF (Bash Essential Functions) : https://github.com/shoogle/bash-essential-functions/blob/master/modules/bef-filepaths.sh
+# Bash-it : https://www.tecmint.com/bash-it-control-shell-scripts-aliases-in-linux/
+# https://www.digitalocean.com/community/tutorials/an-introduction-to-useful-bash-aliases-and-functions
+# https://gitlab.com/bertrand-benoit/scripts-common
+# https://opensource.com/article/19/7/bash-aliases
+# https://src-r-r.github.io/articles/essential-bash-commands-to-make-life-easier/
 
 ####################
 #
@@ -191,12 +188,11 @@ check_and_install curl curl
 check_and_install wget wget
 check_and_install perl perl
 check_and_install python python
+check_and_install pydf
 check_and_install dos2unix dos2unix
 check_and_install mount mount.cifs
 check_and_install neofetch neofetch
 # check_and_install screenfetch screenfetch   # Same as neofetch
-check_and_install fortune fortune
-check_and_install cowsay cowsay
 check_and_install tree tree
 check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
@@ -208,9 +204,10 @@ check_and_install ifconfig net-tools   # Package name is different from the 'ifc
 check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
-
+check_and_install fortune fortune
+check_and_install cowsay cowsay
 check_and_install figlet figlet
-# Ubuntu 20.04 only had this as a snap package on first install, but after full update, it could see package in dnf repository
+# Note that Ubuntu 20.04 could not see this in dnf repo until after full update, but built-in snap can see it
 which figlet &> /dev/null || exe sudo snap install figlet -y
 
 # More complex installers
@@ -297,69 +294,87 @@ if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one fo
 fi
 
 
-# [ ! $(which bat) ]   will resolve 'which bat' and if empty will trigger the 'if-fi' condition
-if [ ! $(which bat) ]; then
+
+# Some useful templates that could be used elsewhere:
+# - Finding the latest download link on a site
+# - String manipulations to get components of link, filename, extension etc
+# - Using \K lookbehnid functionality in grep by using Perl regex mode (-P)
+# - Feed a variable into grep with '<<<' instead of a file
+# - Using 'alien' to (try and) convert a .deb into a .rpm to install on CentOS
+#     This is not currently working on CentOS, *but*, creating the .rpm on Ubuntu then moving that to CentOS works
+#     It generates some errors:
+#       file / from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
+#       file /usr/bin from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
+#     But forcing it to install did work and probably does not break anything, i.e. see here: https://stackoverflow.com/questions/27172142/conflicts-with-file-from-package-filesystem-3-2
+#       sudo rpm -i --force bat-musl-0.18.3-2.x86_64.rpm
+
+if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ####################
     #
     print_header "Download 'bat' (syntax highlighted replacement for 'cat') manually to a known working version"
     #
     ####################
-    echo "# Download and setup 'bat' and alias 'cat' to use 'bat' instead (same as 'cat' but with syntax highlighting)"
-    echo "# Check here for latest updates: https://github.com/sharkdp/bat/releases"
-    # Replicate that system from PowerShell Install-BitComet to always extract latest version and path ...
-    # $start_time = Get-Date   # Used with the timer on last line of function
-    # $url = "https://www.bitcomet.com/en/archive"
-    # ($page.Content -match 'https\:\/\/download\.bitcomet\.com\/achive\/BitComet_\d\.\d\d\.zip')
-    # $dl_link = $Matches[0]
-    # $dl_ver = (($dl_link.Split('_')[1]) -split '.zip')[0]
-    # $dl_file = ($dl_link -Split('/'))[-1]
-    # $dl_out = ($dl_file -split "_")[0]
-    # $dl
-    # $dl_ver
-    # $dl_file
-    # iwr -Uri $dl_link -OutFile .\$dl_file
-    # # Maybe test here: f not exist 7z.exe run Install-7zip to make sure it is available
-    # $7z = 'C:\Program Files\7-Zip\7z.exe' 
-    # & $7z "x" $dl_file "-o./$dl_out" "-y" "-r"
-    # & "$dl_out\BitComet.exe"
-    # Write-Output "Time to configure: $((Get-Date).Subtract($start_time).Seconds) second(s)"
-    # Try to get first from repo (might be available on arch, alpine, fedora, etc!)
-    URL=https://github.com/sharkdp/bat/releases/   # Need to look at /releases/ even though the downloads are under /releases/download/$REL/$BAT
-    content=$(wget $URL -q -O -)
-    # Need to then look for first link ending "_amd64.deb", e.g. href="/sharkdp/bat/releases/download/v0.18.3/bat_0.18.3_amd64.deb"
-    # We use the -O option of wget which allows us to specify the name of the file into which wget dumps the page contents. We specify - to get the dump onto standard output and collect that into the variable content. You can add the -q quiet option to turn off's wget output.
-    content=$(curl -L google.com) # You can use the curl command for this aswell as:
-    # We need to use the -L option as the page we are requesting might have moved. In which case we need to get the page from the new location. The -L or --location option helps us with this.
-    REL=v0.18.3
-    FILE=bat_0.18.3_amd64
-    DEB=${FILE}.deb
-    DL=https://github.com/sharkdp/bat/releases/download/$REL/$BAT
-    [ ! -f /tmp/$BAT ] && exe wget -P /tmp/ $DL   # 64-bit version
-    which bat &> /dev/null || exe sudo dpkg -i /tmp/$BAT   # if true, do nothing, else if false use dpkg
+    echo "# Download and setup 'bat' so that .custom can alias 'cat' to use 'bat' instead"
+    echo "# This provides same functionality as 'cat' but with colour syntax highlighting"
+    # When we get the .deb file, the install syntax is:
+    # sudo dpkg -i /tmp/bat-musl_0.18.3_amd64.deb   # install
+    # sudo dpkg -r bat                              # remove
 
-    if [ "$MANAGER" == "dnf" ]; then
-        cd /tmp
-        REL=v0.18.3
-        FILE=bat_0.18.3_amd64
-        DEB=${FILE}.deb
-        # https://forums.centos.org/viewtopic.php?f=54&t=75913
-        dnf install perl-ExtUtils-Install
-        dnf install make -y
+    # We need to determine the latest download link for our needs, starting from this url
+    # Need to look at /releases/ even though the downloads are under /releases/download/ as the links are here
+    bat_releases=https://github.com/sharkdp/bat/releases/   
+    content=$(wget $bat_releases -q -O -) 
+    # -q quiet. -O option allows speficying a filename to download to; specify - to get the dump onto standard output (which we collect into $content)
+    # Need to then look for first link ending "_amd64.deb", e.g. href="/sharkdp/bat/releases/download/v0.18.3/bat_0.18.3_amd64.deb"
+    # content=$(curl -L google.com) # You could also use curl, -L as the page might have moved to get from new location, --location option helps with this.
+
+    # grep -P uses Perl regular expressions to allow for \K lookbehinds. https://stackoverflow.com/questions/33573920/what-does-k-mean-in-this-regex
+    # echo 'hello world' | grep 'hello \K(world)'   # Will only match 'world' if and only if it is preceded by 'hello ' but will not include the 'hello ' part in the match.
+    # grep -oP 'href="\K/sharkdp/[^"]*_amd64\.deb'  # matches href=" (then drops it from the match), then matche /sharkdp/ and any number of chars *except* " , and then match _amd_64.deb
+    firstlink=$(grep -oP 'href="/sharkdp/bat/releases/\K[^"]*_amd64\.deb' <<< "$content" | head -1)
+    # Note how to feed a variable into grep with '<<<' instead of a file
+    DL=$bat_releases$firstlink
+    ver_and_filename=$(grep -oP 'https://github.com/sharkdp/bat/releases/download/\K[^"]*\.deb' <<< "$DL")   # v0.18.3/bat-musl_0.18.3_amd64.deb
+    IFS='\/' read -ra my_array <<< "$ver_and_filename"   # for i in "${my_array[@]}"; do echo $i; done
+    ver=${my_array[0]}
+    filename=${my_array[1]}
+    IFS='.' read -ra my_array <<< "$filename"
+    extension=${my_array[-1]}
+    extension_with_dot="."$extension
+    filename_no_extension=${filename%%${extension_with_dot}*}   # https://stackoverflow.com/questions/62657224/split-a-string-on-a-word-in-bash
+    # various ways to get name without extension https://stackoverflow.com/questions/12152626/how-can-i-remove-the-extension-of-a-filename-in-a-shell-script
+    echo $DL
+    echo $ver_and_filename
+    echo $ver
+    echo $filename
+    echo $extension
+    echo $filename_no_extension
+
+    [ ! -f /tmp/$filename ] && exe wget -P /tmp/ $DL       # 64-bit version
+    which bat &> /dev/null || exe sudo dpkg -i /tmp/$filename   # if the 'bat' command is present, do nothing, otherwise install with dpkg
+
+    # Using 'alien' to create a .rpm from a .deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
+    if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then        
+        exe sudo $MANAGER install perl-ExtUtils-Install
+        exe sudo $MANAGER install make -y
+        ALIENDL=https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
         ALIENTAR=alien_8.95.tar.xz
         ALIENDIR=alien-8.95
-        wget -c https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
+        exe wget -P /tmp/ $ALIENDL
         tar xf $ALIENTAR
-        cd $ALIENDIR   # dnf install perl
+        cd /tmp/$ALIENDIR   # dnf install perl
         sudo perl Makefile.PL
         sudo make
         sudo make install
-        alien --to-rpm $FILE.deb   # where file.deb is the DEB package you have downloaded.
-        rpm -ivh $FILE.rpm
+        cd ..
+        sudo alien --to-rpm $filename     # bat-musl_0.18.3_amd64.deb
+        # sudo rpm -ivh $FILE.rpm         # bat-musl-0.18.3-2.x86_64.rpm : note that the name has changed
+        # Ideally, we should create a folder, create the output in there, then grab the name from there, since the name can change
     fi
 
     # sudo dpkg -r bat   # to remove after install
     # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
-    rm /tmp/$BAT
+    rm /tmp/$filename
 fi
 
 # For CentOS
@@ -390,6 +405,7 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 # https://unix.stackexchange.com/questions/295274/grep-to-find-the-correct-line-sed-to-change-the-contents-then-putting-it-back
 
 # Backup ~/.custom
+TMP=/tmp
 if [ -f ~/.custom ]; then
     echo "Create Backup : $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
     cp ~/.custom $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
@@ -781,33 +797,51 @@ echo "Run 'locale' to view the current settings before changing."
 
 
 
+
+
+
 ####################
 #
-print_header "HELP FILES : Will create various help files and alias them in .custom"
+print_header "HELP FILES : Will create various scripts to show notes and tips, then alias them in .custom"
 #
 ####################
 
-echo "Notes for when Linux instance is running inside a Hyper-V VM: How to run full-screen and disable sleep"
+# Try to build a collection of common notes, summaries, tips, tricks to always be accessible from the console.
+# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
+# Note that using exx() requires escaping characters \$ \\ and " is awkward, requires \\\" (\\ => \ and \" => ")
+# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc)
+# This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
+# In .custom, we can then simply create aliases if the files exist:
+# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'   # for .custom
+# https://www.shellscript.sh/tips/echo/
+
+
+
+####################
+#
+echo "Help / summary notes for this instance is running inside a Hyper-V VM." "e.g. How to run full-screen and disable sleep"
+#
+####################
 
 HELPFILE=/tmp/help-hyperv.sh
-echox() { echo "$1" >> $HELPFILE; }
+exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-echox "HELPNOTES=\""
-echox ""
-echox "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
-echox "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
-echox "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
-echox "Adjust 1920x1080 to your current monitor resolution."
-echox "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
-echox ""
-echox "From Hyper-V Manager dashboard, find the VM, and open Settings."
-echox "Go to Integration Services tab > Make sure Guest services section is checked."
-echox ""
-echox "systemctl status sleep.target   # Show current sleep settings"
-echox "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
-echox "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
-echox "\""   # require final line with a single " to end the multi-line text variable
-echox "echo -e \"\$HELPNOTES\\n\""
+exx "HELPNOTES=\""
+exx ""
+exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
+exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
+exx "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
+exx "Adjust 1920x1080 to your current monitor resolution."
+exx "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
+exx ""
+exx "From Hyper-V Manager dashboard, find the VM, and open Settings."
+exx "Go to Integration Services tab > Make sure Guest services section is checked."
+exx ""
+exx "systemctl status sleep.target   # Show current sleep settings"
+exx "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
+exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 /tmp/help-hyperv.sh   # Display this immediately
 
@@ -819,85 +853,80 @@ echo "Help / summary notes for byobu terminal multiplexer: /tmp/help-byobu.sh al
 #
 ####################
 
-# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
-# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
-# This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
-# In .custom, we can then simply create aliases if the files exist:
-# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'   # for .custom
 HELPFILE=/tmp/help-byobu.sh
-echox() { echo "$1" >> $HELPFILE; }
+exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-echox "HELPNOTES=\""
-echox "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
-echox "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
-echox "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
-echox "byobu keybindings can be user defined in /usr/share/byobu/keybindings/"
-echox ""
-echox "byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
-echox "byobu good tutorial: https://simonfredsted.com/1588   https://gist.github.com/jshaw/5255721"
-echox "Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus"
-echox "Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo"
-echox "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
-echox "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
-echox "tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/"
-echox "https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397"
-echox ""
-echox "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu terminal commands"
-echox "  byobu-<tab><tab> to see all bash commands, can 'man' on each of these"
-echox "  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)"
-echox "  Alt-F12 (toggle mouse support on/off), or F12-: then 'set mouse on' / 'set mouse off'"
-echox "  With mouse, click on panes and windows to switch. Scroll on panes with the mouse wheel or trackpad. Resize panes by dragging from edges"
-echox "  Mouse support *breaks* copy/paste, but just hold down 'Shift' while selecting text and it works fine."
-echox "  Byobu shortcuts can interfere with other application shortcuts. To toggle enabling/disabling byobu, use Shift-F12."
-echox "  Ctrl-Shift-F12 for Mondrian Square (just a toy). Press Ctrl-D to kill this window."
-echox ""
-echox "- PANES: Ctrl-F2 (vertical split F12-%), Shift-F2 (horizontal split, F12-|) ('|' feels like it should be for 'vertical', so this is a little confusing)"
-echox "  Shift-F3/F4 (jump between panes), Ctrl-F3/F4 (move a pane to a different location)"
-echox "  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)"
-echox "  Shift-F9 (enter command to run in all visible panes)"
-echox "  Shift-F8 (toggle panes through the grid templates), F12-z (toggle fullscreen/restore for a pane)"
-echox "  Alt-PgUp (scroll up in current pane/window), Alt-PgDn (scroll down in current pane/window)"
-echox "  Ctrl-F6 or Ctrl-D (kill the current pane that is in focus), or 'exit' in that pane"
-echox "  Note: if the pane dividers disappear, press F5 to refresh status, including rebuilding the pane dividers."
-echox ""
-echox "- WINDOWS: F2 (new window in current session)"
-echox "  Alt-Left/Right or F3/F4 (toggle through windows), Ctrl-Shift-F3/F4 (move a window left or right)  "
-echox "  Ctrl-F6 or Ctrl-D (kill the current pane, *or* will kill the current window if there is only one pane), or 'exit' in that window"
-echox ""
-echox "- SESSIONS: Ctrl-Shift-F2 (new session i.e. a new tmux instance with only '0:-*'), Alt-Up/Down (toggle through sessions)"
-echox "  F12-S (toggle through sessions with preview)"
-echox "  F9: Enter command and run in all sessions"
-echox "  F6 (detach the current session, leaving session running in background, and logout of byobu/tmux)"
-echox "  Shift-F6 (detach the current, leaving session running in background, but do not logout of byobu/tmux)"
-echox ""
-echox "- F5 (reload profile, refresh status), Shift-F5 (toggle different status lines), Ctrl-Shift-F5 randomises status bar colours, to reset, use: rm ~/.byobu/color.tmux"
-echox "  Alt-F5 (toggle UTF-8 support, refresh), Ctrl-F5 (reconnect ssh/gpg/dbus sockets)"
-echox ""
-echox "- F6 (detach session and logout), Shift-F6 (detach session and do not logout)"
-echox "  Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)"
-echox ""
-echox "- F7 (enter scrollback history), Alt-PgUp/PgDn (enter and move through scrollback), Shift-F7 (save history to '\$BYOBU_RUN_DIR/printscreen')"
-echox ""
-echox "- F8 (rename window), Ctrl-F8 (rename session), Shift-F8 (toggle panes through the grid templates)"
-echox ""
-echox "- F12-: (to enable the internal terminal), then 'set mouse on', then ENTER to enable mouse mode."
-echox "  For other commands, 'list-commands'"
-echox "  F12-T (fullscreen graphical clock)"
-echox "  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'"
-echox ""
-echox "- 'b ls', 'b list-session' or 'b list-sessions'"
-echox "  On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3% 251G2% 2021-04-27 08:41:50"
-echox "  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores"
-echox "  12.4G3% = 12.4 G free memory, 3% CPU usage,   251G2% = 251 G free space, 2% used, 2021-04-27 08:41:50 = date/time"
-echox ""
-echox "- byobu-<tab><tab> to see all byobu bash commands, can 'man <command>' on each of these"
-echox "  byobu-config              byobu-enable-prompt       byobu-launcher            byobu-quiet               byobu-select-session      byobu-tmux"
-echox "  byobu-ctrl-a              byobu-export              byobu-launcher-install    byobu-reconnect-sockets   byobu-shell               byobu-ugraph"
-echox "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
-echox "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
-echox "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
-echox "\""   # require final line with a single " to end the multi-line text variable
-echox "echo -e \"\$HELPNOTES\\n\""
+exx "HELPNOTES=\""
+exx "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
+exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
+exx "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
+exx "byobu keybindings can be user defined in /usr/share/byobu/keybindings/"
+exx ""
+exx "byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
+exx "byobu good tutorial: https://simonfredsted.com/1588   https://gist.github.com/jshaw/5255721"
+exx "Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus"
+exx "Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo"
+exx "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
+exx "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
+exx "tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/"
+exx "https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397"
+exx ""
+exx "- BASIC NOTES: Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu terminal commands"
+exx "  byobu-<tab><tab> to see all bash commands, can 'man' on each of these"
+exx "  Shift-F1 (quick help, 'q' to exit), F1 (help/configuration UI, ESC to exit), F9 (byobu-config, but is same as F1)"
+exx "  Alt-F12 (toggle mouse support on/off), or F12-: then 'set mouse on' / 'set mouse off'"
+exx "  With mouse, click on panes and windows to switch. Scroll on panes with the mouse wheel or trackpad. Resize panes by dragging from edges"
+exx "  Mouse support *breaks* copy/paste, but just hold down 'Shift' while selecting text and it works fine."
+exx "  Byobu shortcuts can interfere with other application shortcuts. To toggle enabling/disabling byobu, use Shift-F12."
+exx "  Ctrl-Shift-F12 for Mondrian Square (just a toy). Press Ctrl-D to kill this window."
+exx ""
+exx "- PANES: Ctrl-F2 (vertical split F12-%), Shift-F2 (horizontal split, F12-|) ('|' feels like it should be for 'vertical', so this is a little confusing)"
+exx "  Shift-F3/F4 (jump between panes), Ctrl-F3/F4 (move a pane to a different location)"
+exx "  Shift-<CursorKeys> (move between panes), Shift-Alt-<CursorKeys> (resize a pane), Shift-F8 (toggle pane arrangements)"
+exx "  Shift-F9 (enter command to run in all visible panes)"
+exx "  Shift-F8 (toggle panes through the grid templates), F12-z (toggle fullscreen/restore for a pane)"
+exx "  Alt-PgUp (scroll up in current pane/window), Alt-PgDn (scroll down in current pane/window)"
+exx "  Ctrl-F6 or Ctrl-D (kill the current pane that is in focus), or 'exit' in that pane"
+exx "  Note: if the pane dividers disappear, press F5 to refresh status, including rebuilding the pane dividers."
+exx ""
+exx "- WINDOWS: F2 (new window in current session)"
+exx "  Alt-Left/Right or F3/F4 (toggle through windows), Ctrl-Shift-F3/F4 (move a window left or right)  "
+exx "  Ctrl-F6 or Ctrl-D (kill the current pane, *or* will kill the current window if there is only one pane), or 'exit' in that window"
+exx ""
+exx "- SESSIONS: Ctrl-Shift-F2 (new session i.e. a new tmux instance with only '0:-*'), Alt-Up/Down (toggle through sessions)"
+exx "  F12-S (toggle through sessions with preview)"
+exx "  F9: Enter command and run in all sessions"
+exx "  F6 (detach the current session, leaving session running in background, and logout of byobu/tmux)"
+exx "  Shift-F6 (detach the current, leaving session running in background, but do not logout of byobu/tmux)"
+exx ""
+exx "- F5 (reload profile, refresh status), Shift-F5 (toggle different status lines), Ctrl-Shift-F5 randomises status bar colours, to reset, use: rm ~/.byobu/color.tmux"
+exx "  Alt-F5 (toggle UTF-8 support, refresh), Ctrl-F5 (reconnect ssh/gpg/dbus sockets)"
+exx ""
+exx "- F6 (detach session and logout), Shift-F6 (detach session and do not logout)"
+exx "  Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)"
+exx ""
+exx "- F7 (enter scrollback history), Alt-PgUp/PgDn (enter and move through scrollback), Shift-F7 (save history to '\$BYOBU_RUN_DIR/printscreen')"
+exx ""
+exx "- F8 (rename window), Ctrl-F8 (rename session), Shift-F8 (toggle panes through the grid templates)"
+exx ""
+exx "- F12-: (to enable the internal terminal), then 'set mouse on', then ENTER to enable mouse mode."
+exx "  For other commands, 'list-commands'"
+exx "  F12-T (fullscreen graphical clock)"
+exx "  To completely kill your session, and byobu in the background, type F12-: then 'kill-server'"
+exx ""
+exx "- 'b ls', 'b list-session' or 'b list-sessions'"
+exx "  On starting byobu, session tray shows:   u  20.04 0:-*      11d12h 0.00 4x3.4GHz 12.4G3% 251G2% 2021-04-27 08:41:50"
+exx "  u = Ubuntu, 20.04 = version, 0:~* is the session, 11d12h = uptime, 0.00 = ?, 4x3.40GHz = 3.4GHz Core i5 with 4 cores"
+exx "  12.4G3% = 12.4 G free memory, 3% CPU usage,   251G2% = 251 G free space, 2% used, 2021-04-27 08:41:50 = date/time"
+exx ""
+exx "- byobu-<tab><tab> to see all byobu bash commands, can 'man <command>' on each of these"
+exx "  byobu-config              byobu-enable-prompt       byobu-launcher            byobu-quiet               byobu-select-session      byobu-tmux"
+exx "  byobu-ctrl-a              byobu-export              byobu-launcher-install    byobu-reconnect-sockets   byobu-shell               byobu-ugraph"
+exx "  byobu-disable             byobu-janitor             byobu-launcher-uninstall  byobu-screen              byobu-silent              byobu-ulevel"
+exx "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
+exx "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
@@ -913,237 +942,193 @@ echo "Help / summary notes for tmux terminal multiplexer: /tmp/help-tmux.sh alia
 # This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
 # In .custom, we can then simply create aliases if the files exist:
 # [ -f /tmp/help-tmux.sh ] && alias help-tmux='/tmp/help-tmux.sh' && alias help-t='/tmp/help-tmux.sh'   # for .custom
+
+# https://davidwinter.dev/tmux-the-essentials/
+# https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/
+# https://www.golinuxcloud.com/tmux-cheatsheet/
+# https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html
+
 HELPFILE=/tmp/help-tmux.sh
-echox() { echo "$1" >> $HELPFILE; }
+exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-echox "HELPNOTES=\""
-echox "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
-echox ""
-echox "Essentials: tmux to start a new session called '"
-echox ""
-echox ""
-echox ""
-echox ""
-echox ""
-echox "tmux, tmux new, tmux new-session, :new   Start a new session"
-echox "tmux new -s mysession, new -s mysession   Start a new session with the name mysession"
-echox "tmux kill-ses -t mysession, tmux kill-session -t mysession   Kill/delete session mysession"
-echox "tmux kill-session -a   Kill/delete all sessions but the current"
-echox "tmux kill-session -a -t mysession   Kill/delete all sessions but mysession"
-echox ""
-echox "Ctrl + b $   Rename session,   Ctrl + b d   Detach from session"
-echox "attach -d    Detach others on the session (Maximize window by detach other clients)"
-echox ""
-echox "tmux ls   tmux list-sessions"
-echox "Ctrl + b s"
-echox "Show all sessions"
-echox ""
-echox "tmux a / at / attach / attach-session   Attach to last session"
-echox "tmux a -t mysession   Attach to a session with the name mysession"
-echox ""
-echox "Ctrl + b w"
-echox "Session and Window Preview"
-echox ""
-echox "Ctrl + b ("
-echox "Move to previous session"
-echox ""
-echox "Ctrl + b )"
-echox "Move to next session"
-echox ""
-echox "Windows"
-echox "tmux new -s mysession -n mywindow"
-echox "start a new session with the name mysession and window mywindow"
-echox ""
-echox "Ctrl + b c"
-echox "Create window"
-echox ""
-echox "Ctrl + b ,"
-echox "Rename current window"
-echox ""
-echox "Ctrl + b &"
-echox "Close current window"
-echox ""
-echox "Ctrl + b p"
-echox "Previous window"
-echox ""
-echox "Ctrl + b n"
-echox "Next window"
-echox ""
-echox "Ctrl + b 0 ... 9"
-echox "Switch/select window by number"
-echox ""
-echox "swap-window -s 2 -t 1"
-echox "Reorder window, swap window number 2(src) and 1(dst)"
-echox ""
-echox "swap-window -t -1"
-echox "Move current window to the left by one position"
-echox ""
-echox "Panes"
-echox "Ctrl + b ;"
-echox "Toggle last active pane"
-echox ""
-echox "Ctrl + b %"
-echox "Split pane horizontally"
-echox ""
-echox "Ctrl + b \\\""
-echox "Split pane vertically"
-echox ""
-echox "Ctrl + b {"
-echox "Move the current pane left"
-echox ""
-echox "Ctrl + b }"
-echox "Move the current pane right"
-echox ""
-echox "Ctrl + b "
-echox "Ctrl + b "
-echox "Ctrl + b "
-echox "Ctrl + b "
-echox "Switch to pane to the direction"
-echox ""
-echox "setw synchronize-panes"
-echox "Toggle synchronize-panes(send command to all panes)"
-echox ""
-echox "Ctrl + b Spacebar"
-echox "Toggle between pane layouts"
-echox ""
-echox "Ctrl + b o"
-echox "Switch to next pane"
-echox ""
-echox "Ctrl + b q"
-echox "Show pane numbers"
-echox ""
-echox "Ctrl + b q 0 ... 9"
-echox "Switch/select pane by number"
-echox ""
-echox "Ctrl + b z"
-echox "Toggle pane zoom"
-echox ""
-echox "Ctrl + b !"
-echox "Convert pane into a window"
-echox ""
-echox "Ctrl + b + "
-echox "Ctrl + b Ctrl + "
-echox "Ctrl + b + "
-echox "Ctrl + b Ctrl + "
-echox "Resize current pane height(holding second key is optional)"
-echox ""
-echox "Ctrl + b + "
-echox "Ctrl + b Ctrl + "
-echox "Ctrl + b + "
-echox "Ctrl + b Ctrl + "
-echox "Resize current pane width(holding second key is optional)"
-echox ""
-echox "Ctrl + b x"
-echox "Close current pane"
-echox ""
-echox "Copy Mode"
-echox "setw -g mode-keys vi"
-echox "use vi keys in buffer"
-echox ""
-echox "Ctrl + b ["
-echox "Enter copy mode"
-echox ""
-echox "Ctrl + b PgUp"
-echox "Enter copy mode and scroll one page up"
-echox ""
-echox "q"
-echox "Quit mode"
-echox ""
-echox "g"
-echox "Go to top line"
-echox ""
-echox "G"
-echox "Go to bottom line"
-echox ""
-echox "Scroll up"
-echox ""
-echox "Scroll down"
-echox ""
-echox "h"
-echox "Move cursor left"
-echox ""
-echox "j"
-echox "Move cursor down"
-echox ""
-echox "k"
-echox "Move cursor up"
-echox ""
-echox "l"
-echox "Move cursor right"
-echox ""
-echox "w"
-echox "Move cursor forward one word at a time"
-echox ""
-echox "b"
-echox "Move cursor backward one word at a time"
-echox ""
-echox "/"
-echox "Search forward"
-echox ""
-echox "?"
-echox "Search backward"
-echox ""
-echox "n"
-echox "Next keyword occurance"
-echox ""
-echox "N"
-echox "Previous keyword occurance"
-echox ""
-echox "Spacebar"
-echox "Start selection"
-echox ""
-echox "Esc"
-echox "Clear selection"
-echox ""
-echox "Enter"
-echox "Copy selection"
-echox ""
-echox "Ctrl + b ]"
-echox "Paste contents of buffer_0"
-echox ""
-echox "show-buffer"
-echox "display buffer_0 contents"
-echox ""
-echox "capture-pane"
-echox "copy entire visible contents of pane to a buffer"
-echox ""
-echox "list-buffers"
-echox "Show all buffers"
-echox ""
-echox "choose-buffer"
-echox "Show all buffers and paste selected"
-echox ""
-echox "save-buffer buf.txt"
-echox "Save buffer contents to buf.txt"
-echox ""
-echox "delete-buffer -b 1"
-echox "delete buffer_1"
-echox ""
-echox "Misc"
-echox "Ctrl + b :"
-echox "Enter command mode"
-echox ""
-echox "set -g OPTION"
-echox "Set OPTION for all sessions"
-echox ""
-echox "setw -g OPTION"
-echox "Set OPTION for all windows"
-echox ""
-echox "set mouse on"
-echox "Enable mouse mode"
-echox ""
-echox "Help"
-echox "tmux list-keys"
-echox "list-keys"
-echox "Ctrl + b ?"
-echox "List key bindings(shortcuts)"
-echox ""
-echox "tmux info"
-echox "Show every session, window, pane, etc..."
-echox ""
-echox ""
-echox "\""   # require final line with a single " to end the multi-line text variable
-echox "echo -e \"\$HELPNOTES\\n\""
+exx "HELPNOTES=\""
+exx "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
+exx ""
+exx "Essentials:  <C-b> means Ctrl-b  ,  <C-b> : => enter command mode"
+exx "List sessions: tmux ls , tmux list-sessions  , <C-b> : ls"
+exx "Show sessions: <C-b> s ,<C-b> w (window preview)"
+exx ""
+exx "Start a new session:  tmux , tmux new -s my1 , :new -s my1"
+exx "Detach this session:  <C-b> d , tmux detach"
+exx "Re-attach a session:  tmux a -t my1  (or by the index of the session)"
+exx "Kill/Delete session:  tmux kill-sess -t my1  , all but current:  tmux kill-sess -a ,  all but 'my1':  tmux kill-sess -a -t my1"
+
+exx "Ctrl + b $   Rename session,   Ctrl + b d   Detach from session"
+exx "attach -d    Detach others on the session (Maximize window by detach other clients)"
+exx ""
+exx "tmux a / at / attach / attach-session   Attach to last session"
+exx "tmux a -t mysession   Attach to a session with the name mysession"
+exx ""
+exx "Ctrl + b (  (move to previous session) , <C-b> b )  (move to next session)"
+
+exx "Command	Description"
+exx "tmux	start tmux"
+exx "tmux new -s <name>	start tmux with <name>"
+exx "tmux ls	shows the list of sessions"
+exx "tmux a #	attach the detached-session"
+exx "tmux a -t <name>	attach the detached-session to <name>"
+exx "tmux kill-session –t <name>	kill the session <name>"
+exx "tmux kill-server	kill the tmux server"
+exx "Windows"
+exx "tmux new -s mysession -n mywindow"
+exx "start a new session with the name mysession and window mywindow"
+exx ""
+exx "Ctrl + b c"
+exx "Create window"
+exx ""
+exx "Ctrl + b ,"
+exx "Rename current window"
+exx ""
+exx "Ctrl + b &"
+exx "Close current window"
+exx ""
+exx "Ctrl + b p"
+exx "Previous window"
+exx ""
+exx "Ctrl + b n"
+exx "Next window"
+exx ""
+exx "Ctrl + b 0 ... 9"
+exx "Switch/select window by number"
+exx ""
+exx "swap-window -s 2 -t 1"
+exx "Reorder window, swap window number 2(src) and 1(dst)"
+exx ""
+exx "swap-window -t -1"
+exx "Move current window to the left by one position"
+exx ""
+exx "***** Panes"
+exx "Splits:  Ctrl + b %  (horizontal)  ,  Ctrl + b \\\"  (vertical)"
+exx "Moves:   <C-b> o  (next pane)  , <C-b> {  (left)  ,  <C-b> {  (right)  ,  <C-b> <cursor-key>  (move to pane in that direction)"
+exx "         <C-b> ;  (toggle last active)  ,  <C-b> <space>  (toggle different pane layouts)"
+exx "Send:    :setw sy (synchronize-panes, toggle sending all commands to all panes)"
+exx "Index:   <C-b> q  (show pane indexes)  ,  <C-b> q 0 .. 9  (switch to a pane by its index) "
+exx "Zoom:    <C-b> z  (toggle pane between full screen and back to windowed)"
+exx "Resize:  <C-b> <C-cursor-key>  (hold down Ctrl, first press b, then a cursor, don't hold, press again for more resize)"
+exx "Close:   <C-b> x  (close pane)"
+exx ""
+
+exx "Ctrl + b !"
+exx "Convert pane into a window"
+exx ""
+exx "Copy Mode"
+exx "setw -g mode-keys vi"
+exx "use vi keys in buffer"
+exx ""
+exx "Ctrl + b ["
+exx "Enter copy mode"
+exx ""
+exx "Ctrl + b PgUp"
+exx "Enter copy mode and scroll one page up"
+exx ""
+exx "q"
+exx "Quit mode"
+exx ""
+exx "g"
+exx "Go to top line"
+exx ""
+exx "G"
+exx "Go to bottom line"
+exx ""
+exx "Scroll up"
+exx ""
+exx "Scroll down"
+exx ""
+exx "h"
+exx "Move cursor left"
+exx ""
+exx "j"
+exx "Move cursor down"
+exx ""
+exx "k"
+exx "Move cursor up"
+exx ""
+exx "l"
+exx "Move cursor right"
+exx ""
+exx "w"
+exx "Move cursor forward one word at a time"
+exx ""
+exx "b"
+exx "Move cursor backward one word at a time"
+exx ""
+exx "/"
+exx "Search forward"
+exx ""
+exx "?"
+exx "Search backward"
+exx ""
+exx "n"
+exx "Next keyword occurance"
+exx ""
+exx "N"
+exx "Previous keyword occurance"
+exx ""
+exx "Spacebar"
+exx "Start selection"
+exx ""
+exx "Esc"
+exx "Clear selection"
+exx ""
+exx "Enter"
+exx "Copy selection"
+exx ""
+exx "Ctrl + b ]"
+exx "Paste contents of buffer_0"
+exx ""
+exx "show-buffer"
+exx "display buffer_0 contents"
+exx ""
+exx "capture-pane"
+exx "copy entire visible contents of pane to a buffer"
+exx ""
+exx "list-buffers"
+exx "Show all buffers"
+exx ""
+exx "choose-buffer"
+exx "Show all buffers and paste selected"
+exx ""
+exx "save-buffer buf.txt"
+exx "Save buffer contents to buf.txt"
+exx ""
+exx "delete-buffer -b 1"
+exx "delete buffer_1"
+exx ""
+exx "Misc"
+exx "Ctrl + b :"
+exx "Enter command mode"
+exx ""
+exx "set -g OPTION"
+exx "Set OPTION for all sessions"
+exx ""
+exx "setw -g OPTION"
+exx "Set OPTION for all windows"
+exx ""
+exx "set mouse on"
+exx "Enable mouse mode"
+exx ""
+exx "Help"
+exx "tmux list-keys"
+exx "list-keys"
+exx "Ctrl + b ?"
+exx "List key bindings(shortcuts)"
+exx ""
+exx "tmux info"
+exx "Show every session, window, pane, etc..."
+exx ""
+exx ""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
@@ -1156,20 +1141,45 @@ echo "Help / summary notes for bash shell: /tmp/help-bash.sh alias it in .custom
 
 # [ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'   # for .custom
 HELPFILE=/tmp/help-bash.sh
-echox() { echo "$1" >> $HELPFILE; }
+exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-echox "HELPNOTES=\""
-echox "bash refresher notes..."
-echox ""
-echox "https://www.tecmint.com/linux-command-line-bash-shortcut-keys/"
-echox "It doesn't make sense, but it's the convention. EDITOR used to be for instruction-based editors like ed. When editors with GUIs came about--and by GUI, I mean CLI GUI (vim, emacs, etc.--think ncurses), not desktop environment GUI--the editing process changed dramatically, so the need for another variable arose. In this context, CLI GUI and desktop environment GUI editors are more or less the same, so you can set VISUAL to either; however, EDITOR is meant for a fundamentally different workflow. Of course, this is all historical. Nobody uses ed these days."
-echox "just setting EDITOR is not enough e.g. for git on Ubuntu 12.04. Without VISUAL being set git ignores EDITOR and just uses nano (the compiled in default, I guess). "
-echox "\$VISUAL vs \$EDITOR C-x C-e to open vim automatically"
-echox "https://ostechnix.com/navigate-directories-faster-linux/"
-echox "https://itsfoss.com/linux-command-tricks/"
-echox ""
-echox "\""   # require final line with a single " to end the multi-line text variable
-echox "echo -e \"\$HELPNOTES\\n\""
+exx "HELPNOTES=\""
+exx "bash refresher notes..."
+exx ""
+exx "https://www.tecmint.com/linux-command-line-bash-shortcut-keys/"
+exx "It doesn't make sense, but it's the convention. EDITOR used to be for instruction-based editors like ed. When editors with GUIs came about--and by GUI, I mean CLI GUI (vim, emacs, etc.--think ncurses), not desktop environment GUI--the editing process changed dramatically, so the need for another variable arose. In this context, CLI GUI and desktop environment GUI editors are more or less the same, so you can set VISUAL to either; however, EDITOR is meant for a fundamentally different workflow. Of course, this is all historical. Nobody uses ed these days."
+exx "just setting EDITOR is not enough e.g. for git on Ubuntu 12.04. Without VISUAL being set git ignores EDITOR and just uses nano (the compiled in default, I guess). "
+exx "\$VISUAL vs \$EDITOR C-x C-e to open vim automatically"
+exx "https://ostechnix.com/navigate-directories-faster-linux/"
+exx "https://itsfoss.com/linux-command-tricks/"
+exx ""
+exx "***** Bash variables, special invocations, keyboard shortcuts"
+exx "\$\$  Get process id (pid) of the currently running bash script."
+exx "\$n   Holds the arguments passed in while calling the script or arguments passed into a function inside the scope of that function. e.g: $1, $2… etc.,"
+exx "\$0   The filename of the currently running script."
+exx ""
+exx "–   e.g.  cd –	     Last Working Directory"
+exx "!!  e.g.  sudo !!   Last executed command"
+exx "!$  e.g.  ls !$     Arguments of the last executed command"
+exx ""
+exx "Shortcut   Description"
+exx "Tab        Autocomplete commands"
+exx "Ctrl + a   Move to the beginning of a command"
+exx "Ctrl + e   Move to the end of a command"
+exx "Ctrl + w   Cut the word on the left side of the cursor"
+exx "Ctrl + k   Cut all text on the right side of the cursor"
+exx "Ctrl + u   Cut all text on the left side of the curor"
+exx "Ctrl + r   Search the history of commands used"
+exx "Ctrl + l   Clear Terminal"
+exx "Ctrl + d   Logout of Terminal or ssh session"
+exx "Alt + f    Move cursor to the next word"
+exx "Alt + b    Move cursor to the previous word"
+exx ""
+exx "***** Break an SSH session"
+exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
+exx "Hit 'Enter', '~' and '.' as a sequence (↵~.) and the broken session will be successfully terminated."
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
@@ -1182,167 +1192,167 @@ echo "Help / summary notes for Vim: /tmp/help-vim.sh alias it in .custom (useful
 
 # [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
 HELPFILE=/tmp/help-vim.sh
-echox() { echo "$1" >> $HELPFILE; }
+exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-echox "HELPNOTES=\""
-echox "********************"
-echox "* Vim Notes..."
-echox "********************"
-echox ""
-# echox "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
-# echox "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
-# echox "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
-# echox "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
-# echox "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
-# echox "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
-# echox "Vim, Advanced Cheat Sheet: https://vimsheet.com/advanced.html https://vim.fandom.com/wiki/Using_marks"
-# echox "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
-# echox "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
-# echox "https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai"
-echox ""
-echox ":Tutor<Enter>  30 min tutorial built into Vim."
-echox "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
-echox ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
-echox ""
-echox "***** MODES   :h vim-modes-intro"
-echox "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). The 3 main modes are normal, insert, and visual."
-echox "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
-echox "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
-echox "v visual mode (char), Shift-V to select whole lines, Ctrl-V to select visual block"
-echox "Can only do visual inserts with Ctrl-V, then select region with cursors or hjkl, then Shift-I for visual insert (not 'i'), type edits, then Esc to apply."
-echox "Could also use r to replace, or d to delete a selected visual region."
-echox "Also note '>' to indent a selected visual region, or '<' to predent (unindent) the region."
-echox ": to go into command mode, and Esc to get back to normal mode."
-echox ""
-echox "***** MOTIONS   :h motions"
-echox "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e' forward by end of word."
-echox "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
-echox "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
-echox "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
-echox "/Power/	Go to the first line containing the string 'Power'."
-echox "ddp	    Swap the current line with the next one."
-echox "g;	    Bring back cursor to the previous position."
-echox ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
-echox ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
-echox ""
-echox "***** EDITING   :h edits"
-echox "x  delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words, '5dd delete 5 lines."
-echox ":10,18d delete lines 10 to 18 inclusive, r<char> replace char under cursor by another character."
-echox "u  undo (or :u, :undo), Ctrl-r to redo (or :redo)."
-echox ":w  write/save the currect file, :wq  write and quit, :q  quit current file, :q!  quit without saving."
-echox "Copy/Paste: '5y' yank (copy)) 5 chars, '5yy' yank 5 lines. Then, move cursor to another location, then 'p' to paste."
-echox "Cut/Paste: '5x' cut 5 chars (or '5d<space>'), '5dd' 5 lines downwards. Then move cursor to another location, then 'p' to paste."
-echox ">> shift/indent current line, << unindent, 5>> indent 5 lines down from current position. 5<< unindent 5 lines, :h >>"
-echox ":10,20> indent lines 10 to 20 by standard indent amount. :10,20< unindent same lines."
-echox "(vim-commentary plugin), gc to comment visual block selected, gcgc to uncomment a region."
-echox ""
-echox "***** HELP SYSTEM   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
-echox "Even better, open the help in a new tab with ':tab help >>', then :q when done with help tab."
-echox "Open all help"
-echox "Maximise the window vertically with 'Ctrl-w _' or horizontally with 'Ctrl-w |' or 'Ctrl-w o' to leave only the help file open."
-echox "Usually don't want to close everything, so 'Ctrl-w 10+' to increase current window by 10 lines is also good.   :h ctrl-w"
-echox ""
-echox "***** SUBSTITUTION   :h :s   :h s_flags"
-echox "https://www.theunixschool.com/2012/11/examples-vi-vim-substitution-commands.html"
-echox "https://www.thegeekstuff.com/2009/04/vi-vim-editor-search-and-replace-examples/"
-echox ":s/foo/bar/  replace first occurence in current line only,  add 'g' to end for every occurence on line, and 'i' to be case insensitive."
-echox ":%s/foo/bar/gi   replace every occurence on every line and case insensitive (% every line, g every occurence in range, i insensitive)."
-echox ":5,10s/foo/bar/g   :5,\$s/foo/bar/g   replace in lines 5 to 10, replace in lines 5 to $ (end of file)."
-echox ":%s/foo/bar/gci   adding /c will require confirmation for each replace, and /i for case insensitive."
-echox ":s/\<his\>/her/   only replace 'his' if it is a complete word (caused by <>)."
-echox ":%s/\(good\|nice\)/awesome/g   replace good or nice by awesome."
-echox ":%s!\~!\= expand(\$HOME)!g   ~! will be replaced by the expansion of \$HOME ( /home/username/ )"
-echox "In Visual Mode, hit colon and the symbol '<,'> will appear, then do :'<,'>s/foo/bar/g for replace on the selected region."
-echox ":%s/example:.*\n/\0    tracker: ''\r/g   # finds any line with 'example: ...' and appends 'tracker: ''' underneath it"
-echox ":g/./ if getcurpos()[1] % 2 == 0 | s/foo/bar/g | endif   # for each line that has content, get the line number and if an even line number, then do a substitution"
-echox ":g/foo/ if getcurpos()[1] % 2 == 0 | s//bar/g | endif   # alternative approach to above where substitution pattern can be empty as it's part of the global pattern"
-echox ":for i in range(2, line('$'),2)| :exe i.'s/foo/bar/g'|endfor   # yet another way using a 'for' loop"   # https://gist.github.com/Integralist/042d1d6c93efa390b15b19e2f3f3827a
-echox "nmap <expr> <S-F6> ':%s/' . @/ . '//gc<LEFT><LEFT><LEFT>'   # Put into .vimrc then press Shift-F6 to interactively replace word at cursor globally (with confirmation)."
-echox ""
-echox "***** BUFFERS   :h buffers   Within a single window, can see buffers with :ls"
-echox "vim *   Open all files in current folder (or   'vim file1 file2 file3'   etc)."
-echox ":ls     List all open buffers (i.e. open files)   # https://dev.to/iggredible/using-buffers-windows-and-tabs-efficiently-in-vim-56jc"
-echox ":bn, :bp, :b #, :b name to switch. Ctrl-6 alone switches to previously used buffer, or #ctrl-6 switches to buffer number #."
-echox ":bnext to go to next buffer (:bprev to go back), :buffer <name> (Vim can autocomplete with <Tab>)."
-echox ":bufferN where N is buffer number. :buffer2 for example, will jump to buffer #2."
-echox "Jump between your last 'position' with <Ctrl-O> and <Ctrl-i>. This is not buffer specific, but it works. Toggle between previous file with <Ctrl-^>"
-echox ""
-echox "***** WINDOWS   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
-echox "vim -o *  Open all with horizontal splits,   vim -O *   Open all with vertical splits."
-echox "<C-W>W   to switch windows (note: do not need to take finger off Ctrl after <C-w> just double press on 'w')."
-echox "<C-W>N :sp (:split, :new, :winc n)  new horizontal split,   <C-W>V :vs (:vsplit, :winc v)  new vertical split"
-echox ""
-echox "***** TABS   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
-echox "vim -p *   Open all files in folder in tabs (or   'vim -p file1 file2 file3' etc)."
-echox ":tabnew, just open a new tab, :tabedit <filename> (or tabe), create a new file at filename; like :e, but in a new tab."
-echox "gt/gT  Go to next / previous tab (and loop back to first/last tab if at end). Also: 1gt go to tab 1, 5gt go to tab 5."
-echox "gt/gT are easier, but note :tabn (:tabnext or Ctrl-PgDn), :tabp (:tabprevious or Ctrl-PgUp), :tabfirst, :tablast, :tabrewind, tabmove 2 (or :tabm 2) to go to tab 2 (tabs are numbered from 1)"
-echox "Note window splitting commands,  :h :new,  :h :vnew,  :h :split,  :h :vsplit, ..."
-echox ":tabdo %s/foo/bar/g   # perform a substitution in all open tabs (the command following :tabdo operates on all tabs)."
-echox ":tabclose   close current tab,   :tabonly   close all other tab pages except current one."
-echox ":tabedit .   # Opens new tab, prompts for file to open in it. Use cursor keys to navigate and press enter on top of the file you wish to open."
-echox "tab names are prefixed with a '+' if they have unsaved changes,  :w  to write changes."
-echox ":set mouse=a   # Mouse support works with tabs, just click on a tab to move there."
-echox ""
-echox "***** VIMRC OPTIONS   /etc/vimrc, ~/.vimrc"
-echox ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle)"
-echox "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
-echox "inoremap <F3> <C-O>:set invnumber<CR>   # Also this line for the F3 toggle"
-echox "cnoremap help tab help   # To always open help screens in a new tab, put this into .vimrc"
-echox "color industry   # change syntax highlighting"
-echox "set expandtab tabstop=4 shiftwidth=4   # Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops to 4 chars, indents are 4 chars."
-echox "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit   # Allow saving of files as sudo if did not start vim with sudo"
-echox "cnoreabbrev <expr> h getcmdtype() == \\\":\\\" && getcmdline() == 'h' ? 'tab help' : 'h'   # Always expand ':h<space>' to ':tab help'"
-echox "nnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the current line (vim-commentry plugin)."
-echox "vnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the visual region (vim-commentry plugin)."
-echox ""
-echox "***** PLUGINS, VIM-PLUG    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
-echox "First, install vim-plug:"
-echox "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-echox "Then add the following lines to ~/.vimrc ("
-echox "call plug#begin()"
-echox "Plug 'tyru/open-browser.vim' \\\" opens url in browser"
-echox "Plug 'http://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
-echox "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' }"
-echox "Plug 'https://github.com/ap/vim-css-color' \\\" CSS Color Preview"
-echox "Plug 'https://github.com/tpope/vim-commentary' \\\" For Commenting gcc & gc"
-echox "call plug#end()"
-echox "Save ~/.vimrc with :w, and then source it with :source %"
-echox "Now install the plugins with :PlugInstall  (a side window will appear as the repo's clone to to ~/.vim/plugged)"
-echox "Restart Vim and test that the plugins have installed with :NERDTreeToggle (typing 'N'<tab> should be enough)"
-echox "vim-surround : \\\"Hello World\\\" => with cursor inside this region, press cs\\\"' and it will change to 'Hello World!'"
-echox "   cs'<q> will change to <q></q> tag, or ds' to remove the delimiter. When on Hello, ysiw] will surround the wordby []"
-echox "nerdtree : pop-up file explorer in a left side window, :N<tab> (or :NERDTree, or use :NERDTreeToggle to toggle) :h NERDTree.txt"
-echox "vim-css-color"
-echox "vim-commentary : comment and uncomment code, v visual mode to select some lines then 'gc'<space> to comment, 'gcgc' to uncomment."
-echox "Folloing will toggle comment/uncomment by pressing <space>/ on a line or a visual selected region."
-echox "nnoremap <space>/ :Commentary<CR>"
-echox "vnoremap <space>/ :Commentary<CR>"
-echox ""
-echox "***** SPELL CHECKING / AUTOCOMPLETE"
-echox ":setlocal spell spelllang=en   (default 'en', or can use 'en_us' or 'en_uk')."
-echox "Then,  :set spell  to turn on and  :set nospell  to turn off. Most misspelled words will be highlighted (but not all)."
-echox "]s to move to the next misspelled word, [s to move to the previous. When on any word, press z= to see list of possible corrections."
-echox "Type the number of the replacement spelling and press enter <enter> to replace, or just <enter> without selection to leave, mouse support can click on replacement."
-echox "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
-echox "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
-echox ""
-echox "***** SEARCH"
-echox "/ search forwards, ? search backwards are well known but * and # are less so."
-echox "* search for word nearest to the cursor (forward), and # (backwards)."
-echox "Can repeat a search with / then just press Enter, but easier to use n, or N to repeat a search in the opposite direction."
-echox ""
-echox "***** PASTE ISSUES IN TERMINALS"
-echox "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result, especially in Putty sessions etc."
-echox "Fix that with ':set paste' to put Vim in Paste mode before you paste, so Vim will just paste verbatim."
-echox "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
-echox "You normally only need :set paste in terminals, not in GUI gVim etc."
-echox ""
-echox "dos2unix can change line-endings in a file, or in Vim we can use  :%s/^M//g  (but use Ctrl-v Ctrl-m to generate the ^M)."
-echox "you can also use   :set ff=unix   and vim will do it for you. 'fileformat' help  :h ff,  vim wiki: https://vim.fandom.com/wiki/File_format."
-echox ""
-echox "\""   # require final line with a single " to end the multi-line text variable
-echox "echo -e \"\$HELPNOTES\\n\""
+exx "HELPNOTES=\""
+exx "********************"
+exx "* Vim Notes..."
+exx "********************"
+exx ""
+# exx "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
+# exx "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
+# exx "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
+# exx "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
+# exx "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
+# exx "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
+# exx "Vim, Advanced Cheat Sheet: https://vimsheet.com/advanced.html https://vim.fandom.com/wiki/Using_marks"
+# exx "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
+# exx "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
+# exx "https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai"
+exx ""
+exx ":Tutor<Enter>  30 min tutorial built into Vim."
+exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
+exx ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
+exx ""
+exx "***** MODES   :h vim-modes-intro"
+exx "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). The 3 main modes are normal, insert, and visual."
+exx "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
+exx "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
+exx "v visual mode (char), Shift-V to select whole lines, Ctrl-V to select visual block"
+exx "Can only do visual inserts with Ctrl-V, then select region with cursors or hjkl, then Shift-I for visual insert (not 'i'), type edits, then Esc to apply."
+exx "Could also use r to replace, or d to delete a selected visual region."
+exx "Also note '>' to indent a selected visual region, or '<' to predent (unindent) the region."
+exx ": to go into command mode, and Esc to get back to normal mode."
+exx ""
+exx "***** MOTIONS   :h motions"
+exx "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e' forward by end of word."
+exx "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
+exx "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
+exx "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
+exx "/Power/	Go to the first line containing the string 'Power'."
+exx "ddp	    Swap the current line with the next one."
+exx "g;	    Bring back cursor to the previous position."
+exx ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
+exx ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
+exx ""
+exx "***** EDITING   :h edits"
+exx "x  delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words, '5dd delete 5 lines."
+exx ":10,18d delete lines 10 to 18 inclusive, r<char> replace char under cursor by another character."
+exx "u  undo (or :u, :undo), Ctrl-r to redo (or :redo)."
+exx ":w  write/save the currect file, :wq  write and quit, :q  quit current file, :q!  quit without saving."
+exx "Copy/Paste: '5y' yank (copy)) 5 chars, '5yy' yank 5 lines. Then, move cursor to another location, then 'p' to paste."
+exx "Cut/Paste: '5x' cut 5 chars (or '5d<space>'), '5dd' 5 lines downwards. Then move cursor to another location, then 'p' to paste."
+exx ">> shift/indent current line, << unindent, 5>> indent 5 lines down from current position. 5<< unindent 5 lines, :h >>"
+exx ":10,20> indent lines 10 to 20 by standard indent amount. :10,20< unindent same lines."
+exx "(vim-commentary plugin), gc to comment visual block selected, gcgc to uncomment a region."
+exx ""
+exx "***** HELP SYSTEM   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
+exx "Even better, open the help in a new tab with ':tab help >>', then :q when done with help tab."
+exx "Open all help"
+exx "Maximise the window vertically with 'Ctrl-w _' or horizontally with 'Ctrl-w |' or 'Ctrl-w o' to leave only the help file open."
+exx "Usually don't want to close everything, so 'Ctrl-w 10+' to increase current window by 10 lines is also good.   :h ctrl-w"
+exx ""
+exx "***** SUBSTITUTION   :h :s   :h s_flags"
+exx "https://www.theunixschool.com/2012/11/examples-vi-vim-substitution-commands.html"
+exx "https://www.thegeekstuff.com/2009/04/vi-vim-editor-search-and-replace-examples/"
+exx ":s/foo/bar/  replace first occurence in current line only,  add 'g' to end for every occurence on line, and 'i' to be case insensitive."
+exx ":%s/foo/bar/gi   replace every occurence on every line and case insensitive (% every line, g every occurence in range, i insensitive)."
+exx ":5,10s/foo/bar/g   :5,\$s/foo/bar/g   replace in lines 5 to 10, replace in lines 5 to $ (end of file)."
+exx ":%s/foo/bar/gci   adding /c will require confirmation for each replace, and /i for case insensitive."
+exx ":s/\<his\>/her/   only replace 'his' if it is a complete word (caused by <>)."
+exx ":%s/\(good\|nice\)/awesome/g   replace good or nice by awesome."
+exx ":%s!\~!\= expand(\$HOME)!g   ~! will be replaced by the expansion of \$HOME ( /home/username/ )"
+exx "In Visual Mode, hit colon and the symbol '<,'> will appear, then do :'<,'>s/foo/bar/g for replace on the selected region."
+exx ":%s/example:.*\n/\0    tracker: ''\r/g   # finds any line with 'example: ...' and appends 'tracker: ''' underneath it"
+exx ":g/./ if getcurpos()[1] % 2 == 0 | s/foo/bar/g | endif   # for each line that has content, get the line number and if an even line number, then do a substitution"
+exx ":g/foo/ if getcurpos()[1] % 2 == 0 | s//bar/g | endif   # alternative approach to above where substitution pattern can be empty as it's part of the global pattern"
+exx ":for i in range(2, line('$'),2)| :exe i.'s/foo/bar/g'|endfor   # yet another way using a 'for' loop"   # https://gist.github.com/Integralist/042d1d6c93efa390b15b19e2f3f3827a
+exx "nmap <expr> <S-F6> ':%s/' . @/ . '//gc<LEFT><LEFT><LEFT>'   # Put into .vimrc then press Shift-F6 to interactively replace word at cursor globally (with confirmation)."
+exx ""
+exx "***** BUFFERS   :h buffers   Within a single window, can see buffers with :ls"
+exx "vim *   Open all files in current folder (or   'vim file1 file2 file3'   etc)."
+exx ":ls     List all open buffers (i.e. open files)   # https://dev.to/iggredible/using-buffers-windows-and-tabs-efficiently-in-vim-56jc"
+exx ":bn, :bp, :b #, :b name to switch. Ctrl-6 alone switches to previously used buffer, or #ctrl-6 switches to buffer number #."
+exx ":bnext to go to next buffer (:bprev to go back), :buffer <name> (Vim can autocomplete with <Tab>)."
+exx ":bufferN where N is buffer number. :buffer2 for example, will jump to buffer #2."
+exx "Jump between your last 'position' with <Ctrl-O> and <Ctrl-i>. This is not buffer specific, but it works. Toggle between previous file with <Ctrl-^>"
+exx ""
+exx "***** WINDOWS   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
+exx "vim -o *  Open all with horizontal splits,   vim -O *   Open all with vertical splits."
+exx "<C-W>W   to switch windows (note: do not need to take finger off Ctrl after <C-w> just double press on 'w')."
+exx "<C-W>N :sp (:split, :new, :winc n)  new horizontal split,   <C-W>V :vs (:vsplit, :winc v)  new vertical split"
+exx ""
+exx "***** TABS   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
+exx "vim -p *   Open all files in folder in tabs (or   'vim -p file1 file2 file3' etc)."
+exx ":tabnew, just open a new tab, :tabedit <filename> (or tabe), create a new file at filename; like :e, but in a new tab."
+exx "gt/gT  Go to next / previous tab (and loop back to first/last tab if at end). Also: 1gt go to tab 1, 5gt go to tab 5."
+exx "gt/gT are easier, but note :tabn (:tabnext or Ctrl-PgDn), :tabp (:tabprevious or Ctrl-PgUp), :tabfirst, :tablast, :tabrewind, tabmove 2 (or :tabm 2) to go to tab 2 (tabs are numbered from 1)"
+exx "Note window splitting commands,  :h :new,  :h :vnew,  :h :split,  :h :vsplit, ..."
+exx ":tabdo %s/foo/bar/g   # perform a substitution in all open tabs (the command following :tabdo operates on all tabs)."
+exx ":tabclose   close current tab,   :tabonly   close all other tab pages except current one."
+exx ":tabedit .   # Opens new tab, prompts for file to open in it. Use cursor keys to navigate and press enter on top of the file you wish to open."
+exx "tab names are prefixed with a '+' if they have unsaved changes,  :w  to write changes."
+exx ":set mouse=a   # Mouse support works with tabs, just click on a tab to move there."
+exx ""
+exx "***** VIMRC OPTIONS   /etc/vimrc, ~/.vimrc"
+exx ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle)"
+exx "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
+exx "inoremap <F3> <C-O>:set invnumber<CR>   # Also this line for the F3 toggle"
+exx "cnoremap help tab help   # To always open help screens in a new tab, put this into .vimrc"
+exx "color industry   # change syntax highlighting"
+exx "set expandtab tabstop=4 shiftwidth=4   # Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops to 4 chars, indents are 4 chars."
+exx "cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit   # Allow saving of files as sudo if did not start vim with sudo"
+exx "cnoreabbrev <expr> h getcmdtype() == \\\":\\\" && getcmdline() == 'h' ? 'tab help' : 'h'   # Always expand ':h<space>' to ':tab help'"
+exx "nnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the current line (vim-commentry plugin)."
+exx "vnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the visual region (vim-commentry plugin)."
+exx ""
+exx "***** PLUGINS, VIM-PLUG    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
+exx "First, install vim-plug:"
+exx "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+exx "Then add the following lines to ~/.vimrc ("
+exx "call plug#begin()"
+exx "Plug 'tyru/open-browser.vim' \\\" opens url in browser"
+exx "Plug 'http://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
+exx "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' }"
+exx "Plug 'https://github.com/ap/vim-css-color' \\\" CSS Color Preview"
+exx "Plug 'https://github.com/tpope/vim-commentary' \\\" For Commenting gcc & gc"
+exx "call plug#end()"
+exx "Save ~/.vimrc with :w, and then source it with :source %"
+exx "Now install the plugins with :PlugInstall  (a side window will appear as the repo's clone to to ~/.vim/plugged)"
+exx "Restart Vim and test that the plugins have installed with :NERDTreeToggle (typing 'N'<tab> should be enough)"
+exx "vim-surround : \\\"Hello World\\\" => with cursor inside this region, press cs\\\"' and it will change to 'Hello World!'"
+exx "   cs'<q> will change to <q></q> tag, or ds' to remove the delimiter. When on Hello, ysiw] will surround the wordby []"
+exx "nerdtree : pop-up file explorer in a left side window, :N<tab> (or :NERDTree, or use :NERDTreeToggle to toggle) :h NERDTree.txt"
+exx "vim-css-color"
+exx "vim-commentary : comment and uncomment code, v visual mode to select some lines then 'gc'<space> to comment, 'gcgc' to uncomment."
+exx "Folloing will toggle comment/uncomment by pressing <space>/ on a line or a visual selected region."
+exx "nnoremap <space>/ :Commentary<CR>"
+exx "vnoremap <space>/ :Commentary<CR>"
+exx ""
+exx "***** SPELL CHECKING / AUTOCOMPLETE"
+exx ":setlocal spell spelllang=en   (default 'en', or can use 'en_us' or 'en_uk')."
+exx "Then,  :set spell  to turn on and  :set nospell  to turn off. Most misspelled words will be highlighted (but not all)."
+exx "]s to move to the next misspelled word, [s to move to the previous. When on any word, press z= to see list of possible corrections."
+exx "Type the number of the replacement spelling and press enter <enter> to replace, or just <enter> without selection to leave, mouse support can click on replacement."
+exx "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
+exx "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
+exx ""
+exx "***** SEARCH"
+exx "/ search forwards, ? search backwards are well known but * and # are less so."
+exx "* search for word nearest to the cursor (forward), and # (backwards)."
+exx "Can repeat a search with / then just press Enter, but easier to use n, or N to repeat a search in the opposite direction."
+exx ""
+exx "***** PASTE ISSUES IN TERMINALS"
+exx "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result, especially in Putty sessions etc."
+exx "Fix that with ':set paste' to put Vim in Paste mode before you paste, so Vim will just paste verbatim."
+exx "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
+exx "You normally only need :set paste in terminals, not in GUI gVim etc."
+exx ""
+exx "dos2unix can change line-endings in a file, or in Vim we can use  :%s/^M//g  (but use Ctrl-v Ctrl-m to generate the ^M)."
+exx "you can also use   :set ff=unix   and vim will do it for you. 'fileformat' help  :h ff,  vim wiki: https://vim.fandom.com/wiki/File_format."
+exx ""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
@@ -1359,32 +1369,34 @@ echo ""
 echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
 # Following command will run the above PowerShell from within this session to inject the registry changes:
-powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
 
 # Create a template help-wsl for this and other important WSL points (only create if running WSL)
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+
+    # Run the PowerShell to adjust the system 
+    powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
     HELPFILE=/tmp/help-wsl.sh
-    echox() { echo "$1" >> $HELPFILE; }
+    exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    echox "HELPNOTES=\""
-    echox "Quick WSL notes to remember..."
-    echox ""
-    echox "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
-    echox "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
-    echox "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
-    echox ""
-    echox "Right-click on WSL title bar and select Properties, then go to options and enable Ctrl-Shift-C and Ctrl-Shift-V"
-    echox "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
-    echox "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
-    echox ""
-    echox "The following has been run by custom_bash.sh to alter the jarring Windows Event sounds inside WSL sessions:"
-    echox ""
-    echox '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
-    echox 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
-    echox ""
-    echox "\""   # require final line with a single " to end the multi-line text variable
-    echox "echo -e \"\$HELPNOTES\\n\""
+    exx "HELPNOTES=\""
+    exx "Quick WSL notes to remember..."
+    exx ""
+    exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
+    exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
+    exx "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
+    exx ""
+    exx "Right-click on WSL title bar and select Properties, then go to options and enable Ctrl-Shift-C and Ctrl-Shift-V"
+    exx "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
+    exx "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
+    exx ""
+    exx "The following has been run by custom_bash.sh to alter the jarring Windows Event sounds inside WSL sessions:"
+    exx ""
+    exx '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
+    exx 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+    exx ""
+    exx "\""   # require final line with a single " to end the multi-line text variable
+    exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
 fi
 

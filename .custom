@@ -106,7 +106,8 @@ alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in p
 alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
-alias myip="curl http://ipecho.net/plain; echo"        # get public IP address when behind a router using NAT
+alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
+alias cd0="cd ~/custom_bash"                      # Template: adjust to current main projects for convenience, can set cd1, cd2, etc
 alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 
@@ -127,10 +128,10 @@ if type rr > /dev/null 2>&1; then alias remove='rr'; alias del='rr'; fi   # map 
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
 # alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
-if type apk >/dev/null 2>&1; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias aup='sudo apt update && sudo apt upgrade'; fi   # apt
+if type apk >/dev/null 2>&1; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
 if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
-if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum
+if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 # if type dnf >/dev/null 2>&1; then alias yi='sudo dnf install'; alias yr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # override yum by dnf(?)
 if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
@@ -141,9 +142,12 @@ if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias 
 # Replacement aliases that take over from other commands. Try to never do this, should only be done very rarely
 [ -f /usr/bin/bat ] && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
-if type pydf >/dev/null 2>&1; then alias df="pydf"; fi   # use the more useful Python df instead of df if pydf is installed
-if type ncdu >/dev/null 2>&1; then alias du='ncdu'; fi
-if type htop >/dev/null 2>&1; then alias top='htop'; fi
+if type pydf >/dev/null 2>&1; then alias df='pydf'; alias df0='/usr/bin/df'; fi      # replace 'df' by 'pydf', create 'df0' for the original
+if type ncdu >/dev/null 2>&1; then alias du='ncdu'; alias du0='/usr/bin/du'; fi      # same for du
+if type htop >/dev/null 2>&1; then alias top='htop'; alias top0='/usr/bin/top'; fi   # same for top
+# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all.
+# Therefore, do not alias 'python' just create 'p2', 'p3'. Alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (package is called 'python3-pip' on both distros)
+alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip aliases
 
 ####################
 # Functions: Some useful snippets, and as templates for bash function writing
@@ -170,8 +174,14 @@ update-distro() {
         return
     fi
 }
-vl() { cd "$@" && ls -F --color=auto; }
-# cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
+update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download and run latest version of custom_bash
+color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
+runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
+ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
+sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
+cl() { cd "$@" && ls; }   # -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
+cll() { cd "$@" && ll; }
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 duall() { du -hsc .; }   # Just return a total size for everything under PWD (including hidden ones)..
@@ -181,15 +191,9 @@ duxg() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du
 duxsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
 viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }
 viconfsu() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }
-targz() { tar -zcvf $1.tar.gz $1; }   # Create .tar.gz,  can optionally add 'rm -r $1' at end
-untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add 'rm -r $1' at end
+targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
+untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
-ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
-sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
-runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
-color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
-update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }
 cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
@@ -282,6 +286,7 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
 [ -f /tmp/help-tmux.sh ] && alias help-byobu='/tmp/help-tmux.sh' && alias help-b='/tmp/help-t.sh'
 [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'
+[ -f /tmp/help-awk.sh ] && alias help-awk='/tmp/help-awk.sh'
 help-cron-intro-1999() { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html; content=$(wget $URL -q -O -); lynx -dump $URL; }
 
 ####################

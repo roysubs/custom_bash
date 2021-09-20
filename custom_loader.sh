@@ -156,16 +156,15 @@ function runAptGetUpdate()
     then
         updateIntervalReadable = $(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
         print_header "apt updates will run as last update was more than '${updateIntervalReadable}' ago"
-        # echo -e "apt-get update"
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
+        if [ "$MANAGER" == "apt" ]; then exe sudo exe sudo apt-get update --ignore-missing -y; fi   # Note sure if this is needed
         exe sudo $MANAGER update -y
         exe sudo $MANAGER upgrade -y
-        exe sudo $MANAGER dist-upgrade -y
         exe sudo $MANAGER install ca-certificates -y
         exe sudo $MANAGER autoremove -y
         which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
-        apt-get update -m
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     else
         local lastUpdate="$(date -u -d @"${lastAptGetUpdate}" +'%-Hh %-Mm %-Ss')"
         print_header "Skip apt-get update because its last run was '${updateIntervalReadable}' ago"
@@ -177,12 +176,22 @@ runAptGetUpdate
 
 
 if [ -f /var/run/reboot-required ]; then
-    echo "" >&2
-    echo "A reboot is required (/var/run/reboot-required is present)." >&2
-    echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME" >&2
-    echo "Re-run this script after reboot to finish the install." >&2
+    echo ""
+    echo "A reboot is required (/var/run/reboot-required is present)."   # >&2
+    echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME"
+    echo "Re-run this script after reboot to finish the install."
     return   # Script will exit here if a reboot is required
 fi
+if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then 
+    needsReboot=$(needs-restarting -r &> /dev/null 2>&1; echo $?)   # Supress the output message from needs-restarting (from yum-utils)
+    if [[ $needsReboot == 1 ]]; then
+        echo "Note: A reboot is required (by checking: needs-restarting -r)."
+        echo "Re-run this script after reboot to finish the install."
+        return   # Script will exit here if a reboot is required
+    fi
+fi
+
+
 
 
 
@@ -194,19 +203,25 @@ print_header "Check and install small/essential packages"
 
 INSTALL="sudo $MANAGER install"
 if [ "$MANAGER" = "apk" ]; then INSTALL="$MANAGER add"; fi
-# Only install each if not already installed
+# Only install each a binary from that package is not already present on the system
 check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
-# which dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
+             # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
+if [ "$MANAGER" = "apt" ]; then check_and_install apt apt-file; fi  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # 'Debian package' is the low level package management from Debian ('apt' is a higher level tool)
-check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install git git
 check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
 check_and_install perl perl
-check_and_install python python
-check_and_install pydf
+if [ "$MANAGER" = "apt" ]; then check_and_install python python; fi
+if [ "$MANAGER" = "dnf" ]; then check_and_install python python39; fi
+# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to Python 3.6
+# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel         # Will force Python 3.9
+# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
+check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
+# check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
+check_and_install pydf pydf
 check_and_install dos2unix dos2unix
 check_and_install mount mount.cifs
 check_and_install neofetch neofetch
@@ -215,18 +230,18 @@ check_and_install tree tree
 check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
 check_and_install unzip unzip
-check_and_install pip pip
-check_and_install lr lr          # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+if [ "$MANAGER" = "apt" ]; then check_and_install lr lr; fi   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
 check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
-check_and_install fortune fortune
+if [ "$MANAGER" = "apt" ]; then check_and_install fortune fortune; fi
+if [ "$MANAGER" = "dnf" ]; then check_and_install fortune fortune-mod; fi
 check_and_install cowsay cowsay
 check_and_install figlet figlet
-# Note that Ubuntu 20.04 could not see this in dnf repo until after full update, but built-in snap can see it
-which figlet &> /dev/null || exe sudo snap install figlet -y
+# Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
+# which figlet &> /dev/null || exe sudo snap install figlet -y
 
 # More complex installers
 curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
@@ -370,29 +385,31 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # Try to use 'alien' to create a .rpm from a .deb:   alien --to-rpm <name>.deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
     # I can get this to work when running alien on Ubuntu, but it alien fails with errors when running on CentOS.
     # Need to be able to do it from the CentOS system however to automate the install in this way.
-    if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then        
-        # Don't need to worry about picking the latest version as unchanged since 2016
-        ALIENDL=https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
-        ALIENTAR=alien_8.95.tar.xz
-        ALIENDIR=alien-8.95   # Note that the extracted dir has "-" while the downloaded file has "_"
-        exe wget -P /tmp/ $ALIENDL
-        tar xf $ALIENTAR
-        cd /tmp/$ALIENDIR
-        exe sudo $MANAGER install perl -y
-        exe sudo $MANAGER install perl-ExtUtils-Install -y
-        exe sudo $MANAGER install make -y
-        sudo perl Makefile.PL
-        sudo make
-        sudo make install
-        cd ..
-        sudo alien --to-rpm $filename     # bat-musl_0.18.3_amd64.deb
-        # sudo rpm -ivh $FILE.rpm         # bat-musl-0.18.3-2.x86_64.rpm : note that the name has changed
-        # Ideally, we should create a folder, create the output in there, then grab the name from there, since the name can change
-    fi
+    # In the end, looks like the 'alien' setup is not required as 'bat' will install into CentOS using dpkg(!)
+    # But keep this code as might need for other packages to convert them.
+    ### if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then        
+    ###     # Don't need to worry about picking the latest version as unchanged since 2016
+    ###     ALIENDL=https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
+    ###     ALIENTAR=alien_8.95.tar.xz
+    ###     ALIENDIR=alien-8.95   # Note that the extracted dir has "-" while the downloaded file has "_"
+    ###     exe wget -P /tmp/ $ALIENDL
+    ###     tar xf $ALIENTAR
+    ###     cd /tmp/$ALIENDIR
+    ###     exe sudo $MANAGER install perl -y
+    ###     exe sudo $MANAGER install perl-ExtUtils-Install -y
+    ###     exe sudo $MANAGER install make -y
+    ###     sudo perl Makefile.PL
+    ###     sudo make
+    ###     sudo make install
+    ###     cd ..
+    ###     sudo alien --to-rpm $filename     # bat-musl_0.18.3_amd64.deb
+    ###     # sudo rpm -ivh $FILE.rpm         # bat-musl-0.18.3-2.x86_64.rpm : note that the name has changed
+    ###     # Ideally, we should create a folder, create the output in there, then grab the name from there, since the name can change
+    ### fi
 
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$filename   # if the 'bat' command is present, do nothing, otherwise install with dpkg
-    # sudo dpkg -r bat   # to remove after install
-    # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
+    # sudo dpkg -r bat   # to remove 'bat' if required
+    # Also note that 'bat' is part of the 'bacula-console-qt' package but that is 48 MB for an entire backup tool
     rm /tmp/$filename
 fi
 
@@ -424,7 +441,9 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 # https://unix.stackexchange.com/questions/295274/grep-to-find-the-correct-line-sed-to-change-the-contents-then-putting-it-back
 
 # Backup ~/.custom
-TMP=/tmp
+TMP=/tmp/.custom
+if [ ! -d $TMP ]; then mkdir -p $TMP; fi
+
 if [ -f ~/.custom ]; then
     echo "Create Backup : $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
     cp ~/.custom $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
@@ -433,6 +452,7 @@ if [ -f ~/.bashrc ]; then
     echo "Create Backup : $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
     exe cp ~/.bashrc $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
+
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
@@ -1378,6 +1398,97 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "Help / summary notes for grep: /tmp/help-grep.sh and alias it in .custom (useful refresher notes)"
+#
+####################
+# https://www.richud.com/wiki/Grep_one_liners
+HELPFILE=/tmp/help-grep.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "********************"
+exx "* Grep Practical Examples"
+exx "********************"
+exx ""
+exx ""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Help / summary notes for awk: /tmp/help-awk.sh and alias it in .custom (useful refresher notes)"
+#
+####################
+# https://linoxide.com/useful-awk-one-liners-to-keep-handy/
+# https://unixutils.blogspot.com/2006/12/handy-one-liners-for-awk.html
+# https://knowstar.org/blog/unix-awk-one-liners.html
+# https://www.shebanglinux.com/best-awk-one-liners/
+# http://softpanorama.org/Tools/Awk/awk_one_liners.shtml
+
+HELPFILE=/tmp/help-awk.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "********************"
+exx "* Awk Practical Examples"
+exx "********************"
+exx ""
+exx "***** Useful AWK One-Liners to Keep Handy"   
+exx "Search and scan files line by line, splits input lines into fields, compares input lines/fields to pattern and performs an action on matched lines."
+exx ""
+exx "***** Text Conversion (sub, gsub operations on tabs and spaces)"
+exx "awk NF contents.txt       # The awk NF variable will delete all blank lines from a file."
+exx "awk '/./' /contents.txt   # Alternative way to delete all blank lines."
+exx "awk '{ sub(/^[ \t]+/, \\\"\\\"); print }' contents.txt   # Delete leading whitespace and Tabs from the beginning of each line"
+exx "awk '{ sub(/[ \t]+$/, ""); print }' contents.txt   # Delete trailing whitespace and Tabs from the end of each line"
+exx "awk '{ gsub(/^[ \t]+|[ \t]+$/, \\\"\\\"); print }' contents.txt   # Delete both leading and trailing whitespaces from each line"
+exx ""
+exx "Following is a well known awk one-liner that records all lines in an array and arrange them in reverse order."
+exx "awk '{ a[i++] = \\\$0 } END { for (j=i-1; j>=0;) print a[j--] }' contents.txt   # Arrange all lines in reverse order"
+exx "Run this awk one-liner to arrange all lines in reverse order in file contents.txt:"
+exx ""
+exx "Use the NF variable to arrange each field (i.e. words on line) in each line in reverse order."
+exx "awk '{ for (i=NF; i>0; i--) printf(\\\"\\\%s \\\", \\\$i); printf (\\\"\\\n\\\") }' contents.txt"
+exx ""
+exx "***** Remove duplicate lines"
+exx "awk 'a != \\\$0; { a = \\\$0 }' contents.txt   # Remove consecutive duplicate lines from the file"
+exx "awk '!a[\$0]++' contents.txt                # Remove Nonconsecutive duplicate lines"
+exx ""
+exx "***** Numbering and Calculations (FN, NR)"
+exx "awk '{ print NR \\\"\\\t\\\" \\\$0 }' contents.txt               # Number all lines in a file"
+exx "awk '{ printf(\\\"\\%5d : \\%s\\n\\\", NR, \\\$0) }' contents.txt   # Number lines, indented, with colon separator"
+exx "awk 'NF { \\\$0=++a " :" \\\$0 }; { print }' contents.txt    # Number only non-blank lines in files"
+exx "awk '/engineer/{n++}; END {print n+0}'  contents.txt     # You can number only non-empty lines with the following command:"
+exx "Print number of lines that contains specific string"
+exx ""
+exx "***** Regular Expressions"
+exx "In this section, we will show you how to use regular expressions with awk command to filter text or strings in files."
+exx ""
+exx "awk '/engineer/' contents.txt   # Print lines that match the specified string"
+exx "awk '!/jayesh/' contents.txt    # Print lines that don't matches specified string"
+exx "awk '/rajesh/{print x};{x=\\\$0}' contents.txt   # Print line before the matching string"
+exx "awk '/account/{getline; print}' contents.txt   # Print line after the matching string"
+exx ""
+exx "***** Substitution"
+exx "awk '{gsub(/engineer/, \\\"doctor\\\")};{print}' contents.txt   # Substitute 'engineer' with 'doctor'"
+exx "awk '{gsub(/jayesh|hitesh|bhavesh/,\\\"mahesh\\\");print}' contents.txt   # Find the string 'jayesh', 'hitesh' or 'bhavesh' and replace them with string 'mahesh', run the following command:"
+exx ""
+exx "df -h | awk '{print \$1, \$4}'   # Find Free Disk Space with Device Name"
+exx "netstat -ntu | awk '{print \$5}' | cut -d: -f1 | sort | uniq -c | sort -n   # Find Number of open connections per ip"
+exx "This awk one-liner is very useful if you think your server is under attack. It prints out a list of open connections to your server and sorts them by amount."
+exx "You should get the list of all open connections to your server by amount:"
+exx ""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "Help / summary notes for WSL integration: /tmp/help-wsl.sh alias it in .custom (useful refresher notes)"
 #
 ####################
@@ -1389,17 +1500,21 @@ echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notificatio
 echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
 # Following command will run the above PowerShell from within this session to inject the registry changes:
 
-# Create a template help-wsl for this and other important WSL points (only create if running WSL)
+# Test if running in WSL, and if so, create /tmp/help-wsl with important WSL notes
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
 
-    # Run the PowerShell to adjust the system 
-    powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+    # Go ahead and run the PowerShell to adjust the system as it's such a minor/useful alteration
+    powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }' 2>&1
+    
+    # Now create /tmp/help-wsl.sh
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
     HELPFILE=/tmp/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
     exx "HELPNOTES=\""
-    exx "Quick WSL notes to remember..."
+    exx "********************"
+    exx "* WSL Notes"
+    exx "********************"
     exx ""
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
     exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
@@ -1418,6 +1533,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
 fi
+
+
 
 ####################
 #
@@ -1443,9 +1560,21 @@ fi
 echo ""
 echo ""
 echo ""
+# Repeat "reboot required" messsage right at end so that it can't be missed
 if [ -f /var/run/reboot-required ]; then
-    echo "A reboot is required (/var/run/reboot-required is present)." >&2
-    echo "Re-run this script after reboot to finish the install." >&2
+    echo ""
+    echo "A reboot is required (/var/run/reboot-required is present)."   # >&2
+    echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME"
+    echo "Re-run this script after reboot to finish the install."
+    return   # Script will exit here if a reboot is required
+fi
+if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then 
+    needsReboot=$(needs-restarting -r &> /dev/null 2>&1; echo $?)   # Supress the output message from needs-restarting (from yum-utils)
+    if [[ $needsReboot == 1 ]]; then
+        echo "Note: A reboot is required (by checking: needs-restarting -r)."
+        echo "Re-run this script after reboot to finish the install."
+        return   # Script will exit here if a reboot is required
+    fi
 fi
 
 

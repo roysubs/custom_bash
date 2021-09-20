@@ -111,8 +111,8 @@ print_header "Find package manager and run package/distro updates"
 
 MANAGER=
 which apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
-which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=yum if both dnf and yum are present
+which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
+which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
 which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
@@ -120,9 +120,24 @@ echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup ta
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
+# Handle EPEL (Extra Packages for Enterprise Linux), fairly essential for hundreds of packages like htop, etc
+if type dnf &> /dev/null 2>&1; then
+    if [[ $(rpm -qa | grep epel-release) ]]; then echo "$DISTRO : EPEL Repository is already installed"
+    else exe dnf install epel-release
+    fi
+    $MANAGER repolist
+fi
+# To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
+# sudo rpm -qa | grep epel                                                               # Check the epel version installed
+# sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
+# sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
+# yum repolist   # check if epel is installed
+# if type dnf &> /dev/null 2>&1; then exe sudo $MANAGER -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
+
 function getLastAptGetUpdate()
 {
-    local aptDate="$(stat -c %Y '/var/cache/apt')"   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $MANAGER == "apt" ]]; then local aptDate="$(stat -c %Y '/var/cache/apt')"; fi   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $MANAGER == "dnf" ]]; then local aptDate="$(stat -c %Y '/var/cache/dnf/expired_repos.json')"; fi   # %Y  time of last data modification, in seconds since Epoch
     local nowDate="$(date +'%s')"                    # %s  seconds since 1970-01-01 00:00:00 UTC
     echo $((nowDate - aptDate))                      # returns from the function the number of seconds since last /var/cache/apt update
 }
@@ -139,7 +154,8 @@ function runAptGetUpdate()
 
     if [[ "${lastAptGetUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
-        print_header "apt updates will run as last update was more than '${updateInterval}' seconds ago"
+        updateIntervalReadable = $(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
+        print_header "apt updates will run as last update was more than '${updateIntervalReadable}' ago"
         # echo -e "apt-get update"
         if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
         exe sudo $MANAGER update -y
@@ -152,8 +168,7 @@ function runAptGetUpdate()
         apt-get update -m
     else
         local lastUpdate="$(date -u -d @"${lastAptGetUpdate}" +'%-Hh %-Mm %-Ss')"
-        # echo -e "\nSkip apt-get update because its last run was '${lastUpdate}' ago"
-        print_header "Skip apt-get update because its last run was '${lastUpdate}' ago"
+        print_header "Skip apt-get update because its last run was '${updateIntervalReadable}' ago"
     fi
 }
 

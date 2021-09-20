@@ -1527,8 +1527,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx ""
     exx "The following has been run by custom_bash.sh to alter the jarring Windows Event sounds inside WSL sessions:"
     exx ""
-    exx '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
-    exx 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+    exx "\\\$toChange = @(\\\".Default\\\",\\\"SystemAsterisk\\\",\\\"SystemExclamation\\\",\\\"Notification.Default\\\",\\\"SystemNotification\\\",\\\"WindowsUAC\\\",\\\"SystemHand\\\")"
+    exx "foreach (\\\$c in \\\$toChange) { Set-ItemProperty -Path \\\"HKCU:\\\AppEvents\\\Schemes\\\Apps\\\.Default\\\\\\\$c\\\.Current\\\" -Name \\\"(Default)\\\" -Value \\\"C:\\WINDOWS\\media\\ding.wav\\\" }"
     exx ""
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""

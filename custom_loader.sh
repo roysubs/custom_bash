@@ -1,6 +1,9 @@
 #!/bin/bash
 ####################
 #
+# git config --global core.autocrlf input
+# git clone https://github.com/roysubs/custom_bash
+# 
 # Configure consistent bash environemt
 #    https://github.com/roysubs/custom_bash/
 #    https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh  =>  https://git.io/Jt0fZ  (using git.io)
@@ -295,7 +298,8 @@ fi
 
 
 
-# Some useful templates that could be used elsewhere:
+# Following task is to get the latest package from a non-repo site, then optionally convert it (with alien) to a compatible
+# format, and then install it. Some useful methods here that can be used elsewhere:
 # - Finding the latest download link on a site
 # - String manipulations to get components of link, filename, extension etc
 # - Using \K lookbehnid functionality in grep by using Perl regex mode (-P)
@@ -307,6 +311,7 @@ fi
 #       file /usr/bin from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
 #     But forcing it to install did work and probably does not break anything, i.e. see here: https://stackoverflow.com/questions/27172142/conflicts-with-file-from-package-filesystem-3-2
 #       sudo rpm -i --force bat-musl-0.18.3-2.x86_64.rpm
+# - Note on extracting substrings in bash: https://www.baeldung.com/linux/bash-substring
 
 if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ####################
@@ -335,7 +340,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # Note how to feed a variable into grep with '<<<' instead of a file
     DL=$bat_releases$firstlink
     ver_and_filename=$(grep -oP 'https://github.com/sharkdp/bat/releases/download/\K[^"]*\.deb' <<< "$DL")   # v0.18.3/bat-musl_0.18.3_amd64.deb
-    IFS='\/' read -ra my_array <<< "$ver_and_filename"   # for i in "${my_array[@]}"; do echo $i; done
+    IFS='/' read -ra my_array <<< "$ver_and_filename"   # for i in "${my_array[@]}"; do echo $i; done
     ver=${my_array[0]}
     filename=${my_array[1]}
     IFS='.' read -ra my_array <<< "$filename"
@@ -343,26 +348,24 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     extension_with_dot="."$extension
     filename_no_extension=${filename%%${extension_with_dot}*}   # https://stackoverflow.com/questions/62657224/split-a-string-on-a-word-in-bash
     # various ways to get name without extension https://stackoverflow.com/questions/12152626/how-can-i-remove-the-extension-of-a-filename-in-a-shell-script
-    echo $DL
-    echo $ver_and_filename
-    echo $ver
-    echo $filename
-    echo $extension
-    echo $filename_no_extension
+    echo -e "$DL\n$ver_and_filename\n$ver\n$filename\n$extension\n$filename_no_extension"
 
-    [ ! -f /tmp/$filename ] && exe wget -P /tmp/ $DL       # 64-bit version
-    which bat &> /dev/null || exe sudo dpkg -i /tmp/$filename   # if the 'bat' command is present, do nothing, otherwise install with dpkg
+    [ ! -f /tmp/$filename ] && exe wget -P /tmp/ $DL  # 
 
-    # Using 'alien' to create a .rpm from a .deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
+    # Try to use 'alien' to create a .rpm from a .deb:   alien --to-rpm <name>.deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
+    # I can get this to work when running alien on Ubuntu, but it alien fails with errors when running on CentOS.
+    # Need to be able to do it from the CentOS system however to automate the install in this way.
     if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then        
-        exe sudo $MANAGER install perl-ExtUtils-Install
-        exe sudo $MANAGER install make -y
+        # Don't need to worry about picking the latest version as unchanged since 2016
         ALIENDL=https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
         ALIENTAR=alien_8.95.tar.xz
-        ALIENDIR=alien-8.95
+        ALIENDIR=alien-8.95   # Note that the extracted dir has "-" while the downloaded file has "_"
         exe wget -P /tmp/ $ALIENDL
         tar xf $ALIENTAR
-        cd /tmp/$ALIENDIR   # dnf install perl
+        cd /tmp/$ALIENDIR
+        exe sudo $MANAGER install perl -y
+        exe sudo $MANAGER install perl-ExtUtils-Install -y
+        exe sudo $MANAGER install make -y
         sudo perl Makefile.PL
         sudo make
         sudo make install
@@ -372,6 +375,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
         # Ideally, we should create a folder, create the output in there, then grab the name from there, since the name can change
     fi
 
+    which bat &> /dev/null || exe sudo dpkg -i /tmp/$filename   # if the 'bat' command is present, do nothing, otherwise install with dpkg
     # sudo dpkg -r bat   # to remove after install
     # Also installs as part of 'bacula-console-qt' but that is 48 MB for the entire backup tool  
     rm /tmp/$filename
@@ -573,21 +577,20 @@ if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # echo  >> ~/.inputrc
 
 # You’ll be able to browse through your command line history, simply start typing a few letters of the command and then use the arrow up and arrow down keys to browse through your history. This is similar to using Ctrl+r to do a reverse-search in your Bash, but a lot more powerful, and a feature I use every day.
+# The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
+ADDFILE=~/.inputrc
+function addToFile() { grep -qxF "$1" ~/$ADDFILE || echo $1 | tee --append $ADDFILE; }
 
-The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
-ADDFILE=~/.vimrc
-function addToFile() { grep -qxF "$1" ~/.vimrc || echo $1 | tee --append $ADDFILE; }
-
-INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
-grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='$include /etc/inputrc'           # include settings from /etc/inputrc
 INPUTRC='# Set tab completion for cd to be non-case sensitive'
-grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
-INPUTRC='set completion-ignore-case On'   # Set Tab completion to be non-case sensitive
-grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
-INPUTRC='"\C-p":history-search-backward'
-grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
-INPUTRC='"\C-n":history-search-forward'
-grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
+INPUTRC='set completion-ignore-case On     # Set Tab completion to be non-case sensitive'
+INPUTRC='"\e[5~": history-search-backward  # After Ctrl-r, PgUp to go backward'
+INPUTRC='"\e[6~": history-search-forward   # After Ctrl-r, PgDn to go forward'
+INPUTRC='"\C-p":history-search-backward    # After Ctrl-r, Ctrl-p to go backward (previous)'
+INPUTRC='"\C-n":history-search-forward     # After Ctrl-r, Ctrl-n to go forward (next)'
+
+# INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
+# grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
 
 # https://superuser.com/questions/241187/how-do-i-reload-inputrc
 # https://relentlesscoding.com/posts/readline-transformation/
@@ -807,12 +810,13 @@ print_header "HELP FILES : Will create various scripts to show notes and tips, t
 ####################
 
 # Try to build a collection of common notes, summaries, tips, tricks to always be accessible from the console.
-# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
-# Note that using exx() requires escaping characters \$ \\ and " is awkward, requires \\\" (\\ => \ and \" => ")
-# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc)
 # This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
+# Tried using printf for similar, but had a few problems with that and echo works better and more reliably.
+# Note escaping \$ \\, and " is little awkward, as requires \\\" (\\ => \ and \" => ").
+# Note the "" surround $1 in exx() { echo "$1" >> $HELPFILE; } otherwise prefix/trailing spaces will be removed.
+# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc)
 # In .custom, we can then simply create aliases if the files exist:
-# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'   # for .custom
+# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'
 # https://www.shellscript.sh/tips/echo/
 
 

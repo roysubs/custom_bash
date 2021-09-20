@@ -281,12 +281,12 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
-[ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'
-[ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'
-[ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
-[ -f /tmp/help-tmux.sh ] && alias help-byobu='/tmp/help-tmux.sh' && alias help-b='/tmp/help-t.sh'
-[ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'
-[ -f /tmp/help-awk.sh ] && alias help-awk='/tmp/help-awk.sh'
+[ -f /tmp/.custom/help-wsl.sh ] && alias help-wsl='/tmp/.custom/help-wsl.sh'
+[ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'
+[ -f /tmp/.custom/help-vim.sh ] && alias help-vim='/tmp/.custom/help-vim.sh' && alias help-vi='/tmp/.custom/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
+[ -f /tmp/.custom/help-tmux.sh ] && alias help-byobu='/tmp/.custom/help-tmux.sh' && alias help-b='/tmp/.custom/help-t.sh'
+[ -f /tmp/.custom/help-byobu.sh ] && alias help-byobu='/tmp/.custom/help-byobu.sh' && alias help-b='/tmp/.custom/help-byobu.sh'
+[ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
 help-cron-intro-1999() { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html; content=$(wget $URL -q -O -); lynx -dump $URL; }
 
 ####################

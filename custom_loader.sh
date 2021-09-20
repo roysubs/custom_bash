@@ -461,6 +461,7 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 # https://stackoverflow.com/questions/28647088/grep-for-a-line-in-a-file-then-remove-the-line
 
 # Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
+
 rc=~/.bashrc
 rctmp=$TMP/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
 grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
@@ -862,7 +863,7 @@ echo "Help / summary notes for this instance is running inside a Hyper-V VM." "e
 #
 ####################
 
-HELPFILE=/tmp/help-hyperv.sh
+HELPFILE=/tmp/.custom/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -892,7 +893,7 @@ echo "Help / summary notes for byobu terminal multiplexer: /tmp/help-byobu.sh al
 #
 ####################
 
-HELPFILE=/tmp/help-byobu.sh
+HELPFILE=/tmp/.custom/help-byobu.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -987,7 +988,7 @@ echo "Help / summary notes for tmux terminal multiplexer: /tmp/help-tmux.sh alia
 # https://www.golinuxcloud.com/tmux-cheatsheet/
 # https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html
 
-HELPFILE=/tmp/help-tmux.sh
+HELPFILE=/tmp/.custom/help-tmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -1179,7 +1180,7 @@ echo "Help / summary notes for bash shell: /tmp/help-bash.sh alias it in .custom
 ####################
 
 # [ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'   # for .custom
-HELPFILE=/tmp/help-bash.sh
+HELPFILE=/tmp/.custom/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -1230,7 +1231,7 @@ echo "Help / summary notes for Vim: /tmp/help-vim.sh alias it in .custom (useful
 ####################
 
 # [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
-HELPFILE=/tmp/help-vim.sh
+HELPFILE=/tmp/.custom/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -1402,7 +1403,7 @@ echo "Help / summary notes for grep: /tmp/help-grep.sh and alias it in .custom (
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
-HELPFILE=/tmp/help-grep.sh
+HELPFILE=/tmp/.custom/help-grep.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -1428,7 +1429,7 @@ echo "Help / summary notes for awk: /tmp/help-awk.sh and alias it in .custom (us
 # https://www.shebanglinux.com/best-awk-one-liners/
 # http://softpanorama.org/Tools/Awk/awk_one_liners.shtml
 
-HELPFILE=/tmp/help-awk.sh
+HELPFILE=/tmp/.custom/help-awk.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
@@ -1508,7 +1509,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     
     # Now create /tmp/help-wsl.sh
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
-    HELPFILE=/tmp/help-wsl.sh
+    HELPFILE=/tmp/.custom/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
     exx "HELPNOTES=\""

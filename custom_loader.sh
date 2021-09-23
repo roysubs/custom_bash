@@ -1843,14 +1843,19 @@ print_header "List Installed Repositories"
 ####################
 if [ "$MANAGER" = "apt" ]; then
     echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
+    echo ""
     sudo grep -rhE ^deb /etc/apt/sources.list*
+    echo ""
     echo "=====>  sudo apt-cache policy | grep http"
     sudo apt-cache policy | grep http
+    echo ""
 fi
 
-if [ "$MANAGER" = "dnf" ]; then
-    echo "=====>  sudo dnf repolist"
-    sudo dnf repolist
+if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then
+    echo "=====>  sudo $MANAGER repolist"
+    echo ""
+    sudo $MANAGER repolist
+    echo ""
 fi
 
 

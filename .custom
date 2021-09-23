@@ -108,7 +108,8 @@ alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on
 # 'lss' (ls with stat) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing aliases created in .bashrc / .bash_profile etc
 alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
-alias l='\ls --color=auto --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
+alias l='\ls --color=always --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
+# Note on color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
 alias ll='ls -l'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
@@ -121,7 +122,7 @@ alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing wi
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, git-push
-alias g='git'; alias gst='git status'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
+alias g='git'; alias gst='git status'; gstv='git --paginate status -vv'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias gcname='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 

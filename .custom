@@ -98,7 +98,7 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
 # alias ps="ps auxf"
 # alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"   # Search ps for a string
-alias cd-='cd -'; cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n'
+alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n'
 alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/

@@ -115,8 +115,8 @@ which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
 which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
 which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
-echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
-echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo -e "\n\n=====>   A variant of '$DISTRO' was found."
+echo -e "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
@@ -208,7 +208,7 @@ check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed
              # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
 if [ "$MANAGER" = "apt" ]; then check_and_install apt apt-file; fi  # find which package includes a specific file, or to list all files included in a package on remote repositories.
-check_and_install dpkg dpkg     # 'Debian package' is the low level package management from Debian ('apt' is a higher level tool)
+check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
 check_and_install git git
 check_and_install vim vim
 check_and_install curl curl
@@ -222,13 +222,13 @@ if [ "$MANAGER" = "dnf" ]; then check_and_install python python39; fi
 check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
 check_and_install pydf pydf
-if [ "$MANAGER" = "dnf" ]; then check_and_install crontab crontabs; fi        # cron is not installed by default on CentOS
+check_and_install crontab crontabs   # cron is not installed by default on CentOS
 check_and_install ncdu ncdu
 check_and_install tree tree
 check_and_install dos2unix dos2unix
 check_and_install mount mount
 check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-check_and_install byobu byobu    # Also installs 'tmux' as a dependency
+check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 check_and_install zip zip
 check_and_install unzip unzip
 if [ "$MANAGER" = "apt" ]; then check_and_install lr lr; fi   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
@@ -1833,6 +1833,24 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
+fi
+
+
+####################
+#
+print_header "List Installed Repositories"
+#
+####################
+if [ "$MANAGER" = "apt" ]; then
+    echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
+    sudo grep -rhE ^deb /etc/apt/sources.list*
+    echo "=====>  sudo apt-cache policy | grep http"
+    sudo apt-cache policy | grep http
+fi
+
+if [ "$MANAGER" = "dnf" ]; then
+    echo "=====>  sudo dnf repolist"
+    sudo dnf repolist
 fi
 
 

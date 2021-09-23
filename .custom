@@ -98,7 +98,7 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
 # alias ps="ps auxf"
 # alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"   # Search ps for a string
-alias cd..='cd ..'; alias u1='cd ..'; u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='pwd'
+alias cd-='cd -'; cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n'
 alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
@@ -122,17 +122,16 @@ alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing wi
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, git-push
-alias g='git'; alias gst='git status'; gstv='git -p status -vv'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
+alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
-alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias gcname='git config --global user.name; git config --global user.email'
+alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
 alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
 alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
-git config --global color.ui always
-git config --global core.pager 'less -r'   # https://unix.stackexchange.com/a/62850/441685
+git config --global color.ui always; git config --global core.pager 'less -r'   # https://unix.stackexchange.com/a/62850/441685
 git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
 alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
-alias cd0="cd ~/custom_bash"                      # Template: adjust to current main projects for convenience, can set cd1, cd2, etc
+alias cd0="cd ~/custom_bash"                      # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 

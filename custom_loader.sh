@@ -355,7 +355,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # When we get the .deb file, the install syntax is:
     # sudo dpkg -i /tmp/bat-musl_0.18.3_amd64.deb   # install
     # sudo dpkg -r bat                              # remove
-
+    # Can alternatively use pygmentize: https://www.gilesorr.com/blog/pygmentize-less.html, but bat -f (--force-colorization) is better
     # We need to determine the latest download link for our needs, starting from this url
     # Need to look at /releases/ even though the downloads are under /releases/download/ as the links are here
     bat_releases=https://github.com/sharkdp/bat/releases/   

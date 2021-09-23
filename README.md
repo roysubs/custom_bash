@@ -48,7 +48,7 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 
 # WSL Setup Steps
 
-The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance:  
+The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance. [WSL1 vs WSL2](https://docs.microsoft.com/en-us/windows/wsl/compare-versions#understanding-wsl-2-uses-a-vhd-and-what-to-do-if-you-reach-its-max-size), [Docker with WSL2 Backend](https://docs.docker.com/desktop/windows/wsl/)  
   
 \# Install WSL using DISM  
 Note: If you're running version 2004 of Windows 10 or later with all the latest optional updates,  
@@ -429,7 +429,17 @@ git pull
 ```
 
 [Connect to WSL via SSH](https://superuser.com/questions/1123552/how-to-ssh-into-wsl)
-Change the 22 port to a other one,such as 2222,in the file /etc/ssh/sshd_config,then restart the ssh service by the commond sudo service ssh --full-restart,you will successfully login.But I don't know the reason.
+[SSH into a WSL2 host remotely and reliably](https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2)
+`sudo apt install openssh-server` # Install SSH server`  
+`/etc/ssh/sshd_config              ` # Change `Port 22` to `Port 2222` as Windows uses port 22  
+`sudo visudo`  # We setup `service ssh` to not require a password
+```
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+%sudo   ALL=NOPASSWD: /usr/sbin/service ssh *
+```
+`sudo service ssh --full-restart` # Restart ssh service  `sudo /etc/init.d/ssh start` 
+You will successfully login.But I don't know the reason.
 
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
 

@@ -216,17 +216,18 @@ check_and_install wget wget
 check_and_install perl perl
 if [ "$MANAGER" = "apt" ]; then check_and_install python python; fi
 if [ "$MANAGER" = "dnf" ]; then check_and_install python python39; fi
-# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to Python 3.6
-# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel         # Will force Python 3.9
+# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
+# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
 check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
 check_and_install pydf pydf
-check_and_install dos2unix dos2unix
-check_and_install mount mount.cifs
-check_and_install neofetch neofetch
-# check_and_install screenfetch screenfetch   # Same as neofetch
+if [ "$MANAGER" = "dnf" ]; then check_and_install crontab crontabs; fi        # cron is not installed by default on CentOS
+check_and_install ncdu ncdu
 check_and_install tree tree
+check_and_install dos2unix dos2unix
+check_and_install mount mount
+check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
 check_and_install byobu byobu    # Also installs 'tmux' as a dependency
 check_and_install zip zip
 check_and_install unzip unzip
@@ -859,7 +860,7 @@ print_header "HELP FILES : Will create various scripts to show notes and tips, t
 
 ####################
 #
-echo "Help / summary notes for this instance is running inside a Hyper-V VM." "e.g. How to run full-screen and disable sleep"
+echo "Hyper-V VM Notes if this Linux is running inside a full VM"
 #
 ####################
 
@@ -867,7 +868,6 @@ HELPFILE=/tmp/.custom/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
-exx ""
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
 exx "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
@@ -881,7 +881,7 @@ exx "systemctl status sleep.target   # Show current sleep settings"
 exx "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
 exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo -e \"\$HELPNOTES\\n\""
+exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 /tmp/help-hyperv.sh   # Display this immediately
 
@@ -966,7 +966,7 @@ exx "  byobu-disable             byobu-janitor             byobu-launcher-uninst
 exx "  byobu-disable-prompt      byobu-keybindings         byobu-layout              byobu-select-backend      byobu-status"
 exx "  byobu-enable              byobu-launch              byobu-prompt              byobu-select-profile      byobu-status-detail"
 exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo -e \"\$HELPNOTES\\n\""
+exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 
@@ -1165,9 +1165,175 @@ exx "List key bindings(shortcuts)"
 exx ""
 exx "tmux info"
 exx "Show every session, window, pane, etc..."
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "tmux quick info (call with 'itmux'):"
+#
+####################
+
+HELPFILE=/tmp/.custom/itmux.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "C-b : (to enter command mode), then  :ls  (or another command)"
+exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
+exx "'M-' stands for 'Meta' key and is the Alt key on Linux"
+exx "C-b ?  (list all key bindings)   C-z  (Suspend tmux)   C-q  (Unsuspend tmux)"
+exx "tmux a (Attach last session)    tmux a -t mysession   (Attach to mysession)"
+exx "tmux ls (list sessions),  tmux a (attach),   tmux a -t <name> (attach named session)"
+exx "tmux,   start tmux,    tmux new -s <name>,   tmux new -s mysession -n mywindow"
+exx "tmux kill-session –t <name>	(kill a session)   tmux kill-server  (kill tmux server)"
 exx ""
+exx "***** Panes (all below are prefixed by C-b):"
+exx "\\\"  (Split new pane up/down)               %  (Split new pane left/right)"
 exx ""
-exx "\""   # require final line with a single " to end the multi-line text variable
+exx "z  (Toggle zoom of current pane)             x  (Kill current pane)"
+exx "{ / }  (Swap current pane with previous pane / next pane)   t  (Show the time in pane)"
+exx "q  (Display pane indexes)                    !  (Break current pane out of the window)"
+exx "m  (Mark current pane, see :select-pane -m)  M  Clear marked pane"
+exx "Up/Down/Left/Right    (Change pane in cursorkey direction, must let go of Ctrl)"
+exx "C-Up/Down/Left/Right  (Resize the current pane in steps of 1 cell, must hold down Ctrl)"
+exx "M-Left, M-Right  (Resize current pane in steps of 5 cells)"
+exx "o  (Go to next pane in current window)       ;  (Move to the previously active pane)"
+exx "C-o  (rotate panes in current window)       M-o  (Rotate panes backwards)"
+exx "M-1 to M-5  (Arrange panes preset layouts: tiled, horizontal, vertical, main-hor, main-ver)"
+exx ""
+exx "***** Windows (all below are prefixed by C-b):"
+exx "c       (Create a new window)           ,  (Rename the current window)"
+exx "0 to 9  (Select windows 0 to 9)    '  (Prompt for window index to select)"
+exx "s / w   (Window preview)           .  (Prompt for an index to move the current window)"
+exx "w       (Choose the current window interactively)     &  (Kill the current window)"
+exx "n / p   (Change to next / previous window)   l  (Change to previously selected window)"
+exx "i       (Quick window info in tray)"
+exx ""
+exx "***** Sessions (all below are prefixed by C-b):"
+exx "$  (Rename the current session)"
+exx "( / )  (Switch 'attached' client to previous / next session)"
+exx "L  Switch the attached client back to the last session."
+exx "f  Prompt to search for text in open windows."
+exx "r  Force redraw of the attached client."
+exx "s  (Select a new session for the attached client interactively)"
+exx "~  Show previous messages from tmux, if any."
+exx "Page Up     Enter copy mode and scroll one page up."
+exx "Space       Arrange the current window in the next preset layout."
+exx "M-n         Move to the next window with a bell or activity marker."
+exx "M-p         Move to the previous window with a bell or activity marker."
+exx ""
+exx "***** Buffers"
+exx "[  (Enter 'copy mode' to use PgUp/PgDn etc, press 'q' to leave copy mode)"
+exx "]  (View history / Paste the most recent text buffer)"
+exx "#  (List all paste buffers     =  (Choose a buffer to paste, from a list)"
+exx "-  Delete the most recently copied buffer of text."
+exx "C-Up, C-Down"
+exx "M-Up, M-Down"
+exx "Key bindings may be changed with the bind-key and unbind-key commands."
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "tmux.conf quick info (call with 'itmuxconf'):"
+#
+####################
+
+HELPFILE=/tmp/.custom/itmuxconf.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "Some useful options for ~/.tmux.conf"
+exx ""
+exx "# ~/.tmux.conf"
+exx ""
+exx "# unbind default prefix and set it to ctrl-a"
+exx "unbind C-b"
+exx "set -g prefix C-a"
+exx "bind C-a send-prefix"
+exx ""
+exx "# make delay shorter"
+exx "set -sg escape-time 0"
+exx ""
+exx "#### key bindings ####"
+exx ""
+exx "# reload config file"
+exx "bind r source-file ~/.tmux.conf \\; display \".tmux.conf reloaded!\""
+exx ""
+exx "# quickly open a new window"
+exx "bind N new-window"
+exx ""
+exx "# synchronize all panes in a window"
+exx "bind y setw synchronize-panes \\; display \"toggle synchronize-panes!\""
+exx ""
+exx "# pane movement shortcuts (same as vim)"
+exx "bind h select-pane -L"
+exx "bind j select-pane -D"
+exx "bind k select-pane -U"
+exx "bind l select-pane -R"
+exx ""
+exx "# enable mouse support for switching panes/windows"
+exx "set -g mouse-utf8 on"
+exx "set -g mouse on"
+exx ""
+exx "#### copy mode : vim ####"
+exx ""
+exx "# set vi mode for copy mode"
+exx "setw -g mode-keys vi"
+exx ""
+exx "# copy mode using 'Esc'"
+exx "unbind ["
+exx "bind Escape copy-mode"
+exx ""
+exx "# start selection with 'space' and copy using 'y'"
+exx "bind -t vi-copy 'y' copy-selection"
+exx ""
+exx "# paste using 'p'"
+exx "unbind p"
+exx "bind p paste-buffer"
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "ps notes (call with 'help-ps')"
+#
+####################
+
+HELPFILE=/tmp/.custom/help-ps.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "To see every process on the system using standard syntax:"
+exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
+exx "To see every process on the system using BSD syntax:"
+exx "   ps ax  ,  ps axu"
+exx "To print a process tree:"
+exx "   ps -ejH  ,  ps axjf"
+exx "To get info about threads:"
+exx "   ps -eLf  ,  ps axms"
+exx "To get security info:"
+exx "   ps -eo euser,ruser,suser,fuser,f,comm,label  ,  ps axZ  ,  ps -eM"
+exx "To see every process running as root (real & effective ID) in user format:"
+exx "   ps -U root -u root u"
+exx "To see every process with a user-defined format:"
+exx "   ps -eo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,wchan:14,comm"
+exx "   ps axo stat,euid,ruid,tty,tpgid,sess,pgrp,ppid,pid,pcpu,comm"
+exx "   ps -Ao pid,tt,user,fname,tmout,f,wchan"
+exx "Print only the process IDs of syslogd:"
+exx "   ps -C syslogd -o pid="
+exx "Print only the name of PID 42:"
+exx "   ps -q 42 -o comm="
+exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -1175,23 +1341,25 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help / summary notes for bash shell: /tmp/help-bash.sh alias it in .custom (useful refresher notes)"
+echo "Bash shell notes (call with 'help-bash')"
 #
 ####################
+# https://www.tecmint.com/linux-command-line-bash-shortcut-keys/
+# https://ostechnix.com/navigate-directories-faster-linux/
+# https://itsfoss.com/linux-command-tricks/
 
-# [ -f /tmp/help-bash.sh ] && alias help-bash='/tmp/help-bash.sh'   # for .custom
+# [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'   # for .custom
 HELPFILE=/tmp/.custom/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
-exx "bash refresher notes..."
+exx "********************"
+exx "* Bash Notes"
+exx "********************"
 exx ""
-exx "https://www.tecmint.com/linux-command-line-bash-shortcut-keys/"
 exx "It doesn't make sense, but it's the convention. EDITOR used to be for instruction-based editors like ed. When editors with GUIs came about--and by GUI, I mean CLI GUI (vim, emacs, etc.--think ncurses), not desktop environment GUI--the editing process changed dramatically, so the need for another variable arose. In this context, CLI GUI and desktop environment GUI editors are more or less the same, so you can set VISUAL to either; however, EDITOR is meant for a fundamentally different workflow. Of course, this is all historical. Nobody uses ed these days."
 exx "just setting EDITOR is not enough e.g. for git on Ubuntu 12.04. Without VISUAL being set git ignores EDITOR and just uses nano (the compiled in default, I guess). "
 exx "\$VISUAL vs \$EDITOR C-x C-e to open vim automatically"
-exx "https://ostechnix.com/navigate-directories-faster-linux/"
-exx "https://itsfoss.com/linux-command-tricks/"
 exx ""
 exx "***** Bash variables, special invocations, keyboard shortcuts"
 exx "\$\$  Get process id (pid) of the currently running bash script."
@@ -1202,23 +1370,17 @@ exx "–   e.g.  cd –	     Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
 exx ""
-exx "Shortcut   Description"
-exx "Tab        Autocomplete commands"
-exx "Ctrl + a   Move to the beginning of a command"
-exx "Ctrl + e   Move to the end of a command"
+exx "Tab    Autocomplete commands         Ctrl + r   Search the history of commands used"
+exx "Ctrl + a / e  Move to start / end of current line"
+exx "Alt + f / b   Move to the next / previous word"
+exx "Ctrl + u / k  Cut all text on the left / right side of the cursor"
 exx "Ctrl + w   Cut the word on the left side of the cursor"
-exx "Ctrl + k   Cut all text on the right side of the cursor"
-exx "Ctrl + u   Cut all text on the left side of the curor"
-exx "Ctrl + r   Search the history of commands used"
-exx "Ctrl + l   Clear Terminal"
-exx "Ctrl + d   Logout of Terminal or ssh session"
-exx "Alt + f    Move cursor to the next word"
-exx "Alt + b    Move cursor to the previous word"
+exx "Ctrl + d   Logout of Terminal or ssh (or tmux) session,   Ctrl + l   Clear Terminal"
 exx ""
-exx "***** Break an SSH session"
+exx "***** Breaking a hung SSH session"
 exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
 exx "Hit 'Enter', '~' and '.' as a sequence (↵~.) and the broken session will be successfully terminated."
-exx "\""   # require final line with a single " to end the multi-line text variable
+exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -1226,9 +1388,20 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help / summary notes for Vim: /tmp/help-vim.sh alias it in .custom (useful refresher notes)"
+echo "Vim Notes (start with 'help-vim')"
 #
 ####################
+# Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf
+# Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm
+# Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html
+# 8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/
+# Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/
+# Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/
+# Vim, Advanced Cheat Sheet: https://vimsheet.com/advanced.html https://vim.fandom.com/wiki/Using_marks
+# https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/
+# https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help
+# https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai
+# https://stackoverflow.com/questions/28958713/vim-how-to-stay-in-visual-mode-after-fixing-indentation-with
 
 # [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
 HELPFILE=/tmp/.custom/help-vim.sh
@@ -1238,17 +1411,6 @@ exx "HELPNOTES=\""
 exx "********************"
 exx "* Vim Notes..."
 exx "********************"
-exx ""
-# exx "Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf"
-# exx "Vim, Tips And Tricks: https://www.tutorialspoint.com/vim/vim_tips_and_tricks.htm"
-# exx "Vim, Tips And Tricks: https://www.cs.oberlin.edu/~kuperman/help/vim/searching.html"
-# exx "8 Vim Tips And Tricks That Will Make You A Pro User: https://itsfoss.com/pro-vim-tips/"
-# exx "Intro to Vim Modes: https://irian.to/blogs/introduction-to-vim-modes/"
-# exx "Vim, Advanced Guide: https://thevaluable.dev/vim-advanced/"
-# exx "Vim, Advanced Cheat Sheet: https://vimsheet.com/advanced.html https://vim.fandom.com/wiki/Using_marks"
-# exx "https://www.freecodecamp.org/news/learn-linux-vim-basic-features-19134461ab85/"
-# exx "https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help"
-# exx "https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai"
 exx ""
 exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
@@ -1390,8 +1552,7 @@ exx "You normally only need :set paste in terminals, not in GUI gVim etc."
 exx ""
 exx "dos2unix can change line-endings in a file, or in Vim we can use  :%s/^M//g  (but use Ctrl-v Ctrl-m to generate the ^M)."
 exx "you can also use   :set ff=unix   and vim will do it for you. 'fileformat' help  :h ff,  vim wiki: https://vim.fandom.com/wiki/File_format."
-exx ""
-exx "\""   # require final line with a single " to end the multi-line text variable
+exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
@@ -1399,7 +1560,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help / summary notes for grep: /tmp/help-grep.sh and alias it in .custom (useful refresher notes)"
+echo "grep Notes (show with 'help-grep')"
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
@@ -1411,7 +1572,6 @@ exx "********************"
 exx "* Grep Practical Examples"
 exx "********************"
 exx ""
-exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1420,7 +1580,126 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help / summary notes for awk: /tmp/help-awk.sh and alias it in .custom (useful refresher notes)"
+echo "Help / summary notes for cron: /tmp/help-cron.sh and alias it in .custom (useful refresher notes)"
+#
+####################
+# https://www.guru99.com/crontab-in-linux-with-examples.html
+# https://stackoverflow.com/questions/4672383/how-to-run-cronjobs-more-often-than-once-per-minute
+# rsync --archive --verbose --delete /home/valorin/ /mnt/c/Users/valorin/wsl2-backup/
+# Using Windows Task Scheduler to automate WSL operations (Windows Task starts wsl.exe and then runs a bash script to run a backup)
+# https://stephenreescarter.net/automatic-backups-for-wsl2/
+# Note: In my tests, rsync will occasionally mark things as not up-to-date due to permission differences only (Linux has permissions that conflict with what it gets from looking at the Windows copy of the file). I think what happens in this case is that rsync notes the difference, but since it is not a content difference no copying is done. Instead, rsync will just try to change the permissions of the target system. Since the target system is Windows, this attempt to change permissions is ineffective and basically a waste of time.
+# Bottom line: if instead of using –archive (which is equivalent to rlptgoD), you drop the permission related options (which do not really do anything anyway) and just use the -rltD, you may see a speed up for large amounts of files. At least, it did in my testing.
+# Alternative is to use robocopy from Windows to backup WSL \\wsl$\Ubuntu\home\boss
+# Does it wake up the WSL instance if it’s offline and you’re trying to access it via \\wsl$\ ?
+# net use u: \\wsl$\Ubuntu
+# robocopy /mir u:\home\myuser\sites\ C:\ubuntu-sites-backup\
+# net use u: /delete
+# RoboCopy pull from \\WSL$\Ubuntu   # 15,157,379 Bytes/sec
+# rsync to /mnt/s/backupdir          #  2,338,573 Bytes/sec
+
+HELPFILE=/tmp/.custom/help-cron.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "HELPNOTES=\""
+exx "********************"
+exx "* Cron Notes"
+exx "********************"
+exx ""
+exx "crontab -e   will edit current users cron"
+exx "crontab -e   will edit current users cron"
+exx "crontab -a <filename>:   create a new <filename> as crontab file"
+exx "crontab -e:   edit our crontab file or create one if it doesn’t already exist"
+exx "crontab -l:   show up our crontab file"
+exx "crontab -r:   delete our crontab file"
+exx "crontab -v:   show up the last time we have edited our crontab file"
+exx ""
+exx "crontab layout  =>  minute(s) hour(s) day(s) month(s) weekday(s) command(s)"
+exx ""
+exx "minute(s)   0-59"
+exx "hour(s)     0-23"
+exx "day(s)      1-31  Calendar day of the month"
+exx "month(s)    1-12  Calendar month of the year (can also use Jan ... Dec)"
+exx "weekday(s)  0-6   Day 0 is Sun (can also use Sun, Mon, Tue, Wed, Thu, Fri, Sat)"
+exx "command(s)        rest of line is free form with spaces for the command to be executed"
+exx "There are several special symbols:  *  /  -  ,"
+exx "*   Represents all of the range The number inside,"
+exx "/   'every', e.g. */5 means every 5 units, in the first column this would be every 5 minutes"
+exx "-   'from a number to a number'"
+exx ",   'separate several discrete numbers', e.g. 0,5,18,47 in first column would run at these minutes of the hour"
+exx ""
+exx "0 6 * * * echo \\\"Good morning.\\\" >>/tmp/crontest.txt         # 6 o'clock every morning"
+exx "# Note that you can't see any output from the screen, as cron emails any output to root's mailbox."
+exx "0 23-7/2,8 * * * echo \\\"Night work.\\\" >>/tmp/crontest.txt   # Every 2 hours between 11pm and 8am AND at 8am (the ',8')"
+exx "0 11 1 * 1-3 command line    # on the 1st of every month and every Monday to Wednesday at 11 AM"
+exx ""
+exx "Whenever a user edits their cron settings, a file with the same name as the user is generated at /var/spool/cron."
+exx "Do not edit this document at /var/spool/cron, only edit this with crontab -e."
+exx "After cron is started, this file is read every minute to check whether to execute the commands inside."
+exx "Therefore, there is no need to restart the cron service after this file is modified. 2. Edit/etc/crontab file to configure cron 　　cron service not only reads all files in/var/spool/cron once per minute, but also needs to read/etc/crontab once, so we can configure this file to use cron service to do some thing. The configuration with crontab is for a certain user, while editing/etc/crontab is a task for the system. The file format of this file is: 　　SHELL=/bin/bash"
+exx "Every two hours"
+exx "PATH=/sbin:/bin:/usr/sbin:/usr/bin"
+exx "MAILTO=root//If there is an error or there is data output, the data will be sent to this account as an email"
+exx "HOME=///The path where the user runs, here It is the root directory"
+exx "# run-parts"
+exx "01 * * * * root run-parts/etc/cron.hourly//Execute the script in/etc/cron.hourly every hour"
+exx "02 4 * * * root run-parts/etc/cron. daily//Execute the scripts in/etc/cron.daily every day"
+exx "22 4 * * 0 root run-parts/etc/cron.weekly//Execute the scripts in/etc/cron.weekly every week"
+exx "42 4 1 * * root run -parts/etc/cron.monthly//month to execute scripts in the/etc/cron.monthly"
+exx "attention to \\\"run-parts\\\" of this argument, if this parameter is removed, then later you can write a script to run Name instead of folder name."
+exx ""
+exx "# Autostart cron in WSL:"
+exx "sudo tee /etc/profile.d/start_cron.sh <<EOF"
+exx "if ! service cron status &> /dev/null; then"
+exx "  sudo service cron start"
+exx "fi"
+exx "EOF"
+exx ""
+exx "you can use this service to start automatically when the system starts:"
+exx "at the end of /etc/rc.d/rc.local script plus: /sbin/service crond start"
+exx ""
+exx "service cron start    # Start the service"
+exx "service cron stop     # Close the service"
+exx "service cron status   # Show staus of the service"
+exx "service cron restart  # Restart the service"
+exx "service cron reload   # Reload the configuration"
+exx ""
+exx "# Starting/stopping cron manually:"
+exx "# $ ~/custom_bash $ sudo service cron start"
+exx "#  * Starting periodic command scheduler cron             [ OK ]"
+exx "# $ sudo service cron stop  "
+exx "#  * Stopping periodic command scheduler cron             [ OK ]"
+exx ""
+exx "# /etc/crontab: system-wide crontab"
+exx "# Unlike any other crontab you don't have to run the 'crontab'"
+exx "# command to install the new version when you edit this file"
+exx "# and files in /etc/cron.d. These files also have username fields,"
+exx "# that none of the other crontabs do."
+exx ""
+exx "SHELL=/bin/sh"
+exx "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+exx ""
+exx "# Example of job definition:"
+exx "# .---------------- minute (0 - 59)"
+exx "# |  .------------- hour (0 - 23)"
+exx "# |  |  .---------- day of month (1 - 31)"
+exx "# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ..."
+exx "# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat"
+exx "# |  |  |  |  |"
+exx "# *  *  *  *  * user-name command to be executed"
+exx "17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly"
+exx "25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )"
+exx "47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )"
+exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo \\\"\$HELPNOTES\\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "awk Notes (show with 'help-awk')"
 #
 ####################
 # https://linoxide.com/useful-awk-one-liners-to-keep-handy/
@@ -1452,16 +1731,16 @@ exx "awk '{ a[i++] = \\\$0 } END { for (j=i-1; j>=0;) print a[j--] }' contents.t
 exx "Run this awk one-liner to arrange all lines in reverse order in file contents.txt:"
 exx ""
 exx "Use the NF variable to arrange each field (i.e. words on line) in each line in reverse order."
-exx "awk '{ for (i=NF; i>0; i--) printf(\\\"\\\%s \\\", \\\$i); printf (\\\"\\\n\\\") }' contents.txt"
+exx "awk '{ for (i=NF; i>0; i--) printf(\\\"\%s \\\", \\\$i); printf (\\\"\\\n\\\") }' contents.txt"
 exx ""
 exx "***** Remove duplicate lines"
-exx "awk 'a != \\\$0; { a = \\\$0 }' contents.txt   # Remove consecutive duplicate lines from the file"
-exx "awk '!a[\$0]++' contents.txt                # Remove Nonconsecutive duplicate lines"
+exx "awk 'a != \\\$0; { a = \\\$0 }' contents.txt   # Remove consecutive duplicate lines from the file"  # $0 => \\\$0
+exx "awk '!a[\\\$0]++' contents.txt         # Remove Nonconsecutive duplicate lines"
 exx ""
 exx "***** Numbering and Calculations (FN, NR)"
 exx "awk '{ print NR \\\"\\\t\\\" \\\$0 }' contents.txt               # Number all lines in a file"
-exx "awk '{ printf(\\\"\\%5d : \\%s\\n\\\", NR, \\\$0) }' contents.txt   # Number lines, indented, with colon separator"
-exx "awk 'NF { \\\$0=++a " :" \\\$0 }; { print }' contents.txt    # Number only non-blank lines in files"
+exx "awk '{ printf(\\\"\%5d : \%s\\n\\\", NR, \\\$0) }' contents.txt   # Number lines, indented, with colon separator"
+exx "awk 'NF { \\\$0=++a \\\" :\\\" \\\$0 }; { print }' contents.txt    # Number only non-blank lines in files"
 exx "awk '/engineer/{n++}; END {print n+0}'  contents.txt     # You can number only non-empty lines with the following command:"
 exx "Print number of lines that contains specific string"
 exx ""
@@ -1477,20 +1756,18 @@ exx "***** Substitution"
 exx "awk '{gsub(/engineer/, \\\"doctor\\\")};{print}' contents.txt   # Substitute 'engineer' with 'doctor'"
 exx "awk '{gsub(/jayesh|hitesh|bhavesh/,\\\"mahesh\\\");print}' contents.txt   # Find the string 'jayesh', 'hitesh' or 'bhavesh' and replace them with string 'mahesh', run the following command:"
 exx ""
-exx "df -h | awk '{print \$1, \$4}'   # Find Free Disk Space with Device Name"
-exx "netstat -ntu | awk '{print \$5}' | cut -d: -f1 | sort | uniq -c | sort -n   # Find Number of open connections per ip"
+exx "df -h | awk '{print \\\$1, \\\$4}'   # Find Free Disk Space with Device Name"   # $1 => \\\$1, $4 => \\\$4
+exx "netstat -ntu | awk '{print \\\$5}' | cut -d: -f1 | sort | uniq -c | sort -n   # Find Number of open connections per ip"
 exx "This awk one-liner is very useful if you think your server is under attack. It prints out a list of open connections to your server and sorts them by amount."
 exx "You should get the list of all open connections to your server by amount:"
-exx ""
-exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo \"\$HELPNOTES\\n\""
+exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
 
 ####################
 #
-echo "Help / summary notes for WSL integration: /tmp/help-wsl.sh alias it in .custom (useful refresher notes)"
+echo "WSL integration (show with 'help-wsl')"
 #
 ####################
 
@@ -1530,6 +1807,29 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "\\\$toChange = @(\\\".Default\\\",\\\"SystemAsterisk\\\",\\\"SystemExclamation\\\",\\\"Notification.Default\\\",\\\"SystemNotification\\\",\\\"WindowsUAC\\\",\\\"SystemHand\\\")"
     exx "foreach (\\\$c in \\\$toChange) { Set-ItemProperty -Path \\\"HKCU:\\\AppEvents\\\Schemes\\\Apps\\\.Default\\\\\\\$c\\\.Current\\\" -Name \\\"(Default)\\\" -Value \\\"C:\\WINDOWS\\media\\ding.wav\\\" }"
     exx ""
+    exx "***** Run X-Display GUI from WSL"   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376
+    exx "Can use for various login apps (aws-azure-login) from WSL - Unable to Open X-Display"
+    exx "Since WSL distro does not come with GUI, we need to install a X-Server on our Windows Host and Connect to it from WSL."
+    exx "1. Install VcXsrv Windows X Server from https://sourceforge.net/projects/vcxsrv/"
+    exx "2. Configure: Multiple Windows, Start no client, Clipboard, Primary Selection, Native OpenGL, Disable access control"
+    exx "3. Enable Outgoing Connection from Windows Firewall:"
+    exx "Windows Security -> Firewall & network protection -> Allow an app through firewall -> make sure VcXsrv has both public and private checked."
+    exx "4. Configure WSL to use the X-Server, you can put that at the end of ~/.bashrc to load it every log in"
+    exx "export DISPLAY=127.0.0.1:0.0   # For WSL 1"
+    exx "export DISPLAY=<windows_host_ip>:0.0   # For WSL 2, replace <windows_host_ip> with windows host real ip."
+    exx "5. Create a .xsession file in the user home directory e.g."
+    exx "echo xfce4-session > ~/.xsession"
+    exx "6. Test by running xeyes"
+    exx "sudo apt install x11-apps"
+    exx "Now run 'xeyes' and you should be able to see the the xeyes application"
+    exx ""
+    exx "***** Enable SSH Server on WSL"
+    exx ""
+    exx "***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work"
+    exx "In this case, to see Task Manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
+    exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
+    exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
+    exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -1692,3 +1992,5 @@ fi
 # byobu-select-session, byobu-shell, byobu-silent, byobu-status, byobu-status-detail, byobu-tmux
 # 
 # /usr/share/doc/byobu/help.tmux.txt   
+
+			 

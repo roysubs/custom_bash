@@ -1,5 +1,23 @@
 #!/bin/bash
 ####################
+# ashow => apt show 
+# aiy = sudo apt install -y nq
+# help-tmux-quick => super terse listing! half page max!!
+# alias unzip filename.zip         # zip extract
+# alias gunzip filename.gz         # gzip extract
+# alias tar -xvf filename.tar      # tar extract '-xv'
+# alias tar -xzf filename.tar.gz   # .tar.gz extract '-xz'
+# alias tar -xJf filename.tar.xz   # .tar.xz extract '-xJ'
+# alias tar -xjf filename.tar.bz2  # .tar.bz2 (bzip2) extract '-xj'
+#  
+# tar -xf filename.tar.gz
+# Extract .7z file in Linux
+# These files are 7zip archive files. This is not generally used on Linux systems, but sometimes you may need to extract some source files. You must have the 7zip package installed on your system. Use the following command to extract these files.
+# 
+# 7z x filename.7z
+# 7z x filename.rar         # Using 7zip 
+# unrar x filename.rar      # Using Unrar 
+
 # Bash Custom Configuration. Try to maintain below settings as compatible with as many distros as possible.
 # For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless)
 # Current settings work for Debian/Ubuntu/RedHat/Fedora/CentOS etc (but not very lightweight like Alpine).
@@ -64,6 +82,9 @@ alias q='exit'                            # Quit immediately
 alias v='vim'                             # Quick vim access
 alias b='byobu'                           # Quick byobu access
 alias t='tmux'                            # Quick tmux access
+alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
+alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
+alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                         # DOS equivalent
 alias cpv='rsync -ah --info=progress2'    # Use just as 'cp' but has line showing progress during copy. Alternatively, install 'pv'
 alias fhere="find . -name "               # Reminder for find syntax
@@ -71,7 +92,7 @@ alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | eg
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
 alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
-alias datestring='date +"%Y-%m-%d__%H-%M-%S"'   # YYYYY-MM-DD__HHH-Min-Sec format, syntax demo for when need to add to filename output
+alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, syntax demo for when need to add to filename output
 # alias df="df -Tha --total"   # We might as well add an alias for our preferred du output as well:
 # alias du="du -ach | sort -h" # Let’s keep going in the same direction by making our free output more human friendly:
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
@@ -86,16 +107,17 @@ alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on
 # Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
 # 'lss' (ls with stat) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing aliases created in .bashrc / .bash_profile etc
-alias ls='ls -AFh --color=auto --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
+alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
 alias l='\ls --color=auto --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias ll='ls -l'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
+alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
-alias lx='ll *.sh *.py *.exe *.bat *.cmd *.ps1'   # list files with common exe-type extensions
-alias lx='find . -maxdepth 1 -perm -111 -type f'  # Find executable files, by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
-alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing with just size and name and Total summary line
+alias lxe='ll *.sh *.py *.exe *.bat *.cmd *.ps1'   # list files with common exe-type extensions
+alias lxp='find . -maxdepth 1 -perm -111 -type f'  # Find executable files, by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing with just size and name and total size summary line
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, git-push
@@ -122,16 +144,17 @@ if type ii > /dev/null 2>&1; then alias inst='ii'; alias setup='ii'; fi   # map 
 if type rr > /dev/null 2>&1; then alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
 # Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
 # Be very careful to avoid standard commands like 'du' (would have been 'dnf update' so cannot use this)
-# di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  ai, ar, as, ah, aptup  |  i(install), r(emove), s(search), h(istory), aptuu, dnfuu => update + upgrade + dist-update
+# ai, ar, as, ah, aptup  |  di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  i(install), r(emove), s(search), h(istory), aptuu, dnfuu => update + upgrade + dist-update
 # dpi, dpr, dps, dph (dpkg),  sni, snr, sns snh (snap),  fli, flr, fls, flh (flatpak),  api, apr, aps, aph (appimage)
+# ainfo, dinfo, yinfo, ashow, dshow, yshow (package details)  |  afiles, dfiles, yfiles (files in package)
 # ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), that will use the default tool for that OS
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
 # alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
 if type apk >/dev/null 2>&1; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
-if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
-if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum
-if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
+if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
+if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum
+if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
 # if type dnf >/dev/null 2>&1; then alias yi='sudo dnf install'; alias yr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # override yum by dnf(?)
 if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
@@ -140,7 +163,9 @@ if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias f
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
 # Replacement aliases that take over from other commands. Try to never do this, should only be done very rarely
-[ -f /usr/bin/bat ] && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+[ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+# When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
+alias less='less -R'   # For bat and other colour output
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
 if type pydf >/dev/null 2>&1; then alias df='pydf'; alias df0='/usr/bin/df'; fi      # replace 'df' by 'pydf', create 'df0' for the original
 if type ncdu >/dev/null 2>&1; then alias du='ncdu'; alias du0='/usr/bin/du'; fi      # same for du
@@ -152,7 +177,7 @@ alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip alia
 ####################
 # Functions: Some useful snippets, and as templates for bash function writing
 ####################
-update-distro() {
+update-full() {
     MANAGER=
     which apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
@@ -162,12 +187,15 @@ update-distro() {
     printf "\nCheck updates:\n\n"
     echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
     echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
-    # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
-    printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
-    exe sudo $MANAGER update -y ; exe sudo $MANAGER upgrade -y ; exe sudo $MANAGER dist-upgrade -y ; exe sudo $MANAGER install ca-certificates -y ; exe sudo $MANAGER autoremove -y
+    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
+    if [ "$MANAGER" == "apt" ]; then exe sudo exe sudo apt-get update --ignore-missing -y; fi   # Note sure if this is needed
+    exe sudo $MANAGER update -y
+    exe sudo $MANAGER upgrade -y
+    exe sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+    exe sudo $MANAGER autoremove -y
     which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
         echo "A reboot is required (/var/run/reboot-required is present)." >&2
         echo "Re-run this script after reboot to check." >&2
@@ -282,12 +310,19 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
 [ -f /tmp/.custom/help-wsl.sh ] && alias help-wsl='/tmp/.custom/help-wsl.sh'
+[ -f /tmp/.custom/help-hyperv.sh ] && alias help-hyperv='/tmp/.custom/help-hyperv.sh' && alias help-vm='/tmp/.custom/help-hyperv.sh'
 [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'
 [ -f /tmp/.custom/help-vim.sh ] && alias help-vim='/tmp/.custom/help-vim.sh' && alias help-vi='/tmp/.custom/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
-[ -f /tmp/.custom/help-tmux.sh ] && alias help-byobu='/tmp/.custom/help-tmux.sh' && alias help-b='/tmp/.custom/help-t.sh'
+[ -f /tmp/.custom/help-tmux.sh ] && alias help-tmux='/tmp/.custom/help-tmux.sh' && alias help-t='/tmp/.custom/help-tmux.sh'
+[ -f /tmp/.custom/itmux.sh ] && alias itmux='/tmp/.custom/itmux.sh'
+[ -f /tmp/.custom/itmuxconf.sh ] && alias itmux='/tmp/.custom/itmuxconf.sh'
 [ -f /tmp/.custom/help-byobu.sh ] && alias help-byobu='/tmp/.custom/help-byobu.sh' && alias help-b='/tmp/.custom/help-byobu.sh'
 [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+[ -f /tmp/.custom/help-ps.sh ] && alias help-ps='/tmp/.custom/help-ps.sh'
 help-cron-intro-1999() { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html; content=$(wget $URL -q -O -); lynx -dump $URL; }
+help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
+help-git-basics() { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
+help-git-pro() { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)

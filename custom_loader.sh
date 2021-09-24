@@ -1347,9 +1347,10 @@ exx "********************"
 exx "* Bash Notes"
 exx "********************"
 exx ""
-exx "It doesn't make sense, but it's the convention. EDITOR used to be for instruction-based editors like ed. When editors with GUIs came about--and by GUI, I mean CLI GUI (vim, emacs, etc.--think ncurses), not desktop environment GUI--the editing process changed dramatically, so the need for another variable arose. In this context, CLI GUI and desktop environment GUI editors are more or less the same, so you can set VISUAL to either; however, EDITOR is meant for a fundamentally different workflow. Of course, this is all historical. Nobody uses ed these days."
-exx "just setting EDITOR is not enough e.g. for git on Ubuntu 12.04. Without VISUAL being set git ignores EDITOR and just uses nano (the compiled in default, I guess). "
-exx "\\\$VISUAL vs \\\$EDITOR C-x C-e to open vim automatically"
+exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
+exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
+exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
+exx "Ctrl-x then Ctrl-e is a bash built-in to open vim (\$EDITOR) automatically."
 exx ""
 exx "***** Bash variables, special invocations, keyboard shortcuts"
 exx "\\\$\\\$  Get process id (pid) of the currently running bash script."
@@ -1868,9 +1869,9 @@ echo "'cat ~/.custom' to view the functions that will load in all new interactiv
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."
-    echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste."
+    echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste'."
     echo "From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\wsl$'."
-    echo "Access Windows from bash: 'cd /mnt/c' etc, can use 'alias c:='cd /mnt/c && ll' and same for 'd', 'e' etc"
+    echo "Access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' and same for 'd:', 'e:' etc"
 fi
 echo ""
 echo ""
@@ -2007,4 +2008,35 @@ fi
 # 
 # /usr/share/doc/byobu/help.tmux.txt   
 
-			 
+# ashow => apt show 
+# aiy = sudo apt install -y nq
+# alias xzip filename.zip         # zip extract
+# alias xgzip filename.gz         # gzip extract
+# alias xtar -xvf filename.tar      # tar extract '-xv'
+# alias xtar -xzf filename.tar.gz   # .tar.gz extract '-xz'
+# alias xtar -xJf filename.tar.xz   # .tar.xz extract '-xJ'
+# alias xtar -xjf filename.tar.bz2  # .tar.bz2 (bzip2) extract '-xj'
+#  
+# tar -xf filename.tar.gz
+# Extract .7z file in Linux
+# These files are 7zip archive files. This is not generally used on Linux systems, but sometimes you may need to extract some source files. You must have the 7zip package installed on your system. Use the following command to extract these files.
+# 
+# 7z x filename.7z
+# 7z x filename.rar         # Using 7zip 
+# unrar x filename.rar      # Using Unrar 
+
+# fzf
+# export FZF_DEFAULT_COMMAND='fd --type f --color=never --hidden'
+# export FZF_DEFAULT_OPTS='--no-height --color=bg+:#343d46,gutter:-1,pointer:#ff3c3c,info:#0dbc79,hl:#0dbc79,hl+:#23d18b'
+# export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+# export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
+# export FZF_ALT_C_COMMAND='fd --type d . --color=never --hidden'
+# export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -50'"
+
+# git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh  # Download custom_loader.sh
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom                    # Download .custom
+
+# login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
+# login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; type figlet >/dev/null 2>&1  && fignow; }

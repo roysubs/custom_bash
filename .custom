@@ -1,53 +1,28 @@
 #!/bin/bash
 ####################
-# ashow => apt show 
-# aiy = sudo apt install -y nq
-# help-tmux-quick => super terse listing! half page max!!
-# alias unzip filename.zip         # zip extract
-# alias gunzip filename.gz         # gzip extract
-# alias tar -xvf filename.tar      # tar extract '-xv'
-# alias tar -xzf filename.tar.gz   # .tar.gz extract '-xz'
-# alias tar -xJf filename.tar.xz   # .tar.xz extract '-xJ'
-# alias tar -xjf filename.tar.bz2  # .tar.bz2 (bzip2) extract '-xj'
-#  
-# tar -xf filename.tar.gz
-# Extract .7z file in Linux
-# These files are 7zip archive files. This is not generally used on Linux systems, but sometimes you may need to extract some source files. You must have the 7zip package installed on your system. Use the following command to extract these files.
-# 
-# 7z x filename.7z
-# 7z x filename.rar         # Using 7zip 
-# unrar x filename.rar      # Using Unrar 
-
-# Bash Custom Configuration. Try to maintain below settings as compatible with as many distros as possible.
-# For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless)
-# Current settings work for Debian/Ubuntu/RedHat/Fedora/CentOS etc (but not very lightweight like Alpine).
-# Each alias or function should be self-contained if possible (to make as modular as possible)
-# This file is called from .bashrc so does not heavily modify core distro files.
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Full Update
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh > custom_loader.sh  # Download custom_loader.sh
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > .custom                    # Download .custom
-# git clone https://github.com/roysubs/custom_bash      # Downloads full git project, then run '. custom_loader.sh'
+# .custom configuration is maintained to always be compatible with Ubuntu/Debian and RedHat/Fedora/CentOS (and WSL extensions if running on that).
+# This is called from .bashrc so as to not heavily modify core distro files. All aliases and functions are self-contained if possible (to make as modular as possible).
+# For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless, so use it).
+# git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
 ####################
-# Why use 'hash' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
-# Reducing stackexchange url's: https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
-# Try to never replace a built-in command except in few cases below (sudo, du, df, etc)
+# Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
+# Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
+# Try to never replace a built-in command except in few cases below (mainly just du, df, cat in the below). i.e. do not want to impact other scripts.
 
 ####################
 # Exports
 ####################
-export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # very big and show date-time when run 'history'
+export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias hs='history | grep -A 1 -B 1'    # Search history, show matches plus 1 line 'A'bove and 1 line 'B'elow each match (to get context for why the command was run)
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
 # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
-# Set default EDITOR. Also set $VISUAL, as some programs (correctly) use that instead of $EDITOR (see $VISUAL vs. $EDITOR).
-# Additionally, unless you know why, you should set it to vim instead of vi. Also note: https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
-# select-editor   # update-alternatives --config editor   # update-alternatives --list editor
-# which update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
-export VISUAL=vim
-export EDITOR="$VISUAL"
+# Set default $EDITOR and $VISUAL to vim (as Ubuntu defaults to nano for 'sudo visudo' etc). https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
+# Also note: select-editor   # update-alternatives --config editor   # update-alternatives --list editor   # type update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
+export EDITOR=vim; export VISUAL=vim
 
 # Standard color for LESS/MAN pages (following was only way that I found that was cross-distro compatible, e.g. CentOS does not have by default)
 export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
@@ -61,14 +36,6 @@ export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-termin
 
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
-
-# fzf
-export FZF_DEFAULT_COMMAND='fd --type f --color=never --hidden'
-export FZF_DEFAULT_OPTS='--no-height --color=bg+:#343d46,gutter:-1,pointer:#ff3c3c,info:#0dbc79,hl:#0dbc79,hl+:#23d18b'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :50 {}'"
-export FZF_ALT_C_COMMAND='fd --type d . --color=never --hidden'
-export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -50'"
 
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else command -V $1; fi; }
@@ -326,8 +293,6 @@ help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
-login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
-# login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session

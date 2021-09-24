@@ -454,8 +454,6 @@ if [ -f ~/.bashrc ]; then
     exe cp ~/.bashrc $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
 
-return
-
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
@@ -746,18 +744,6 @@ sudo cp /etc/sudoers $TMP/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
 # Add option to view the sudoers file in case it is broken to offer to copy the backup back in
 
 
-
-# ####################
-# #
-# print_header "Configure snapd fix (should ultimately remove this section when the a permanent fix is made)"
-# #
-# ####################
-# echo "https://github.com/microsoft/WSL/issues/5126"
-# if [ "$MANAGER" = "apt" ]; then
-#     sudo apt-get update && sudo apt-get install -yqq daemonize dbus-user-session fontconfig
-#     sudo daemonize /usr/bin/unshare --fork --pid --mount-proc /lib/systemd/systemd --system-unit=basic.target
-#     exec sudo nsenter -t $(pidof systemd) -a su - $LOGNAME
-# fi
 
 ####################
 #
@@ -1882,10 +1868,8 @@ echo "'update-custom-tools' will update .custom to latest version from Github."
 echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    echo ""
     echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."
     echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste'."
-    echo "To prevent WSL opening below System tray > Properties > Layout > Uncheck 'Let system position window' and set values."
     echo "From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\wsl$'."
     echo "Access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' and same for 'd:', 'e:' etc"
 fi

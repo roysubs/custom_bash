@@ -76,7 +76,7 @@ def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined 
 ####################
 # Aliases
 ####################
-alias sudo='sudo '                        # Fixes alias expansion when using sudo vi etc
+alias sudo='sudo '                        # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 alias q='exit'                            # Quit immediately
 alias v='vim'                             # Quick vim access
@@ -98,7 +98,7 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
 # alias ps="ps auxf"
 # alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"   # Search ps for a string
-alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n'
+alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"'
 alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
@@ -167,7 +167,8 @@ if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias 
 # Replacement aliases that take over from other commands. Try to never do this, should only be done very rarely
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'   # For bat and other colour output
+alias less='less -R'   # Colour always supported, so piping
+alias tree='tree -C'   # Colour always, so piping to less -R will show color
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
 if type pydf >/dev/null 2>&1; then alias df='pydf'; alias df0='/usr/bin/df'; fi      # replace 'df' by 'pydf', create 'df0' for the original
 if type ncdu >/dev/null 2>&1; then alias du='ncdu'; alias du0='/usr/bin/du'; fi      # same for du
@@ -232,6 +233,7 @@ figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}
 figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }
 toiletexample() { while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done; }
+RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
 
 ####################
 # WSL: This section will only run if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
@@ -243,56 +245,48 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # To get around no systemd, this will properly terminate the running WSL instance
     alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
-    
-    # winhome always find case-sensitive User folder in the Windows filesystem (due to case-sensitivity in Linux, this folder could have different case than the Linux user name. e.g. "C:\Users\John" in Windows might be "/home/john" in WSL.
-    alias winhome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'   # [ ! -d $winhome ] && mkdir "$winhome"
-    alias home='cd ~' 
-    # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
-    
-    # If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is probably redundant since I now use git tokens)
-    # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
-    
+    alias wx='explorer.exe'
+    alias wx.='explorer.exe .'
     # Open Windows apps from WSL console
     alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # Chrome, can use with URLs:       chrome www.google.com
     alias webgitcustombash='chrome https://github.com/roysubs/custom_bash'
     alias webgitcustomps='chrome https://github.com/roysubs/Custom-Tools'
     alias webgitbasicsahk='chrome https://github.com/roysubs/Basics-AHK'
-    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"            # Notepad++, can use with files:   notepad++ C:\Temp\Test.txt
-    alias n='notepad++'                                                         # Set 'n' also to Notepad++:       n C:\Temp\Test.txt
-    
-    # Map c: / d: / e:, etc but only if those paths exist
-    for d in /mnt/[a-z]; do       # [ -d /mnt/c ] && alias c:='cd /mnt/c'
-      [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"
-    done
-    for d in /mnt/[a-z]; do       # [ -d /mnt/c ] && alias llc='cd /mnt/c && ll'
-      [ -d /mnt/$(basename ${d}) ] && alias "ll$(basename ${d})"="cd $d && ll"
-    done
+    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"; alias n='notepad++'   # notepad++ C:\Temp\Test.txt , n C:\Temp\Test.txt
+    # If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is probably redundant since I now use git tokens)
+    # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
+    # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
+
+    # Map c: / d: / e:, etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
+    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done
+    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "ll$(basename ${d})"="cd $d && ll"; done
     # Map common Windows locations to navigate to from within WSL
     [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && ll'
     [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ll' && alias pf64:='cd /mnt/c/Program\ Files && ll'
     [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ll' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ll'
     [ -d /mnt/d/0\ Cloud ] && alias cloud:='cd /mnt/d/0\ Cloud && ll'
-    # Microsoft already provides a "code" shell script to call from WSL, so do not use code.exe from a full installation or the
-    # chocolatey shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as both of these will generate errors inside WSL.
-    # Instead, look in these default locations for the official "code" shell script (the last found will be what is used)
-    [ -f /mnt/c/tools/vscode/bin/code ] && alias code="\"/mnt/c/tools/vscode/bin/code\""   # Default Portable Edition location with Chocolatey package
-    [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="\"/mnt/c/Program Files/Microsoft VS Code/bin/code\""   # Default System Install location
-    [ -f $winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="\"$winhome/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code\""   # Default User Install location
-    alias c='code'   # Also make it easy to get to code.exe via 'c'
+    # Linux is case-sensitive, but Windows is case-insensitive. What if user is 'john' in Linux, but 'John' in Windows?
+    # In fact, this turns out to be a non-issue as WSL is somehow case-insensitive (but only when on Windows mounts). The following handles this either way though
+    alias chome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
+
+    # Microsoft already provides a "code" shell script to call from WSL, so do not use code.exe from a full installation or from chocolatey
+    # shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as these will cause errors inside WSL. Only use one of the official "code" shell script.
+    [ -f /mnt/c/tools/vscode/bin/code ] && alias code='/mnt/c/tools/vscode/bin/code'   # Default Portable Edition location with Chocolatey package
+    [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Program Files/Microsoft\ VS\ Code/bin/code"   # Default System install location
+    [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
+    alias c='code'   # Also alias 'c' to point at VS Code
 
     # Demonstrate using Windows clip.exe within WSL to get a string into the clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
     alias get-ip='hostname -I | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
-
     # Run CMD scripts from within WSL, note that you must use the Windows path, so run-cmd D:\test.cmd, and not run-cmd /mnt/d/test.cmd   https://github.com/microsoft/WSL/issues/4547
     run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
-    # Run CMD scripts from within WSL, note that you must use the Windows path, so cmd D:\test.cmd, and not cmd /mnt/d/test.cmd
+    # Run PS scripts from within WSL, note that you must use the Windows path, so cmd D:\test.ps1, and not cmd /mnt/d/test.ps1
     run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 fi
 
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
-# Ctrl-R : (reverse-i-search)`':  Press once and type part of a command in history, Ctrl-R again to go back in the list
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 
 ####################
@@ -304,32 +298,36 @@ fi
 fn-help() { printf "\n$1\n==========\n\n$2\n\n"; }
 help-listdirs() { fn-help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, including hidden), -i (don't show tree structure), -l (don't follow symbolic links). Show additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable), tree . -fail --du -h\nlr   # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/."; }
 help-zip() { fn-help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
-help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>   # or: sudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path"; }
+help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>\nsudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path   # Alternate syntax"; }
 # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
 help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
 
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
-[ -f /tmp/.custom/help-wsl.sh ] && alias help-wsl='/tmp/.custom/help-wsl.sh'
-[ -f /tmp/.custom/help-hyperv.sh ] && alias help-hyperv='/tmp/.custom/help-hyperv.sh' && alias help-vm='/tmp/.custom/help-hyperv.sh'
-[ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'
-[ -f /tmp/.custom/help-vim.sh ] && alias help-vim='/tmp/.custom/help-vim.sh' && alias help-vi='/tmp/.custom/help-vim.sh' && alias help-v='/tmp/help-vim.sh'
-[ -f /tmp/.custom/help-tmux.sh ] && alias help-tmux='/tmp/.custom/help-tmux.sh' && alias help-t='/tmp/.custom/help-tmux.sh'
-[ -f /tmp/.custom/itmux.sh ] && alias itmux='/tmp/.custom/itmux.sh'
-[ -f /tmp/.custom/itmuxconf.sh ] && alias itmux='/tmp/.custom/itmuxconf.sh'
-[ -f /tmp/.custom/help-byobu.sh ] && alias help-byobu='/tmp/.custom/help-byobu.sh' && alias help-b='/tmp/.custom/help-byobu.sh'
-[ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
-[ -f /tmp/.custom/help-ps.sh ] && alias help-ps='/tmp/.custom/help-ps.sh'
-help-cron-intro-1999() { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html; content=$(wget $URL -q -O -); lynx -dump $URL; }
+# [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh='/tmp/.custom/help-awk.sh';    [[ -f $hh ]] && alias help-awk="$hh"
+hh='/tmp/.custom/help-bash.sh';   [[ -f $hh ]] && alias help-bash="$hh"
+hh='/tmp/.custom/help-byobu.sh';  [[ -f $hh ]] && alias help-byobu="$hh" && alias help-b="$hh"
+hh='/tmp/.custom/help-cron.sh';   [[ -f $hh ]] && alias help-cron="$hh"
+hh='/tmp/.custom/help-grep.sh';   [[ -f $hh ]] && alias help-grep="$hh"
+hh='/tmp/.custom/help-wsl.sh';    [[ -f $hh ]] && alias help-wsl="$hh"
+hh='/tmp/.custom/help-hyperv.sh'; [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+hh='/tmp/.custom/help-vim.sh';    [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
+hh='/tmp/.custom/help-tmux.sh';   [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+hh='/tmp/.custom/itmux.sh';       [[ -f $hh ]] && alias itmux="$hh"
+hh='/tmp/.custom/itmuxconf.sh';   [[ -f $hh ]] && alias itmuxconf="$hh"
+hh='/tmp/.custom/help-ps.sh';     [[ -f $hh ]] && alias help-ps="$hh"
+help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
-help-git-basics() { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
-help-git-pro() { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
+help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
+help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
 login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
+login_banner() { printf "\n$(RGB)\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n\n"; which figlet &> /dev/null && fignow; pringt "$(RGB)\n"; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
 # login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session

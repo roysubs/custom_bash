@@ -31,6 +31,7 @@
 # https://gitlab.com/bertrand-benoit/scripts-common
 # https://opensource.com/article/19/7/bash-aliases
 # https://src-r-r.github.io/articles/essential-bash-commands-to-make-life-easier/
+# https://tldp.org/LDP/abs/html/sample-bashrc.html
 
 ####################
 #
@@ -465,9 +466,9 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 
 rc=~/.bashrc
 rctmp=$TMP/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
-grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
-grep -vxF "$GETCUSTOM" $rc > $rctmp.2 && cp $rctmp.2 $rc
-grep -vxF "$RUNCUSTOM" $rc > $rctmp.3 && cp $rctmp.3 $rc
+grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && sudo cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
+grep -vxF "$GETCUSTOM" $rc > $rctmp.2    && sudo cp $rctmp.2 $rc
+grep -vxF "$RUNCUSTOM" $rc > $rctmp.3    && sudo cp $rctmp.3 $rc
 # If doing this with a system file (e.g. /etc/bashrc), just sudo the 'cp' part. i.e. grep <> /etc/bashrc > $rctmp && sudo cp /etc/bashrc
 
 # After removing our lines, make sure no empty lines at end of file, except for one required before our lines
@@ -479,8 +480,8 @@ echo "" | tee --append ~/.bashrc   # Finally, add an empty line back in as a sep
 
 # Add lines to trigger .custom to end of .bashrc (-q silent show no output, -x full line match, -F fixed string / no regexp)
 echo $HEADERCUSTOM | tee --append ~/.bashrc
-echo $GETCUSTOM | tee --append ~/.bashrc
-echo $RUNCUSTOM | tee --append ~/.bashrc
+echo $GETCUSTOM    | tee --append ~/.bashrc
+echo $RUNCUSTOM    | tee --append ~/.bashrc
 
 ### .bash_profile checks ###
 # In practice, the usage of the .bash_profile file is the same as the usage for the .bashrc file.

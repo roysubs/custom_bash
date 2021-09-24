@@ -327,7 +327,7 @@ help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
 login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; which figlet &> /dev/null && fignow; }
-login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; which figlet &> /dev/null && fignow; }
+login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
 # login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 # [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session

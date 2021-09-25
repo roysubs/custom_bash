@@ -135,28 +135,28 @@ fi
 # yum repolist   # check if epel is installed
 # if type dnf &> /dev/null 2>&1; then exe sudo $MANAGER -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
 
-function getLastAptGetUpdate()
+function getLastUpdate()
 {
-    if [[ $MANAGER == "apt" ]]; then local aptDate="$(stat -c %Y '/var/cache/apt')"; fi   # %Y  time of last data modification, in seconds since Epoch
-    if [[ $MANAGER == "dnf" ]]; then local aptDate="$(stat -c %Y '/var/cache/dnf/expired_repos.json')"; fi   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $MANAGER == "apt" ]]; then local updateDate="$(stat -c %Y '/var/cache/apt')"; fi   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $MANAGER == "dnf" ]]; then local updateDate="$(stat -c %Y '/var/cache/dnf/expired_repos.json')"; fi   # %Y  time of last data modification, in seconds since Epoch
     local nowDate="$(date +'%s')"                    # %s  seconds since 1970-01-01 00:00:00 UTC
-    echo $((nowDate - aptDate))                      # returns from the function the number of seconds since last /var/cache/apt update
+    echo $((nowDate - updateDate))                      # simple arithmetic with $(( ))
 }
 
-function runAptGetUpdate()
+function runDistroUpdate()
 {
-    local updateInterval="${1}"
-    local lastAptGetUpdate="$(getLastAptGetUpdate)"
+    local updateInterval="${1}"     # An update interval can be specifide as $1, otherwise default to a value below
+    local lastUpdate="$(getLastUpdate)"
 
     if [[ -z "$updateInterval" ]]   # "$(isEmptyString "${updateInterval}")" = 'true'
     then
         updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, setting to 24 hours in seconds
     fi
+    updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
 
-    if [[ "${lastAptGetUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
+    if [[ "${lastUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
-        updateIntervalReadable = $(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
-        print_header "apt updates will run as last update was more than '${updateIntervalReadable}' ago"
+        print_header "apt updates will run as last update was more than ${updateIntervalReadable} ago"
         if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
         if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
         if [ "$MANAGER" == "apt" ]; then exe sudo exe sudo apt-get update --ignore-missing -y; fi   # Note sure if this is needed
@@ -167,12 +167,12 @@ function runAptGetUpdate()
         which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
         if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     else
-        local lastUpdate="$(date -u -d @"${lastAptGetUpdate}" +'%-Hh %-Mm %-Ss')"
-        print_header "Skip apt-get update because its last run was '${updateIntervalReadable}' ago"
+        local lastUpdate="$(date -u -d @"${lastUpdate}" +'%-Hh %-Mm %-Ss')"
+        print_header "Skip apt-get update because its last run was ${updateIntervalReadable} ago"
     fi
 }
 
-runAptGetUpdate
+runDistroUpdate
 
 
 
@@ -191,8 +191,6 @@ if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then
         return   # Script will exit here if a reboot is required
     fi
 fi
-
-
 
 
 
@@ -412,29 +410,24 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     which bat &> /dev/null || exe sudo dpkg -i /tmp/$filename   # if the 'bat' command is present, do nothing, otherwise install with dpkg
     # sudo dpkg -r bat   # to remove 'bat' if required
     # Also note that 'bat' is part of the 'bacula-console-qt' package but that is 48 MB for an entire backup tool
+    # https://linuxconfig.org/how-to-install-deb-file-in-redhat-linux-8
     rm /tmp/$filename
 fi
 
-# For CentOS
-# Get latest tar.xz from https://sourceforge.net/projects/alien-pkg-convert/files/release/
-# wget -c https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
-# tar xf alien_8.95.tar.xz
-# dnf install perl
-# perl Makefile.PL; make; make install
-# alien --to-rpm file.deb   # where file.deb is the DEB package you have downloaded.
-# rpm -ivh file.rpm
-# https://linuxconfig.org/how-to-install-deb-file-in-redhat-linux-8
+
 
 ####################
 #
 print_header "Update .bashrc so that it will load .custom during any interactive login sessions"
 #
 ####################
-
-# Note how the grep line logically resolves below as it is not always obvious: (( grep for $thing in $file )) OR (( echo $thing | tee --append $thing ))
+# Object here is to carefully inject the required loader lines into ./bashrc. Intent is to only ever add two
+# lines to ~/.bashrc, and only ever at the end of the file, so they will be pruned and re-attached to end of
+# the file if required.
+# (( grep for $thing in $file )) , or , (( echo $thing | tee --append $thing ))
 # i.e. $expression1 || $expression2    where    $expression2 = echo $thing | tee --append $thing
-# "tee --append" is better than ">>" in general as it also permits updating protected files.
-# e.g. echo "thing" >> ~/.bashrc      # fails as cannot update protected file.
+# 'tee --append' is better than '>>' in general as it also permits updating protected files.
+# e.g. echo "thing" >> ~/.bashrc      # fails as cannot update protected file (since the '>>' is not elevated)
 #      sudo echo "thing" >> ~/.bashrc # also fails as the 'echo' is elevated, but '>>' is not(!)
 # But: echo "thing" | sudo tee --append /etc/bashrc   # works as the 'tee' operation is elevated correctly.
 # https://linux.die.net/man/1/grep
@@ -461,7 +454,6 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 
 # Remove lines to trigger .custom from end of .bashrc (-v show everything except, -x full line match, -F fixed string / no regexp)
 # https://stackoverflow.com/questions/28647088/grep-for-a-line-in-a-file-then-remove-the-line
-
 # Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
 
 rc=~/.bashrc
@@ -491,14 +483,13 @@ echo $RUNCUSTOM    | tee --append ~/.bashrc
 # wish to run a system diagnostic every time you log in to your Linux system. You can edit the
 # configuration file to print the results or save it in a file. But you only wish to see it at
 # startup and not every time you open your terminal. This is when you need to use the .bash_profile
-# file instead of .bashrc
-# Also: https://www.golinuxcloud.com/bashrc-vs-bash-profile/
-# If ".bash_profile" is ever created, it takes precedence over .bashrc, *even* if it is empty, and
-# so .bashrc will NOT load in this case (just one of the crazy bash rules).
-# To avoid this need to check for its existence and whether it has contents.
-# - If .bash_profile exists and is zero-length, simply remove it.
-# - If .bash_profile exists is not zero length, then create a line to dotsource .bashrc so that the above .custom will also be called.
-# - If .bash_profile exists and .bashrc does NOT exist, then add .custom lines to .bash_profile
+# file instead of .bashrc.    Also: https://www.golinuxcloud.com/bashrc-vs-bash-profile/
+# If ".bash_profile" is ever created, it takes precedence over .bashrc, *even* if it is empty, AND
+# .bashrc will be suppressed and will NOT load in this case (just one of the crazy bash rules).
+# To avoid this, we need to check for .bash_profile and whether it has contents.
+# - If .bash_profile exists and is zero-length, simply delete it.
+# - If .bash_profile exists is not zero length, then create a line to dotsource .bashrc so that .custom will also be called.
+# - If .bash_profile exists and .bashrc does NOT exist, then add .custom lines to .bash_profile instead of .bashrc
 
 if [ ! -s ~/.bash_profile ]; then   # This is specifically only if .bash_profile is zero-length (-z for zero-length is not available on some OS)
     echo "Deleting zero-size ~/.bash_profile to prevent overriding .bashrc"
@@ -563,8 +554,7 @@ print_header "Common changes to .vimrc"
 # Note: cannot have multiple spaces "   " in a line or can't grep -qxF on that as the spaces are stripped
 
 ADDFILE=~/.vimrc
-function addToFile() { grep -qxF "$1" ~/.vimrc || echo $1 | tee --append $ADDFILE; }
-
+function addToFile() { grep -qxF "$1" $ADDFILE || echo $1 | tee --append $ADDFILE; }
 addToFile '" Set simple syntax highlighting that is more readable than the default (also :set koehler)'
 addToFile 'color industry'
 addToFile '" Disable tabs (to get a tab, Ctrl-V<Tab>), tab stops are 4 chars, indents are 4 chars'
@@ -590,14 +580,13 @@ addToFile 'nnoremap <C-L> <C-W>l'
 
 
 
-
 ####################
 #
 print_header "Common changes to /etc/samba/smb.conf"
 #
 ####################
 
-# ToDo: add generic changes to make sure that Samba will work, including some default sharing
+# ToDo: add here generic changes to make sure that Samba will work, including some default sharing
 # Add an entry for the home folder on this environment so that is always available
 # Restart the samba service
 
@@ -617,15 +606,14 @@ if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # You’ll be able to browse through your command line history, simply start typing a few letters of the command and then use the arrow up and arrow down keys to browse through your history. This is similar to using Ctrl+r to do a reverse-search in your Bash, but a lot more powerful, and a feature I use every day.
 # The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
 ADDFILE=~/.inputrc
-function addToFile() { grep -qxF "$1" ~/$ADDFILE || echo $1 | tee --append $ADDFILE; }
-
-INPUTRC='$include /etc/inputrc'           # include settings from /etc/inputrc
-INPUTRC='# Set tab completion for cd to be non-case sensitive'
-INPUTRC='set completion-ignore-case On     # Set Tab completion to be non-case sensitive'
-INPUTRC='"\e[5~": history-search-backward  # After Ctrl-r, PgUp to go backward'
-INPUTRC='"\e[6~": history-search-forward   # After Ctrl-r, PgDn to go forward'
-INPUTRC='"\C-p":history-search-backward    # After Ctrl-r, Ctrl-p to go backward (previous)'
-INPUTRC='"\C-n":history-search-forward     # After Ctrl-r, Ctrl-n to go forward (next)'
+function addToFile() { grep -qxF "$1" $ADDFILE || echo $1 | tee --append $ADDFILE; }
+addToFile '$include /etc/inputrc'           # include settings from /etc/inputrc
+addToFile '# Set tab completion for cd to be non-case sensitive'
+addToFile 'set completion-ignore-case On     # Set Tab completion to be non-case sensitive'
+addToFile '"\e[5~": history-search-backward  # After Ctrl-r, PgUp to go backward'
+addToFile '"\e[6~": history-search-forward   # After Ctrl-r, PgDn to go forward'
+addToFile '"\C-p":history-search-backward    # After Ctrl-r, Ctrl-p to go backward (previous)'
+addToFile '"\C-n":history-search-forward     # After Ctrl-r, Ctrl-n to go forward (next)'
 
 # INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
 # grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
@@ -868,6 +856,7 @@ echo "Hyper-V VM Notes if this Linux is running inside a full VM"
 HELPFILE=/tmp/.custom/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
@@ -994,6 +983,7 @@ echo "Help / summary notes for tmux terminal multiplexer: /tmp/help-tmux.sh alia
 HELPFILE=/tmp/.custom/help-tmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
 exx ""
@@ -1177,10 +1167,10 @@ exx "C-b : (to enter command mode), then  :ls, :help, :set mouse on  (or other c
 exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
 exx "'M-' stands for 'Meta' key and is the Alt key on Linux"
 exx "C-b ?  (list all key bindings)   C-z  (Suspend tmux)   C-q  (Unsuspend tmux)"
-exx "tmux a (Attach last session)    tmux a -t mysession   (Attach to mysession)"
+exx "tmux a  (Attach last session)    tmux a -t mysession   (Attach to mysession)"
 exx "tmux ls (list sessions),  tmux a (attach),   tmux a -t <name> (attach named session)"
-exx "tmux,   start tmux,    tmux new -s <name>,   tmux new -s mysession -n mywindow"
-exx "tmux kill-session –t <name>	(kill a session)   tmux kill-server  (kill tmux server)"
+exx "tmux    (start tmux),    tmux new -s <name>,   tmux new -s mysession -n mywindow"
+exx "tmux kill-session –t <name>  (kill a session)   tmux kill-server  (kill tmux server)"
 exx ""
 exx "\${RED}***** Panes (press C-b first):\${NC}"
 exx "\\\"  (Split new pane up/down)                  %  (Split new pane left/right)"   # 3x spaces due to "\\\"
@@ -1239,6 +1229,7 @@ echo "tmux.conf quick info (call with 'itmuxconf'):"
 HELPFILE=/tmp/.custom/itmuxconf.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "Some useful options for ~/.tmux.conf"
 exx ""
@@ -1303,6 +1294,7 @@ echo "ps notes (call with 'help-ps')"
 HELPFILE=/tmp/.custom/help-ps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "To see every process on the system using standard syntax:"
 exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
@@ -1343,6 +1335,7 @@ echo "Bash shell notes (call with 'help-bash')"
 HELPFILE=/tmp/.custom/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "********************"
 exx "* Bash Notes"
@@ -1353,7 +1346,7 @@ exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different wor
 exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
 exx "Ctrl-x then Ctrl-e is a bash built-in to open vim (\$EDITOR) automatically."
 exx ""
-exx "***** Bash variables, special invocations, keyboard shortcuts"
+exx "\${RED}***** Bash variables, special invocations, keyboard shortcuts\${NC}"
 exx "\\\$\\\$  Get process id (pid) of the currently running bash script."
 exx "\\\$n  Holds the arguments passed in while calling the script or arguments passed into a function inside the scope of that function. e.g: $1, $2… etc.,"
 exx "\\\$0  The filename of the currently running script."
@@ -1362,16 +1355,100 @@ exx "–   e.g.  cd –	     Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
 exx ""
-exx "Tab    Autocomplete commands         Ctrl + r   Search the history of commands used"
+exx "Tab    Autocomplete commands"
+exx "Ctrl + r   Search the history of commands used"
 exx "Ctrl + a / e  Move to start / end of current line"
 exx "Alt + f / b   Move to the next / previous word"
 exx "Ctrl + u / k  Cut all text on the left / right side of the cursor"
 exx "Ctrl + w   Cut the word on the left side of the cursor"
 exx "Ctrl + d   Logout of Terminal or ssh (or tmux) session,   Ctrl + l   Clear Terminal"
 exx ""
-exx "***** Breaking a hung SSH session"
+exx "\${RED}***** Breaking a hung SSH session\${NC}"
 exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
 exx "Hit 'Enter', and '~', and '.' as a sequence and the broken session will be successfully terminated."
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Help tools (options for man/info and other tools) (call with 'help-help')"
+#
+####################
+# [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'   # for .custom
+HELPFILE=/tmp/.custom/help-help.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "********************"
+exx "* Help Notes"
+exx "********************"
+exx ""
+exx "HELPNOTES=\""
+exx "\${RED}Help sites\${NC} tools that focus on practical examples:"
+exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
+exx "***** TLDR++"
+exx "https://ostechnix.com/search-study-and-practice-linux-commands-on-the-fly/"
+exx "https://help.ubuntu.com/"
+exx "http://manpages.ubuntu.com/   :   https://manpages.debian.org/"
+exx ""
+exx "https://explainshell.com/   # Extremely useful, deconstructs the meaning of a command."
+exx "Try the following:   find -iname '*.txt' -exec cp {} /home/ostechnix/ \\;"
+exx ""
+exx "analyze man directories (1 to 8) and display the longest man page in each directory in descending order. It will take a few minutes depending upon the number of man pages in your system. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
+exx "for i in {1..8}; do f=/usr/share/man/man\$i/$(ls -1S /usr/share/man/man\$i/ | head -n1); printf \\\"%s: %9d\\n\\\" \\\"\$f\\\" $(man \\\"\$f\\\" 2\>/dev/null | wc -l); done"
+exx ""
+exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
+exx "man uname"
+exx "info uname"
+exx ""
+exx "sudo yum install pinfo"
+exx "pinfo uname       # cursor keys up/down to select highlight options and right/left to jumpt to those topics"
+exx "# pinfo pinfo"
+exx ""
+exx "\${RED}***** bropages\${NC}"
+exx "ai ruby-dev    # apt version"
+exx "di ruby-devel  # dnf version"
+exx "sudo gem install bropages"
+exx "bro -h"
+exx "# bro thanks       # add your email for upvote/downvotes"
+exx "# bro thanks 2     # upvote example 2 in previous list"
+exx "# bro ...no  2     # downvote example 2"
+exx "# bro add find     # add an entry for 'find'"
+exx ""
+exx "\${RED}***** cheat\${NC}"
+exx "sudo pip install cheat   # or sudo snap install cheat, but snap does not work on WSL yet"
+exx "cheat find"
+exx "# cheat --list     # list all entries"
+exx "# cheat -h         # help"
+exx ""
+exx "\${RED}***** manly\${NC}"
+exx "sudo pip install --user manly"
+exx "# manly dpkg"
+exx "# manly dpkg -i -R"
+exx "manly --help       # help"
+exx ""
+exx "\${RED}***** tldr\${NC}"
+exx "ai npm"
+exx "sudo npm install -g tldr"
+exx "tldr find"
+exx "# tldr --list-all  # list all cached entries"
+exx "# tldr --update    # update cache"
+exx "# tldr -h          # help"
+exx ""
+exx "\${RED}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
+exx "sudo dnf install tealdeer   # fails for me"
+exx "sudo dnf install cargo      # 270 MB"
+exx "cargo install tealdeer      # seems to install ok"
+exx "export PATH=\\\$PATH:/home/\\\$USER/.cargo/bin   # And add to .bashrc to make permanent"
+exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-x86_64-musl"
+exx "sudo cp tldr-linux-x86_64-musl /usr/local/bin/tldr"
+exx "sudo chmod +x /usr/local/bin/tldr"
+exx "# tldr --update"
+exx "# tldr --list"
+exx "# tldr --clear-cache"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1400,6 +1477,7 @@ HELPFILE=/tmp/.custom/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "********************"
 exx "* Vim Notes..."
 exx "********************"
@@ -1559,6 +1637,7 @@ echo "grep Notes (show with 'help-grep')"
 HELPFILE=/tmp/.custom/help-grep.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "********************"
 exx "* Grep Practical Examples"
@@ -1594,6 +1673,7 @@ HELPFILE=/tmp/.custom/help-cron.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "HELPNOTES=\""
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "********************"
 exx "* Cron Notes"
 exx "********************"
@@ -1703,6 +1783,7 @@ echo "awk Notes (show with 'help-awk')"
 HELPFILE=/tmp/.custom/help-awk.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
 exx "********************"
 exx "* Awk Practical Examples"
@@ -1775,13 +1856,14 @@ echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Scheme
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
 
     # Go ahead and run the PowerShell to adjust the system as it's such a minor/useful alteration
-    powershell.exe '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }' 2>&1
+    powershell.exe -NoProfile -c '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }' 2>&1
     
     # Now create /tmp/help-wsl.sh
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
     HELPFILE=/tmp/.custom/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
+    exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
     exx "HELPNOTES=\""
     exx "********************"
     exx "* WSL Notes"

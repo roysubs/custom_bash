@@ -85,7 +85,7 @@ printf "\n\n"
 # So, instead, we'll just notify the user and let them take action:
 # echo "\$BASH_SOURCE = $BASH_SOURCE"   # $BASH_SOURCE gets the source being used, always use this when dotsourcing
 if [ $(pwd) == $HOME ]; then echo "It is not advised to run custom_loader.sh from \$HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
-if [ -f "$HOME/custom_loader.sh" ]; then read -e -p "A copy of custom_loader.sh cannot be in \$HOME = $HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
+if [ -f "$HOME/custom_loader.sh" ]; then read -e -p "Do not run custom_loader.sh \$HOME"; read -e -p "Press 'Ctrl-C' to exit script..."; fi
 if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run when currently in same folder as custom_loader.sh location. 'cd' to the correct folder and rerun."; read -e -p "Press 'Ctrl-C' to exit script..."; fi
 # if the path starts "/" then it is absolute
 # if the path starts with "~/" or "./" or just the name of the subfolder then it is not absolute
@@ -227,6 +227,8 @@ check_and_install tree tree
 check_and_install dos2unix dos2unix
 check_and_install mount mount
 check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
+check_and_install inxi inxi          # System information
+# check_and_install macchina macchina    # System information
 check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 check_and_install zip zip
 check_and_install unzip unzip
@@ -1438,6 +1440,10 @@ exx "# tldr --list-all  # list all cached entries"
 exx "# tldr --update    # update cache"
 exx "# tldr -h          # help"
 exx ""
+exx "\${RED}***** kmdr\${NC}"
+exx "https://docs.kmdr.sh/get-started-with-kmdr-cl"
+exx "sudo npm install kmdr@latest --global"
+exx ""
 exx "\${RED}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
 exx "sudo dnf install tealdeer   # fails for me"
 exx "sudo dnf install cargo      # 270 MB"
@@ -1949,6 +1955,8 @@ echo "Note the above configuration details for any useful additional manual acti
 echo "'update-distro' to run through all update/upgrade actions (def 'distro-update' to check)."
 echo "'update-custom-tools' will update .custom to latest version from Github."
 echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
+echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"
+echo ""
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."

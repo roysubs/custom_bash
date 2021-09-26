@@ -206,40 +206,40 @@ if [ "$MANAGER" = "apk" ]; then INSTALL="$MANAGER add"; fi
 check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
              # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
-if [ "$MANAGER" = "apt" ]; then check_and_install apt apt-file; fi  # find which package includes a specific file, or to list all files included in a package on remote repositories.
+[[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
 check_and_install git git
 check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
 check_and_install perl perl
-if [ "$MANAGER" = "apt" ]; then check_and_install python python; fi
-if [ "$MANAGER" = "dnf" ]; then check_and_install python python39; fi
+[[ "$MANAGER" = "apt" ]] && check_and_install python python
+[[ "$MANAGER" = "dnf" ]] && check_and_install python python39
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
 check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
-check_and_install pydf pydf
+[[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf
 check_and_install crontab crontabs   # cron is not installed by default on CentOS
 check_and_install ncdu ncdu
 check_and_install tree tree
 check_and_install dos2unix dos2unix
 check_and_install mount mount
 check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-check_and_install inxi inxi          # System information
+[[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS(!)
 # check_and_install macchina macchina    # System information
 check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 check_and_install zip zip
 check_and_install unzip unzip
-if [ "$MANAGER" = "apt" ]; then check_and_install lr lr; fi   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+[[ "$MANAGER" = "apt" ]] && then check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
 check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
-if [ "$MANAGER" = "apt" ]; then check_and_install fortune fortune; fi
-if [ "$MANAGER" = "dnf" ]; then check_and_install fortune fortune-mod; fi
+[[ "$MANAGER" = "apt" ]] && check_and_install fortune fortune
+[[ "$MANAGER" = "dnf" ]] && check_and_install fortune fortune-mod
 check_and_install cowsay cowsay
 check_and_install figlet figlet
 # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
@@ -1400,7 +1400,7 @@ exx "Try the following:   find -iname '*.txt' -exec cp {} /home/ostechnix/ \\;"
 exx ""
 exx "Look through man directories (1 to 8) and display the longest man page in each directory in descending order."
 exx "It can take a few minutes depending upon the number of man pages. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
-exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\\\n\\\" \\\"\\\$f\\\" $(man \\\"\\\$f\\\" 2\\>/dev/null | wc -l); done"
+exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\\\n\\\" \\\"\\\$f\\\" \\\$(man \\\"\\\$f\\\" 2\\>/dev/null | wc -l); done"
 exx ""
 exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
 exx "man uname"

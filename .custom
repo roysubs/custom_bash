@@ -310,6 +310,8 @@ help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cr
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
+start='/tmp/.custom/start-liquidprompt.sh';     [[ -f $start ]] && alias start-liquid-prompt="$start"
+
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)

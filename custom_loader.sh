@@ -1383,12 +1383,12 @@ HELPFILE=/tmp/.custom/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "HELPNOTES=\""
 exx "********************"
 exx "* Help Notes"
 exx "********************"
 exx ""
-exx "HELPNOTES=\""
-exx "\${RED}Help sites\${NC} tools that focus on practical examples:"
+exx "\${RED}Help sites:\${NC} Tools that focus on practical command examples:"
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
 exx "https://ostechnix.com/search-study-and-practice-linux-commands-on-the-fly/"
@@ -1400,7 +1400,7 @@ exx "Try the following:   find -iname '*.txt' -exec cp {} /home/ostechnix/ \\;"
 exx ""
 exx "Look through man directories (1 to 8) and display the longest man page in each directory in descending order."
 exx "It can take a few minutes depending upon the number of man pages. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
-exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\n\\\" \\\"\$f\\\" $(man \\\"\\\$f\\\" 2\>/dev/null | wc -l); done"
+exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\n\\\" \\\"\$f\\\" $(man \\\"\\\$f\\\" 2\>/dev/null | wc -l); done"
 exx ""
 exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
 exx "man uname"
@@ -1634,7 +1634,9 @@ chmod 755 $HELPFILE
 
 
 
-# # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
+# https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
+# https://liquidprompt.readthedocs.io/en/stable/config.html#features
+# git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt
 # [[ $- = *i* ]] && source ~/liquidprompt/liquidprompt
 # [[ $- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme
 # [[ $- = *i* ]] && lp_theme powerline

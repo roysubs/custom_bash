@@ -136,17 +136,17 @@ if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sud
 if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-# Replacement aliases that take over from other commands. Try to never do this, should only be done very rarely
+# Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, top, specifically to add color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
 alias less='less -R'   # Colour always supported, so piping
 alias tree='tree -C'   # Colour always, so piping to less -R will show color
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
-if type pydf >/dev/null 2>&1; then alias df='pydf'; alias df0='/usr/bin/df'; fi      # replace 'df' by 'pydf', create 'df0' for the original
-if type ncdu >/dev/null 2>&1; then alias du='ncdu'; alias du0='/usr/bin/du'; fi      # same for du
-if type htop >/dev/null 2>&1; then alias top='htop'; alias top0='/usr/bin/top'; fi   # same for top
+if type pydf >/dev/null 2>&1; then alias df1='pydf'; alias df0='/usr/bin/df'; fi      # replace 'df' by 'pydf', create 'df0' for the original
+if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; alias du0='/usr/bin/du'; fi      # same for du
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all.
-# Therefore, do not alias 'python' just create 'p2', 'p3'. Alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (package is called 'python3-pip' on both distros)
+# Would like to default 'python' to 'python3', but tricky as Debian/Ubuntu use python2 for underlying system functions.
+# Therefore, do not alias 'python' just create 'p2', 'p3', but also alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (note that the package is called 'python3-pip' on both distros).
 alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip aliases
 
 ####################

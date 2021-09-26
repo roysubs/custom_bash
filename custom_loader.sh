@@ -875,13 +875,12 @@ exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-s
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
-/tmp/help-hyperv.sh   # Display this immediately
 
 
 
 ####################
 #
-echo "Help / summary notes for byobu terminal multiplexer: /tmp/help-byobu.sh alias it in .custom"
+echo "byobu terminal multiplexer (call with help-byobu)"
 #
 ####################
 
@@ -967,7 +966,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help / summary notes for tmux terminal multiplexer: /tmp/help-tmux.sh alias it in .custom"
+echo "tmux terminal multiplexer (call with help-tmux)"
 #
 ####################
 
@@ -1399,8 +1398,9 @@ exx ""
 exx "https://explainshell.com/   # Extremely useful, deconstructs the meaning of a command."
 exx "Try the following:   find -iname '*.txt' -exec cp {} /home/ostechnix/ \\;"
 exx ""
-exx "analyze man directories (1 to 8) and display the longest man page in each directory in descending order. It will take a few minutes depending upon the number of man pages in your system. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
-exx "for i in {1..8}; do f=/usr/share/man/man\$i/$(ls -1S /usr/share/man/man\$i/ | head -n1); printf \\\"%s: %9d\\n\\\" \\\"\$f\\\" $(man \\\"\$f\\\" 2\>/dev/null | wc -l); done"
+exx "Look through man directories (1 to 8) and display the longest man page in each directory in descending order."
+exx "It can take a few minutes depending upon the number of man pages. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
+exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\n\\\" \\\"\$f\\\" $(man \\\"\\\$f\\\" 2\>/dev/null | wc -l); done"
 exx ""
 exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
 exx "man uname"

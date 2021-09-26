@@ -36,6 +36,12 @@ export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
 export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
 
+# Some colors might look different of some terminals, e.g. 'Bold Red' can look orange on some screens (taken from Color Bash Prompt HowTo).
+Black='\e[0;30m'; Red='\e[0;31m'; Green='\e[0;32m'; Yellow='\e[0;33m'; Blue='\e[0;34m'; Purple='\e[0;35m'; Cyan='\e[0;36m'; White='\e[0;37m' # Normal colours and NC for 'no colour'
+BBlack='\e[1;30m'; BRed='\e[1;31m'; BGreen='\e[1;32m'; BYellow='\e[1;33m'; BBlue='\e[1;34m'; BPurple='\e[1;35m'; BCyan='\e[1;36m'; BWhite='\e[1;37m'    # Bold
+On_Black='\e[40m'; On_Red='\e[41m'; On_Green='\e[42m'; On_Yellow='\e[43m'; On_Blue='\e[44m'; On_Purple='\e[45m'; On_Cyan='\e[46m'; On_White='\e[47m'    # Background
+NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold White on red background.
+
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
 
@@ -170,6 +176,16 @@ update-all() {
         echo "Re-run this script after reboot to check." >&2
         return
     fi
+}
+function syshost() {
+    echo -e "\nYou are logged on ${BRed}$HOST\n${BRed}\nAdditionnal information:$NC "; uname -a; 
+    echo -e "\n${BRed}Users logged on:$NC "; w -hs | cut -d " " -f1 | sort | uniq
+    echo -e "\n${BRed}Current date :$NC "; date
+    echo -e "\n${BRed}Machine stats :$NC "; uptime
+    echo -e "\n${BRed}Memory stats :$NC "; free
+    echo -e "\n${BRed}Diskspace :$NC "; mydf / $HOME
+    echo -e "\n${BRed}Local IP Address :$NC"; my_ip
+    echo -e "\n${BRed}Open connections :$NC "; netstat -pan --inet; echo
 }
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }

@@ -148,6 +148,9 @@ if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; alias du0='/usr/bin/du'; fi
 # Would like to default 'python' to 'python3', but tricky as Debian/Ubuntu use python2 for underlying system functions.
 # Therefore, do not alias 'python' just create 'p2', 'p3', but also alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (note that the package is called 'python3-pip' on both distros).
 alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip aliases
+alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
+alias d-unused='docker container ls -a --filter status=exited --filter status=created'
+alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
 
 ####################
 # Functions: Some useful snippets, and as templates for bash function writing

@@ -232,7 +232,7 @@ check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not
 check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 check_and_install zip zip
 check_and_install unzip unzip
-[[ "$MANAGER" = "apt" ]] && then check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+[[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
 check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
@@ -1400,7 +1400,7 @@ exx "Try the following:   find -iname '*.txt' -exec cp {} /home/ostechnix/ \\;"
 exx ""
 exx "Look through man directories (1 to 8) and display the longest man page in each directory in descending order."
 exx "It can take a few minutes depending upon the number of man pages. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
-exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\\\n\\\" \\\"\\\$f\\\" \\\$(man \\\"\\\$f\\\" 2\\>/dev/null | wc -l); done"
+exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\\\n\\\" \\\"\\\$f\\\" \\\$(man \\\"\\\$f\\\" 2>/dev/null | wc -l); done"
 exx ""
 exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
 exx "man uname"
@@ -1633,13 +1633,21 @@ exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 
-
+####################
+#
+echo "Liquid prompt setup (call with 'start-liquidprompt'"
+#
+####################
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
 # https://liquidprompt.readthedocs.io/en/stable/config.html#features
-# git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt
-# [[ $- = *i* ]] && source ~/liquidprompt/liquidprompt
-# [[ $- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme
-# [[ $- = *i* ]] && lp_theme powerline
+HELPFILE=/tmp/.custom/start-liquidprompt.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt"
+exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/liquidprompt"
+exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
+exx "[[ \\\$- = *i* ]] && lp_theme powerline"
+chmod 755 $HELPFILE
 
 ####################
 #

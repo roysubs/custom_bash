@@ -1634,6 +1634,11 @@ chmod 755 $HELPFILE
 
 
 
+# # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
+# [[ $- = *i* ]] && source ~/liquidprompt/liquidprompt
+# [[ $- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme
+# [[ $- = *i* ]] && lp_theme powerline
+
 ####################
 #
 echo "grep Notes (show with 'help-grep')"

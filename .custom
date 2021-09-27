@@ -143,7 +143,8 @@ alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn' 
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
 # Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
-alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
+# Docker aliases, start with 'd' for docker and build further useful options
+alias d='docker'; d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
 alias d-unused='docker container ls -a --filter status=exited --filter status=created'
 alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
 

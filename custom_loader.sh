@@ -871,13 +871,24 @@ print_header "Dotfile management"
 echo "The goal here is to create a folder for all dotfiles, then hard link them and so be able to"
 echo "create a git project that is easy to update / replicate on another system."
 echo "Using this script, and the dotfile project above it: https://github.com/gibfahn/dot/blob/main/link"
+echo ""
+echo ""
+echo ""
 
 
 
 ####################
+####################
+####################
+####################
+####################
 #
-print_header "HELP FILES : Will create various scripts to show notes and tips, then alias them in .custom"
+print_header "HELP FILES : Create various help scripts for notes and tips and alias them in .custom"
 #
+####################
+####################
+####################
+####################
 ####################
 
 # Try to build a collection of common notes, summaries, tips, tricks to always be accessible from the console.
@@ -901,8 +912,9 @@ echo "Hyper-V VM Notes if this Linux is running inside a full VM"
 HELPFILE=/tmp/.custom/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
+exx "\${BLUE}$(figlet -w -t -f small Hyper-V Help)\${NC}"
 exx "\${RED}***** To correctly change the resolution of the Hyper-V console\${NC}"
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
@@ -933,8 +945,9 @@ echo "byobu terminal multiplexer (call with help-byobu)"
 HELPFILE=/tmp/.custom/help-byobu.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
+exx "\${BLUE}$(figlet -w -t -f small byobu Help)\${NC}"
 exx "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
 exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
 exx "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
@@ -1019,8 +1032,9 @@ echo "tmux Help (call with 'help-tmux'):"
 HELPFILE=/tmp/.custom/help-tmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
+exx "\${BLUE}$(figlet -w -t -f small tmux Help)\${NC}"
 exx "C-b : (to enter command mode), then  :ls, :help, :set mouse on  (or other commands)"
 exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
 exx "'M-' stands for 'Meta' key and is the Alt key on Linux"
@@ -1087,8 +1101,9 @@ echo "tmux.conf Help (call with 'help-tmux-conf'):"
 HELPFILE=/tmp/.custom/help-tmux-conf.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
+exx "\${BLUE}$(figlet -w -t -f small tmux.conf Options)\${NC}"
 exx "Some useful options for ~/.tmux.conf"
 exx ""
 exx "# ~/.tmux.conf"
@@ -1152,8 +1167,9 @@ echo "ps notes (call with 'help-ps')"
 HELPFILE=/tmp/.custom/help-ps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
+exx "\${BLUE}$(figlet -w -t -f small ps Help)\${NC}"
 exx "To see every process on the system using standard syntax:"
 exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
 exx "To see every process on the system using BSD syntax:"
@@ -1193,12 +1209,9 @@ echo "Bash shell notes (call with 'help-bash')"
 HELPFILE=/tmp/.custom/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Bash Notes"
-exx "********************"
-exx ""
+exx "\${BLUE}$(figlet -w -t -f small Bash Notes)\${NC}"
 exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
 exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
@@ -1214,12 +1227,12 @@ exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
 exx ""
 exx "Tab    Autocomplete commands"
-exx "Ctrl + r   Search the history of commands used"
-exx "Ctrl + a / e  Move to start / end of current line"
-exx "Alt + f / b   Move to the next / previous word"
-exx "Ctrl + u / k  Cut all text on the left / right side of the cursor"
-exx "Ctrl + w   Cut the word on the left side of the cursor"
-exx "Ctrl + d   Logout of Terminal or ssh (or tmux) session,   Ctrl + l   Clear Terminal"
+exx "Ctrl+r   Search the history of commands used"
+exx "Ctrl+a / e  Move to start / end of current line"
+exx "Alt+f / b   Move to the next / previous word"
+exx "Ctrl+u / k  Cut all text on the left / right side of the cursor"
+exx "Ctrl+w   Cut the word on the left side of the cursor"
+exx "Ctrl+d   Logout of Terminal or ssh (or tmux) session,   Ctrl+l   Clear Terminal"
 exx ""
 exx "grep `whoami` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
@@ -1242,10 +1255,9 @@ echo "Help Tools (call with 'help-help')"
 HELPFILE=/tmp/.custom/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
 exx "\${BLUE}$(figlet -w -t -f small Help Tools)\${NC}"
-exx ""
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
 exx "https://ostechnix.com/search-study-and-practice-linux-commands-on-the-fly/"
@@ -1340,12 +1352,9 @@ echo "Vim Notes (call with 'help-vim')"
 HELPFILE=/tmp/.custom/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Vim Notes..."
-exx "********************"
-exx ""
+exx "\${BLUE}$(figlet -w -t -f small vim Help)\${NC}"
 exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
 exx ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
@@ -1503,12 +1512,9 @@ echo "grep Notes (call with 'help-grep')"
 HELPFILE=/tmp/.custom/help-grep.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Grep Practical Examples"
-exx "********************"
-exx ""
+exx "\${BLUE}$(figlet -w -t -f small grep Notes)\${NC}"
 exx "\${RED}***** Consider using 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
@@ -1550,10 +1556,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Cron Notes"
-exx "********************"
-exx ""
+exx "\${BLUE}$(figlet -w -t -f small cron Notes)\${NC}"
 exx "crontab -e   will edit current users cron"
 exx "crontab -e   will edit current users cron"
 exx "crontab -a <filename>:   create a new <filename> as crontab file"
@@ -1659,12 +1662,9 @@ echo "awk Notes (show with 'help-awk')"
 HELPFILE=/tmp/.custom/help-awk.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Awk Practical Examples"
-exx "********************"
-exx ""
+exx "\${BLUE}$(figlet -w -t -f small awk Notes)\${NC}"
 exx "***** Useful AWK One-Liners to Keep Handy"   
 exx "Search and scan files line by line, splits input lines into fields, compares input lines/fields to pattern and performs an action on matched lines."
 exx ""
@@ -1739,12 +1739,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=/tmp/.custom/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "********************"
-    exx "* WSL Notes"
-    exx "********************"
-    exx ""
+    exx "\${BLUE}$(figlet -w -t -f small WSL Notes)\${NC}"
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
     exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
     exx "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
@@ -2054,7 +2051,8 @@ fi
 ##  HELPFILE=/tmp/.custom/help-tmux.sh
 ##  exx() { echo "$1" >> $HELPFILE; }
 ##  echo "#!/bin/bash" > $HELPFILE
-##  exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+##  exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+
 ##  exx "HELPNOTES=\""
 ##  exx "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
 ##  exx ""

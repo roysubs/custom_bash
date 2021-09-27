@@ -1676,6 +1676,9 @@ exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/n
 exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
 exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
 exx "[[ \$- = *i* ]] && lp_theme powerline"
+exx "echo ''"
+exx "echo Note that you need a NerdFont to make best use of LiquidPrompt:"
+exx "echo Alternative: https://github.com/chris-marsh/pureline \\(Pureline bash only\\)"
 chmod 755 $HELPFILE
 
 
@@ -1703,7 +1706,8 @@ exx "Optional: --exclude, --include, --exclude-dir flags can be used to refine s
 exx "grep -rnwl '/' -e 'python'   # Find all files that contain 'python' and return only filenames (-l)."
 exx "grep --include=\*.{c,h} -rnw '/path/to/somewhere/' -e 'pattern'   # Only search files .c or .h extensions, show every matching line."
 exx "grep --exclude=\*.o -rnw '/path/to/somewhere/' -e 'pattern'   # Exclude searching all the files ending with .o extension"
-exx "It is possible to exclude one or more directories with --exclude-dir. e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
+exx "It is possible to exclude one or more directories with --exclude-dir."
+exx "e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
 exx "grep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo \"\$HELPNOTES\""

@@ -141,10 +141,10 @@ alias tree='tree -C'; alias tree0='\tree'   # Colour always, so piping to less -
 if type pydf >/dev/null 2>&1; then alias df1='pydf'; fi      # replace 'df' by 'pydf', create 'df0' for the original
 if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; fi      # same for du
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
+# Default 'python' to 'python3' (i.e. 3.6 as of now). Debian/Ubuntu use python2 for underlying system functions, but these aliases only affec this shell instance
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
-# Would like to default 'python' to 'python3', but tricky as Debian/Ubuntu use python2 for underlying system functions
-# Therefore, do not alias 'python' just create 'p2', 'p3', but also alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (note that the package is called 'python3-pip' on both distros)
-alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip aliases
+# Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
+alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
 alias d-unused='docker container ls -a --filter status=exited --filter status=created'
 alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
@@ -331,7 +331,7 @@ help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cr
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
-start='/tmp/.custom/start-liquidprompt.sh';     [[ -f $start ]] && alias start-liquidprompt="$start"
+hh='/tmp/.custom/start-liquidprompt.sh';     [[ -f $hh ]] && start-liquidprompt() { source "$hh"; }
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)

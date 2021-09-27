@@ -6,13 +6,14 @@
 # git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
 ####################
-# Don't use to redefine a new language, a) demonstrate techniques that can be reused (awk/grep etc), and b) to shorten complex situations.
+# Do not define a new language, this is just to a) demonstrate techniques that can be reused (awk/grep etc), and b) shorten complex/long commands.
 # Tempting to replace built-in commands, but almost never do (mainly just 'cat' in the below), as will impact scripts and expected output from commands.
+# This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
 
 ####################
-# Exports      (with 'export', variable is available in all child processes, but without 'export', the variable will not be available outside of this script. https://stackoverflow.com/a/21722203/524587
+# Exports and Aliases:   (with 'export', variable is available in all child processes, but without 'export', the variable will not be available outside of this script. https://stackoverflow.com/a/21722203/524587
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
@@ -40,9 +41,6 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
 
-####################
-# Aliases
-####################
 alias sudo='sudo '                      # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 alias xx='exit'                         # Quit immediately
@@ -150,15 +148,15 @@ alias d-unused='docker container ls -a --filter status=exited --filter status=cr
 alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
 
 ####################
-# Functions: Some useful snippets, and as templates for bash function writing
+# Functions:
 ####################
 update-all() {
     MANAGER=
-    which apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-    which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
-    which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER will be yum if both dnf and yum are present
-    which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-    which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+    type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
+    type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
+    type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER will be yum if both dnf and yum are present
+    type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
+    type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
     printf "\nCheck updates:\n\n"
     echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
     echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
@@ -169,7 +167,7 @@ update-all() {
     exe sudo $MANAGER upgrade -y
     exe sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
     exe sudo $MANAGER autoremove -y
-    which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
+    type apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
     if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
         echo "A reboot is required (/var/run/reboot-required is present)." >&2
@@ -331,11 +329,11 @@ help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cr
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-hh='/tmp/.custom/start-liquidprompt.sh';     [[ -f $hh ]] && alias start-liquidprompt='source "$hh"'   # Can source a script from an alias/function created during .bashrc
+hh='/tmp/.custom/start-liquidprompt.sh'; [[ -f $hh ]] && alias liquid='source "$hh"'   # Can source a script from an alias/function created during .bashrc
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
-# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session
+#  [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session

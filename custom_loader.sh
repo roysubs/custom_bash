@@ -863,6 +863,14 @@ echo "Run 'locale' to view the current settings before changing."
 
 
 
+####################
+#
+print_header "Dotfile management"
+#
+####################
+echo "The goal here is to create a folder for all dotfiles, then hard link them and so be able to"
+echo "create a git project that is easy to update / replicate on another system."
+echo "Using this script, and the dotfile project above it: https://github.com/gibfahn/dot/blob/main/link"
 
 
 
@@ -1449,8 +1457,8 @@ exx "pinfo uname       # cursor keys up/down to select highlight options and rig
 exx "# pinfo pinfo"
 exx ""
 exx "\${RED}***** bropages\${NC}"
-exx "ai ruby-dev    # apt version"
-exx "di ruby-devel  # dnf version"
+exx "sudo apt install ruby-dev    # apt version"
+exx "sudo dnf install ruby-devel  # dnf version"
 exx "sudo gem install bropages"
 exx "bro -h"
 exx "# bro thanks       # add your email for upvote/downvotes"
@@ -1471,7 +1479,7 @@ exx "# manly dpkg -i -R"
 exx "manly --help       # help"
 exx ""
 exx "\${RED}***** tldr\${NC}"
-exx "ai npm"
+exx "sudo $MANAGER install npm"
 exx "sudo npm install -g tldr"
 exx "tldr find"
 exx "# tldr --list-all  # list all cached entries"
@@ -1483,8 +1491,8 @@ exx "https://docs.kmdr.sh/get-started-with-kmdr-cl"
 exx "sudo npm install kmdr@latest --global"
 exx ""
 exx "\${RED}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
-exx "sudo dnf install tealdeer   # fails for me"
-exx "sudo dnf install cargo      # 270 MB"
+exx "sudo $MANAGER install tealdeer   # fails for me"
+exx "sudo $MANAGER install cargo      # 270 MB"
 exx "cargo install tealdeer      # seems to install ok"
 exx "export PATH=\\\$PATH:/home/\\\$USER/.cargo/bin   # And add to .bashrc to make permanent"
 exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-x86_64-musl"
@@ -1628,7 +1636,8 @@ exx "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercont
 exx "Then add the following lines to ~/.vimrc ("
 exx "call plug#begin()"
 exx "Plug 'tyru/open-browser.vim' \\\" opens url in browser"
-exx "Plug 'http://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
+exx "Plug 'https://github.com/tpope/vim-fugitive' \\\" Surrounding ysw)"
+exx "Plug 'https://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
 exx "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' }"
 exx "Plug 'https://github.com/ap/vim-css-color' \\\" CSS Color Preview"
 exx "Plug 'https://github.com/tpope/vim-commentary' \\\" For Commenting gcc & gc"
@@ -1636,6 +1645,7 @@ exx "call plug#end()"
 exx "Save ~/.vimrc with :w, and then source it with :source %"
 exx "Now install the plugins with :PlugInstall  (a side window will appear as the repo's clone to to ~/.vim/plugged)"
 exx "Restart Vim and test that the plugins have installed with :NERDTreeToggle (typing 'N'<tab> should be enough)"
+exx "vim-fugitive : Git support, see https://github.com/tpope/vim-fugitive https://vimawesome.com/?q=tag:git"
 exx "vim-surround : \\\"Hello World\\\" => with cursor inside this region, press cs\\\"' and it will change to 'Hello World!'"
 exx "   cs'<q> will change to <q></q> tag, or ds' to remove the delimiter. When on Hello, ysiw] will surround the wordby []"
 exx "nerdtree : pop-up file explorer in a left side window, :N<tab> (or :NERDTree, or use :NERDTreeToggle to toggle) :h NERDTree.txt"

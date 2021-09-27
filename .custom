@@ -327,15 +327,15 @@ hh="/$hhtmp/help-tmux.sh";   [[ -f $hh ]] && alias help-tmux="$hh"   && alias he
 hh="/$hhtmp/itmux.sh";       [[ -f $hh ]] && alias itmux="$hh"
 hh="/$hhtmp/itmuxconf.sh";   [[ -f $hh ]] && alias itmuxconf="$hh"
 hh="/$hhtmp/help-ps.sh";     [[ -f $hh ]] && alias help-ps="$hh"
-help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL; }
-help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
-help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
-help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
-hh='/tmp/.custom/start-liquidprompt.sh';     [[ -f $hh ]] && start-liquidprompt() { source "$hh"; }
+help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+hh='/tmp/.custom/start-liquidprompt.sh';     [[ -f $hh ]] && alias start-liquidprompt='source "$hh"'   # Can source a script from an alias/function created during .bashrc
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
-# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Always start tmux at login, but skip when running a new tmux session
+# [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session

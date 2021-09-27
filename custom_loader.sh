@@ -127,13 +127,22 @@ echo -e "=====>   Therefore, will use the '$MANAGER' package manager for setup t
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
-# Handle EPEL (Extra Packages for Enterprise Linux), fairly essential for hundreds of packages like htop, etc
+# Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
 if type dnf &> /dev/null 2>&1; then
-    if [[ $(rpm -qa | grep epel-release) ]]; then echo "$DISTRO : EPEL Repository is already installed"
-    else exe dnf install epel-release
+    if [[ $(rpm -qa | grep epel-release) ]]; then
+        echo "$DISTRO : EPEL Repository is already installed"
+    else
+        exe dnf install epel-release
     fi
-    $MANAGER repolist
+    if [[ $(dnf repolist | grep powertools) ]]; then
+        echo "$DISTRO : PowerTools Repository is already installed"
+    else
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --set-enabled powertools   # Note that this must be lowercase, 'PowerTools' fails
+    fi
 fi
+
+
 # To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
 # sudo rpm -qa | grep epel                                                               # Check the epel version installed
 # sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
@@ -1677,8 +1686,10 @@ exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
 exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
 exx "[[ \$- = *i* ]] && lp_theme powerline"
 exx "echo ''"
-exx "echo Note that you need a NerdFont to make best use of LiquidPrompt:"
-exx "echo Alternative: https://github.com/chris-marsh/pureline \\(Pureline bash only\\)"
+exx "echo LiquidPrompt requires NerdFont to display icons correctly:"
+exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
+exx "echo Alternatives: https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
+exx "echo ''"
 chmod 755 $HELPFILE
 
 
@@ -1964,13 +1975,22 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "sudo apt install x11-apps"
     exx "Now run 'xeyes' and you should be able to see the the xeyes application"
     exx ""
-    exx "***** Enable SSH Server on WSL"
+    exx "***** Enable SSH Server on WSL to connect from elsewhere (using different default ports)"
     exx ""
     exx "***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work"
     exx "In this case, to see Task Manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
     exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
     exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
     exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
+    exx ""
+    exx "Windows Terminal via PowerShell Tips and Split Panes"
+    exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
+    exx "Alt+Shift+PLUS (vertical split of your default profile), Alt+Shift+MINUS (horizontal)."
+    exx "Click the new tab button, then hold down Alt while pressing a profile, to open an 'auto' split (will vertical or horizontal to be most square)"
+    exx "Click on a tab with mouse or just Alt-CursorKey to move to different tabs."
+    exx "To resize, hold down Alt+Shift, then CursorKey to change the size of the selected pane."
+    exx "Close focused pane or tab with Ctrl+Shift+W. If you only have one pane, this close the tab or window if only one tab."
+    exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE

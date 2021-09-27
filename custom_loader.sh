@@ -32,6 +32,12 @@
 # https://opensource.com/article/19/7/bash-aliases
 # https://src-r-r.github.io/articles/essential-bash-commands-to-make-life-easier/
 # https://tldp.org/LDP/abs/html/sample-bashrc.html
+# https://www.linuxhowtos.org/Tips%20and%20Tricks/
+# https://www.quora.com/What-are-some-useful-bash_profile-and-bashrc-tips?encoded_access_token=e46b28e4342944a58cb01681b425df9e&expires_in=5184000&fb_uid=4467565573287648&force_dialog=1&provider=facebook&share=1&success=True#_=_
+# https://dev.to/awwsmm/101-bash-commands-and-tips-for-beginners-to-experts-30je
+# https://www.addictivetips.com/ubuntu-linux-tips/edit-the-bashrc-file-on-linux/
+# https://crunchbang.org/forums/viewtopic.php?id=1093
+# https://serverfault.com/questions/3743/what-useful-things-can-one-add-to-ones-bashrc?page=1&tab=votes#tab-top
 
 ####################
 #
@@ -244,6 +250,15 @@ check_and_install cowsay cowsay
 check_and_install figlet figlet
 # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
 # which figlet &> /dev/null || exe sudo snap install figlet -y
+
+####################
+#
+echo "Setup PowerShell on Linux"
+#
+####################
+# For CentOS
+# curl https://packages.microsoft.com/config/rhel/8/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo
+# sudo dnf install powershell
 
 # More complex installers
 curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
@@ -1364,6 +1379,9 @@ exx "Ctrl + u / k  Cut all text on the left / right side of the cursor"
 exx "Ctrl + w   Cut the word on the left side of the cursor"
 exx "Ctrl + d   Logout of Terminal or ssh (or tmux) session,   Ctrl + l   Clear Terminal"
 exx ""
+exx "grep `whoami` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
+exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
+exx ""
 exx "\${RED}***** Breaking a hung SSH session\${NC}"
 exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
 exx "Hit 'Enter', and '~', and '.' as a sequence and the broken session will be successfully terminated."
@@ -1635,7 +1653,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Liquid prompt setup (call with 'start-liquidprompt'"
+echo "Liquid prompt setup (call with 'start-liquidprompt')"
 #
 ####################
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
@@ -1648,6 +1666,8 @@ exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/liquidprompt"
 exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
 exx "[[ \\\$- = *i* ]] && lp_theme powerline"
 chmod 755 $HELPFILE
+
+
 
 ####################
 #

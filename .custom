@@ -6,37 +6,32 @@
 # git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
 ####################
+# Don't use to redefine a new language, a) demonstrate techniques that can be reused (awk/grep etc), and b) to shorten complex situations.
+# Tempting to replace built-in commands, but almost never do (mainly just 'cat' in the below), as will impact scripts and expected output from commands.
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
-# Try to never replace a built-in command except in few cases below (mainly just du, df, cat in the below). i.e. do not want to impact other scripts.
 
 ####################
-# Exports
+# Exports      (with 'export', variable is available in all child processes, without 'export', the variable will not be available outside of this script
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
-alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'
+alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since we now have history, need a way to replicate original history
 alias hs='history | grep -A 1 -B 1'    # Search history, show matches plus 1 line 'A'bove and 1 line 'B'elow each match (to get context for why the command was run)
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
-# Alter PS1 (prompt). With this, non-root users display in green, but root will display in red
-# \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
+# Alter PS1 (prompt). With this, non-root users display in green, but root will display in red, # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
 export PS1="\[\033[01;$(if [ $(id -u) -eq 0 ]; then echo "31m"; else echo "32m"; fi)\]\u\[\033[00m\]@\[\033[01;33m\]\h\[\033[00m\]:\[\033[01;36m\] \w\[\033[00m\] \$ "
 # Set default $EDITOR and $VISUAL to vim (as Ubuntu defaults to nano for 'sudo visudo' etc). https://unix.stackexchange.com/questions/73484/how-can-i-set-vi-as-my-default-editor-in-unix
 # Also note: select-editor   # update-alternatives --config editor   # update-alternatives --list editor   # type update-alternatives &> /dev/null && update-alternatives --set editor /usr/bin/vim.basic
 export EDITOR=vim; export VISUAL=vim
 
 # Standard color for LESS/MAN pages (following was only way that I found that was cross-distro compatible, e.g. CentOS does not have by default)
-export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
-export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
-export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
-export LESS_TERMCAP_so=$'\E[01;44;33m' # begin reverse video
-export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
-export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
-export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
-export GROFF_NO_SGR=1                  # not for putty (konsole and gnome-terminal)
+export LESS_TERMCAP_mb=$'\E[1;31m'; export LESS_TERMCAP_md=$'\E[1;36m'; export LESS_TERMCAP_me=$'\E[0m' # begin bold, begin blink, reset bold/blink
+export LESS_TERMCAP_so=$'\E[01;44;33m'; export LESS_TERMCAP_se=$'\E[0m'; export LESS_TERMCAP_us=$'\E[1;32m' # begin reverse video, reset reverse video, begin underline
+export LESS_TERMCAP_ue=$'\E[0m'; export GROFF_NO_SGR=1 # reset underline, not for putty (konsole and gnome-terminal)
 
-# Some colors might look different of some terminals, e.g. 'Bold Red' can look orange on some screens (taken from Color Bash Prompt HowTo).
+# Some colors might look different on some terminals, e.g. 'Bold Red' can look orange on some screens (taken from Color Bash Prompt HowTo).
 Black='\e[0;30m'; Red='\e[0;31m'; Green='\e[0;32m'; Yellow='\e[0;33m'; Blue='\e[0;34m'; Purple='\e[0;35m'; Cyan='\e[0;36m'; White='\e[0;37m' # Normal colours and NC for 'no colour'
 BBlack='\e[1;30m'; BRed='\e[1;31m'; BGreen='\e[1;32m'; BYellow='\e[1;33m'; BBlue='\e[1;34m'; BPurple='\e[1;35m'; BCyan='\e[1;36m'; BWhite='\e[1;37m'    # Bold
 On_Black='\e[40m'; On_Red='\e[41m'; On_Green='\e[42m'; On_Yellow='\e[43m'; On_Blue='\e[44m'; On_Purple='\e[45m'; On_Cyan='\e[46m'; On_White='\e[47m'    # Background
@@ -48,18 +43,18 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 ####################
 # Aliases
 ####################
-alias sudo='sudo '                        # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
-alias s!='eval "sudo $(fc -ln -1)"'       # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
-alias xx='exit'                            # Quit immediately
-alias v='vim'                             # Quick vim access
-alias b='byobu'                           # Quick byobu access
-alias t='tmux'                            # Quick tmux access
+alias sudo='sudo '                      # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
+alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
+alias xx='exit'                         # Quit immediately
+alias v='vim'                           # Quick vim access
+alias b='byobu'                         # Quick byobu access
+alias t='tmux'                          # Quick tmux access
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
-alias cls='clear'                         # DOS equivalent
-alias cpv='rsync -ah --info=progress2'    # Use just as 'cp' but has line showing progress during copy. Alternatively, install 'pv'
-alias fhere="find . -name "               # Reminder for find syntax
+alias cls='clear'                       # DOS equivalent
+alias cpv='rsync -ah --info=progress2'  # Use just like 'cp' but will show progress while copying. Alternatively, install 'pv'
+alias fhere="find . -name "             # Reminder for find syntax
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
 alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file
@@ -93,17 +88,17 @@ alias lxp='find . -maxdepth 1 -perm -111 -type f'  # Find executable files, by p
 alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing with just size and name and total size summary line
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
-# gc, gcg, gcname, gadu, gall, git-push
-alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias ga='git add .'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
-alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+# gc, gcg, gcname, gadu, gall, gpull, gpush
+git config --global color.ui always; git config --global core.pager 'less -R'   # https://unix.stackexchange.com/a/62850/441685
+alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
-alias gadu='git add -u'; alias gall='git add .'   # Git shortcuts (see link in profile notes) 
+alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'
 alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
-git config --global color.ui always; git config --global core.pager 'less -r'   # https://unix.stackexchange.com/a/62850/441685
-git-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+alias gpull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
-alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
 alias cd0="cd ~/custom_bash"                      # Adjust to personal main projects for convenience, can set cd1, cd2, etc
+alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
 alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 
@@ -136,17 +131,18 @@ if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sud
 if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-# Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, top, specifically to add color options
+# Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'   # Colour always supported, so piping
-alias tree='tree -C'   # Colour always, so piping to less -R will show color
+alias less='less -R'; alias less0='\less'   # Colour always supported, so piping
+alias tree='tree -C'; alias tree0='\tree'   # Colour always, so piping to less -R will show color
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
 if type pydf >/dev/null 2>&1; then alias df1='pydf'; fi      # replace 'df' by 'pydf', create 'df0' for the original
 if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; fi      # same for du
-# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all.
-# Would like to default 'python' to 'python3', but tricky as Debian/Ubuntu use python2 for underlying system functions.
-# Therefore, do not alias 'python' just create 'p2', 'p3', but also alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (note that the package is called 'python3-pip' on both distros).
+alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
+# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
+# Would like to default 'python' to 'python3', but tricky as Debian/Ubuntu use python2 for underlying system functions
+# Therefore, do not alias 'python' just create 'p2', 'p3', but also alias pip to pip3 as pip2 does not exist on either Ubuntu or RHEL/CentOS by default (note that the package is called 'python3-pip' on both distros)
 alias p3='python3'; alias p2='python2'; alias pip='pip3'   # Python and pip aliases
 alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
 alias d-unused='docker container ls -a --filter status=exited --filter status=created'
@@ -190,9 +186,31 @@ function syshost() {
     echo -e "\n${BRed}Local IP Address :$NC"; my_ip
     echo -e "\n${BRed}Open connections :$NC "; netstat -pan --inet; echo
 }
+extract () { # extract files. Ignore files with improper extensions.
+    local x
+    ee() { echo "$@"; $1 "$2"; }   # echo and execute
+    for x in "$@"; do
+        [[ -f $x ]] || continue
+        case "$x" in
+            *.tar.bz2 | *.tbz2 )    ee "tar xvjf" "$x"  ;;
+            *.tar.gz | *.tgz ) ee "tar xvzf" "$x"       ;;
+            *.bz2 )             ee "bunzip2" "$x"       ;;
+            *.rar )             ee "unrar x" "$x"       ;;
+            *.gz )              ee "gunzip" "$x"        ;;
+            *.tar )             ee "tar xvf" "$x"       ;;
+            *.zip )             ee "unzip" "$x"         ;;
+            *.Z )               ee "uncompress" "$x"    ;;
+            *.7z )              ee "7z x" "$x"          ;;
+        esac
+    done
+}
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
+s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # do sudo, or sudo the previous command if no argument given
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
+function square(){ v1=$1; n=$(($v1*$v1)); echo $n; }
+function expo(){ v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }
+function factorial(){ v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }
 update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download and run latest version of custom_bash
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
@@ -213,7 +231,7 @@ targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,
 untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
-figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
 figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
@@ -231,7 +249,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # To get around no systemd, this will properly terminate the running WSL instance
-    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
     alias wx='explorer.exe'
     alias wx.='explorer.exe .'
     # Open Windows apps from WSL console
@@ -239,6 +257,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     alias webgitcustombash='chrome https://github.com/roysubs/custom_bash'
     alias webgitcustomps='chrome https://github.com/roysubs/Custom-Tools'
     alias webgitbasicsahk='chrome https://github.com/roysubs/Basics-AHK'
+    alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
+
     alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"; alias n='notepad++'   # notepad++ C:\Temp\Test.txt , n C:\Temp\Test.txt
     # If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is probably redundant since I now use git tokens)
     # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
@@ -254,7 +274,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     [ -d /mnt/d/0\ Cloud ] && alias cloud:='cd /mnt/d/0\ Cloud && ll'
     # Linux is case-sensitive, but Windows is case-insensitive. What if user is 'john' in Linux, but 'John' in Windows?
     # In fact, this turns out to be a non-issue as WSL is somehow case-insensitive (but only when on Windows mounts). The following handles this either way though
-    alias chome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
+    alias whome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
 
     # Microsoft already provides a "code" shell script to call from WSL, so do not use code.exe from a full installation or from chocolatey
     # shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as these will cause errors inside WSL. Only use one of the official "code" shell script.
@@ -295,7 +315,7 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
 hh='/tmp/.custom/help-awk.sh';    [[ -f $hh ]] && alias help-awk="$hh"
 hh='/tmp/.custom/help-bash.sh';   [[ -f $hh ]] && alias help-bash="$hh"
-hh='/tmp/.custom/help-byobu.sh';  [[ -f $hh ]] && alias help-byobu="$hh" && alias help-b="$hh"
+hh='/tmp/.custom/help-byobu.sh';  [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
 hh='/tmp/.custom/help-cron.sh';   [[ -f $hh ]] && alias help-cron="$hh"
 hh='/tmp/.custom/help-grep.sh';   [[ -f $hh ]] && alias help-grep="$hh"
 hh='/tmp/.custom/help-help.sh';   [[ -f $hh ]] && alias help-help="$hh"
@@ -311,7 +331,6 @@ help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL; }
 start='/tmp/.custom/start-liquidprompt.sh';     [[ -f $start ]] && alias start-liquidprompt="$start"
-
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)

@@ -258,9 +258,11 @@ echo ""
 
 ####################
 #
-print_header "Setup the PowerShell shell on Linux (start the shell with 'pwsh')"
+print_header "Other manual installers"
 #
 ####################
+echo "Setup the PowerShell shell on Linux (start the shell with 'pwsh')"
+echo ""
 echo "=====> For Ubuntu"
 echo "wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb"
 echo "dpkg -i packages-microsoft-prod.deb"
@@ -274,14 +276,10 @@ echo ""
 echo ""
 echo ""
 
-####################
-#
-print_header "Other manual installers"
-#
-####################
 # up.sh is a more complete "cd up" script. I don't really need this, just define u1, u2, u3, u4, u5 shortcuts in .custom
+# shortcut creates a db of locations, similar to my PowerShell function, again, now sure if I want to use this, but handy to know about
 # curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
-[[ ! -d ~/.config/shortcut ]] && git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
+# [[ ! -d ~/.config/shortcut ]] && git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow

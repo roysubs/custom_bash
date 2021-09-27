@@ -12,7 +12,7 @@
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
 
 ####################
-# Exports      (with 'export', variable is available in all child processes, without 'export', the variable will not be available outside of this script
+# Exports      (with 'export', variable is available in all child processes, but without 'export', the variable will not be available outside of this script. https://stackoverflow.com/a/21722203/524587
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
@@ -97,7 +97,8 @@ alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 alias gpull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 
-alias cd0="cd ~/custom_bash"                      # Adjust to personal main projects for convenience, can set cd1, cd2, etc
+alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
+alias cd1="cd /tmp/.custom; ls *.sh"   # 
 alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
 alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
@@ -312,20 +313,20 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
-# [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
-hh='/tmp/.custom/help-awk.sh';    [[ -f $hh ]] && alias help-awk="$hh"
-hh='/tmp/.custom/help-bash.sh';   [[ -f $hh ]] && alias help-bash="$hh"
-hh='/tmp/.custom/help-byobu.sh';  [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
-hh='/tmp/.custom/help-cron.sh';   [[ -f $hh ]] && alias help-cron="$hh"
-hh='/tmp/.custom/help-grep.sh';   [[ -f $hh ]] && alias help-grep="$hh"
-hh='/tmp/.custom/help-help.sh';   [[ -f $hh ]] && alias help-help="$hh"
-hh='/tmp/.custom/help-wsl.sh';    [[ -f $hh ]] && alias help-wsl="$hh"
-hh='/tmp/.custom/help-hyperv.sh'; [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
-hh='/tmp/.custom/help-vim.sh';    [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
-hh='/tmp/.custom/help-tmux.sh';   [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
-hh='/tmp/.custom/itmux.sh';       [[ -f $hh ]] && alias itmux="$hh"
-hh='/tmp/.custom/itmuxconf.sh';   [[ -f $hh ]] && alias itmuxconf="$hh"
-hh='/tmp/.custom/help-ps.sh';     [[ -f $hh ]] && alias help-ps="$hh"
+hhtmp='/tmp/.custom'
+hh="/$hhtmp/help-awk.sh";    [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh="/$hhtmp/help-bash.sh";   [[ -f $hh ]] && alias help-bash="$hh"
+hh="/$hhtmp/help-byobu.sh";  [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
+hh="/$hhtmp/help-cron.sh";   [[ -f $hh ]] && alias help-cron="$hh"
+hh="/$hhtmp/help-grep.sh";   [[ -f $hh ]] && alias help-grep="$hh"
+hh="/$hhtmp/help-help.sh";   [[ -f $hh ]] && alias help-help="$hh"
+hh="/$hhtmp/help-wsl.sh";    [[ -f $hh ]] && alias help-wsl="$hh"
+hh="/$hhtmp/help-hyperv.sh"; [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+hh="/$hhtmp/help-vim.sh";    [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
+hh="/$hhtmp/help-tmux.sh";   [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+hh="/$hhtmp/itmux.sh";       [[ -f $hh ]] && alias itmux="$hh"
+hh="/$hhtmp/itmuxconf.sh";   [[ -f $hh ]] && alias itmuxconf="$hh"
+hh="/$hhtmp/help-ps.sh";     [[ -f $hh ]] && alias help-ps="$hh"
 help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL; }

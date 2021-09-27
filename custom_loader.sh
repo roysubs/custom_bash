@@ -219,8 +219,9 @@ check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
 check_and_install perl perl
-[[ "$MANAGER" = "apt" ]] && check_and_install python python
-[[ "$MANAGER" = "dnf" ]] && check_and_install python python39
+# [[ "$MANAGER" = "apt" ]] && check_and_install python python39
+# [[ "$MANAGER" = "dnf" ]] && check_and_install /usr/bin/python3.9 python39
+check_and_install /usr/bin/python3.9 python39
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
@@ -250,21 +251,36 @@ check_and_install cowsay cowsay
 check_and_install figlet figlet
 # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
 # which figlet &> /dev/null || exe sudo snap install figlet -y
+echo ""
+echo ""
+echo ""
 
 ####################
 #
-echo "Setup PowerShell on Linux"
+print_header "Setup the PowerShell shell on Linux (start the shell with 'pwsh')"
 #
 ####################
-# For CentOS
-# curl https://packages.microsoft.com/config/rhel/8/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo
-# sudo dnf install powershell
+echo "=====> For Ubuntu"
+echo "wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb"
+echo "dpkg -i packages-microsoft-prod.deb"
+echo "apt-get update -y"
+echo "apt-get install powershell -y"
+echo ""
+echo "=====> For CentOS"
+echo "curl https://packages.microsoft.com/config/rhel/8/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo"
+echo "sudo dnf install powershell"
+echo ""
+echo ""
+echo ""
 
-# More complex installers
-curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
-git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
-
-
+####################
+#
+print_header "Other manual installers"
+#
+####################
+# up.sh is a more complete "cd up" script. I don't really need this, just define u1, u2, u3, u4, u5 shortcuts in .custom
+# curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
+[[ ! -d ~/.config/shortcut ]] && git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
 # exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
@@ -312,13 +328,11 @@ git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.
 # [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
 # which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
-
 ####################
 #
 print_header "Download extended fonts for 'figlet'"
 #
 ####################
-
 # Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
 # http://www.jave.de/figlet/fonts.html
 # http://www.figlet.org/examples.html
@@ -333,7 +347,6 @@ echo "# Download and setup figlet extended fonts"
 # [ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
 # [ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
 # [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
-
 if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one font file to decide
     sudo mkdir -p /usr/share/figlet/fonts
     [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
@@ -343,29 +356,26 @@ if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one fo
     [ -f /tmp/figletfonts40.zip ]   && exe sudo rm /tmp/figletfonts40.zip                            # cleanup
 fi
 
-
-
-# Following task is to get the latest package from a non-repo site, then optionally convert it (with alien) to a compatible
-# format, and then install it. Some useful methods here that can be used elsewhere:
-# - Finding the latest download link on a site
-# - String manipulations to get components of link, filename, extension etc
-# - Using \K lookbehnid functionality in grep by using Perl regex mode (-P)
-# - Feed a variable into grep with '<<<' instead of a file
-# - Using 'alien' to (try and) convert a .deb into a .rpm to install on CentOS
-#     This is not currently working on CentOS, *but*, creating the .rpm on Ubuntu then moving that to CentOS works
-#     It generates some errors:
-#       file / from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
-#       file /usr/bin from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
-#     But forcing it to install did work and probably does not break anything, i.e. see here: https://stackoverflow.com/questions/27172142/conflicts-with-file-from-package-filesystem-3-2
-#       sudo rpm -i --force bat-musl-0.18.3-2.x86_64.rpm
-# - Note on extracting substrings in bash: https://www.baeldung.com/linux/bash-substring
-
 if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ####################
     #
     print_header "Download 'bat' (syntax highlighted replacement for 'cat') manually to a known working version"
     #
     ####################
+    # Following task is to get the latest package from a non-repo site, then optionally convert it (with alien) to a compatible
+    # format, and then install it. Some useful methods here that can be used elsewhere:
+    # - Finding the latest download link on a site
+    # - String manipulations to get components of link, filename, extension etc
+    # - Using \K lookbehnid functionality in grep by using Perl regex mode (-P)
+    # - Feed a variable into grep with '<<<' instead of a file
+    # - Using 'alien' to (try and) convert a .deb into a .rpm to install on CentOS
+    #     This is not currently working on CentOS, *but*, creating the .rpm on Ubuntu then moving that to CentOS works
+    #     It generates some errors:
+    #       file / from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
+    #       file /usr/bin from install of bat-musl-0.18.3-2.x86_64 conflicts with file from package filesystem-3.8-6.el8.x86_64
+    #     But forcing it to install did work and probably does not break anything, i.e. see here: https://stackoverflow.com/questions/27172142/conflicts-with-file-from-package-filesystem-3-2
+    #       sudo rpm -i --force bat-musl-0.18.3-2.x86_64.rpm
+    # - Note on extracting substrings in bash: https://www.baeldung.com/linux/bash-substring
     echo "# Download and setup 'bat' so that .custom can alias 'cat' to use 'bat' instead"
     echo "# This provides same functionality as 'cat' but with colour syntax highlighting"
     # When we get the .deb file, the install syntax is:
@@ -624,13 +634,14 @@ if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
 ADDFILE=~/.inputrc
 function addToFile() { grep -qxF "$1" $ADDFILE || echo $1 | tee --append $ADDFILE; }
+# Do not have extra spaces in lines, as the grep above cannot handle them, so do not align all comments after the command etc
 addToFile '$include /etc/inputrc'           # include settings from /etc/inputrc
 addToFile '# Set tab completion for cd to be non-case sensitive'
-addToFile 'set completion-ignore-case On     # Set Tab completion to be non-case sensitive'
-addToFile '"\e[5~": history-search-backward  # After Ctrl-r, PgUp to go backward'
-addToFile '"\e[6~": history-search-forward   # After Ctrl-r, PgDn to go forward'
-addToFile '"\C-p":history-search-backward    # After Ctrl-r, Ctrl-p to go backward (previous)'
-addToFile '"\C-n":history-search-forward     # After Ctrl-r, Ctrl-n to go forward (next)'
+addToFile 'set completion-ignore-case On # Set Tab completion to be non-case sensitive'
+addToFile '"\e[5~": history-search-backward # After Ctrl-r, PgUp to go backward'
+addToFile '"\e[6~": history-search-forward # After Ctrl-r, PgDn to go forward'
+addToFile '"\C-p":history-search-backward # After Ctrl-r, Ctrl-p to go backward (previous)'
+addToFile '"\C-n":history-search-forward # After Ctrl-r, Ctrl-n to go forward (next)'
 
 # INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
 # grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
@@ -1662,9 +1673,9 @@ HELPFILE=/tmp/.custom/start-liquidprompt.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt"
-exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/liquidprompt"
-exx "[[ \\\$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
-exx "[[ \\\$- = *i* ]] && lp_theme powerline"
+exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
+exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
+exx "[[ \$- = *i* ]] && lp_theme powerline"
 chmod 755 $HELPFILE
 
 
@@ -1961,7 +1972,6 @@ if [ "$MANAGER" = "apt" ]; then
     echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
     echo ""
     sudo grep -rhE ^deb /etc/apt/sources.list*
-    echo ""
     echo "=====>  sudo apt-cache policy | grep http"
     sudo apt-cache policy | grep http
     echo ""
@@ -1969,7 +1979,6 @@ fi
 
 if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then
     echo "=====>  sudo $MANAGER repolist"
-    echo ""
     sudo $MANAGER repolist
     echo ""
 fi

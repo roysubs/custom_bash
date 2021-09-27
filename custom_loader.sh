@@ -242,7 +242,8 @@ check_and_install unzip unzip
 [[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
-check_and_install 7z p7zip-full        # Package name is different from the '7z' tool that is wanted
+[[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
+[[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
 # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
 # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
 [[ "$MANAGER" = "apt" ]] && check_and_install fortune fortune

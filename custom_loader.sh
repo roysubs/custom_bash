@@ -914,7 +914,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small Hyper-V Help)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small HyperV Help)\${NC}"
+exx ""
 exx "\${RED}***** To correctly change the resolution of the Hyper-V console\${NC}"
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
@@ -947,7 +948,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small byobu Help)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small byobu Help)\${NC}"
+exx ""
 exx "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
 exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
 exx "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
@@ -1034,7 +1036,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small tmux Help)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small tmux Help)\${NC}"
+exx ""
 exx "C-b : (to enter command mode), then  :ls, :help, :set mouse on  (or other commands)"
 exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
 exx "'M-' stands for 'Meta' key and is the Alt key on Linux"
@@ -1103,7 +1106,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small tmux.conf Options)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small tmux.conf Options)\${NC}"
+exx ""
 exx "Some useful options for ~/.tmux.conf"
 exx ""
 exx "# ~/.tmux.conf"
@@ -1169,7 +1173,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small ps Help)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small ps Help)\${NC}"
+exx ""
 exx "To see every process on the system using standard syntax:"
 exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
 exx "To see every process on the system using BSD syntax:"
@@ -1211,7 +1216,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small Bash Notes)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small Bash Notes)\${NC}"
+exx ""
 exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
 exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
@@ -1257,7 +1263,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small Help Tools)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small Help Tools)\${NC}"
+exx ""
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
 exx "https://ostechnix.com/search-study-and-practice-linux-commands-on-the-fly/"
@@ -1354,7 +1361,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small vim Help)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small vim Help)\${NC}"
+exx ""
 exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
 exx ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
@@ -1514,7 +1522,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small grep Notes)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small grep Notes)\${NC}"
+exx ""
 exx "\${RED}***** Consider using 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
@@ -1556,7 +1565,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small cron Notes)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small cron Notes)\${NC}"
+exx ""
 exx "crontab -e   will edit current users cron"
 exx "crontab -e   will edit current users cron"
 exx "crontab -a <filename>:   create a new <filename> as crontab file"
@@ -1615,33 +1625,33 @@ exx "service cron status   # Show staus of the service"
 exx "service cron restart  # Restart the service"
 exx "service cron reload   # Reload the configuration"
 exx ""
-exx "# Starting/stopping cron manually:"
-exx "# $ ~/custom_bash $ sudo service cron start"
-exx "#  * Starting periodic command scheduler cron             [ OK ]"
-exx "# $ sudo service cron stop  "
-exx "#  * Stopping periodic command scheduler cron             [ OK ]"
+exx "Starting/stopping cron manually:"
+exx "$ ~/custom_bash $ sudo service cron start"
+exx " * Starting periodic command scheduler cron             [ OK ]"
+exx "$ sudo service cron stop  "
+exx " * Stopping periodic command scheduler cron             [ OK ]"
 exx ""
-exx "# /etc/crontab: system-wide crontab"
-exx "# Unlike any other crontab you don't have to run the 'crontab'"
-exx "# command to install the new version when you edit this file"
-exx "# and files in /etc/cron.d. These files also have username fields,"
-exx "# that none of the other crontabs do."
+exx "/etc/crontab: system-wide crontab"
+exx "Unlike any other crontab you don't have to run the 'crontab'"
+exx "command to install the new version when you edit this file"
+exx "and files in /etc/cron.d. These files also have username fields,"
+exx "that none of the other crontabs do."
 exx ""
 exx "SHELL=/bin/sh"
 exx "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 exx ""
-exx "# Example of job definition:"
+exx "Example of job definition:"
 exx "\${BLUE}.---------------- minute (0 - 59)"
-exx "|  .------------- hour (0 - 23)"
-exx "|  |  .---------- day of month (1 - 31)"
-exx "|  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ..."
-exx "|  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat"
-exx "|  |  |  |  |"
+exx "\${BLUE}|  .------------- hour (0 - 23)"
+exx "\${BLUE}|  |  .---------- day of month (1 - 31)"
+exx "\${BLUE}|  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ..."
+exx "\${BLUE}|  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat"
+exx "\${BLUE}|  |  |  |  |\${NC}"
 exx "*  *  *  *  * user-name command to be executed"
 exx "17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly"
 exx "25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )"
 exx "47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )"
-exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )\${NC}"
+exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1664,7 +1674,8 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}$(figlet -w -t -f small awk Notes)\${NC}"
+exx "\${BLUE}\$(figlet -w -t -k -f small awk Notes)\${NC}"
+exx ""
 exx "***** Useful AWK One-Liners to Keep Handy"   
 exx "Search and scan files line by line, splits input lines into fields, compares input lines/fields to pattern and performs an action on matched lines."
 exx ""
@@ -1741,7 +1752,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "#!/bin/bash" > $HELPFILE
     exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}$(figlet -w -t -f small WSL Notes)\${NC}"
+    exx "\${BLUE}\$(figlet -w -t -k -f small WSL Notes)\${NC}"
+    exx ""
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
     exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
     exx "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
@@ -1794,9 +1806,15 @@ fi
 
 
 
+echo ""
+echo ""
+echo ""
+
+
+
 ####################
 #
-echo "Liquid prompt setup (call with 'start-liquidprompt')"
+echo "Liquid prompt script setup (call with 'start-liquidprompt')"
 #
 ####################
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
@@ -1831,7 +1849,7 @@ if [ "$MANAGER" = "apt" ]; then
     echo ""
 fi
 if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then
-    echo "=====>  sudo $MANAGER repolist"
+    echo "=====>  sudo $MANAGER repolist   (straight print of the repolist from $MANAGER)"
     sudo $MANAGER repolist
     echo ""
 fi

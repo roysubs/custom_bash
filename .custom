@@ -312,19 +312,18 @@ help-packages_apt() { fn-help "apt package management:" "info dir / info ls / de
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
 hhtmp='/tmp/.custom'
-hh="/$hhtmp/help-awk.sh";    [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
-hh="/$hhtmp/help-bash.sh";   [[ -f $hh ]] && alias help-bash="$hh"
-hh="/$hhtmp/help-byobu.sh";  [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
-hh="/$hhtmp/help-cron.sh";   [[ -f $hh ]] && alias help-cron="$hh"
-hh="/$hhtmp/help-grep.sh";   [[ -f $hh ]] && alias help-grep="$hh"
-hh="/$hhtmp/help-help.sh";   [[ -f $hh ]] && alias help-help="$hh"
-hh="/$hhtmp/help-wsl.sh";    [[ -f $hh ]] && alias help-wsl="$hh"
-hh="/$hhtmp/help-hyperv.sh"; [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
-hh="/$hhtmp/help-vim.sh";    [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
-hh="/$hhtmp/help-tmux.sh";   [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
-hh="/$hhtmp/itmux.sh";       [[ -f $hh ]] && alias itmux="$hh"
-hh="/$hhtmp/itmuxconf.sh";   [[ -f $hh ]] && alias itmuxconf="$hh"
-hh="/$hhtmp/help-ps.sh";     [[ -f $hh ]] && alias help-ps="$hh"
+hh="/$hhtmp/help-awk.sh";         [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh="/$hhtmp/help-bash.sh";        [[ -f $hh ]] && alias help-bash="$hh"
+hh="/$hhtmp/help-byobu.sh";       [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
+hh="/$hhtmp/help-cron.sh";        [[ -f $hh ]] && alias help-cron="$hh"
+hh="/$hhtmp/help-grep.sh";        [[ -f $hh ]] && alias help-grep="$hh"
+hh="/$hhtmp/help-help.sh";        [[ -f $hh ]] && alias help-help="$hh"
+hh="/$hhtmp/help-wsl.sh";         [[ -f $hh ]] && alias help-wsl="$hh"
+hh="/$hhtmp/help-hyperv.sh";      [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+hh="/$hhtmp/help-vim.sh";         [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
+hh="/$hhtmp/help-tmux.sh";        [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+hh="/$hhtmp/help-tmux-conf.sh";   [[ -f $hh ]] && alias help-tmux-conf="$hh"
+hh="/$hhtmp/help-ps.sh";          [[ -f $hh ]] && alias help-ps="$hh"
 help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
@@ -335,5 +334,5 @@ hh='/tmp/.custom/start-liquidprompt.sh'; [[ -f $hh ]] && alias liquid='source "$
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
-if [ -z "$TMUX" ]; then login_banner; fi   # Only display login_banner if this is not a new tmux session
-#  [ -z $TMUX ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session
+[ -z "$TMUX" ] && login_banner   # Only display login_banner if this is not a new tmux session
+# [ -z "$TMUX" ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session

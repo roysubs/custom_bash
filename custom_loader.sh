@@ -903,15 +903,18 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
+exx "\${RED}***** To correctly change the resolution of the Hyper-V console\${NC}"
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
 exx "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
 exx "Adjust 1920x1080 to your current monitor resolution."
 exx "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
 exx ""
+exx "\${RED}***** Setup Guest Services so that text can be copied/pasted to/from the Hyper-V console\${NC}"
 exx "From Hyper-V Manager dashboard, find the VM, and open Settings."
 exx "Go to Integration Services tab > Make sure Guest services section is checked."
 exx ""
+exx "\${RED}***** Adjust Sleep Settings for the VM\${NC}"
 exx "systemctl status sleep.target   # Show current sleep settings"
 exx "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
@@ -1009,200 +1012,11 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "tmux terminal multiplexer (call with help-tmux)"
+echo "tmux Help (call with 'help-tmux'):"
 #
 ####################
-
-# Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
-# Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
-# This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
-# In .custom, we can then simply create aliases if the files exist:
-# [ -f /tmp/help-tmux.sh ] && alias help-tmux='/tmp/help-tmux.sh' && alias help-t='/tmp/help-tmux.sh'   # for .custom
-
-# https://davidwinter.dev/tmux-the-essentials/
-# https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/
-# https://www.golinuxcloud.com/tmux-cheatsheet/
-# https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html
 
 HELPFILE=/tmp/.custom/help-tmux.sh
-exx() { echo "$1" >> $HELPFILE; }
-echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
-exx "HELPNOTES=\""
-exx "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
-exx ""
-exx "Essentials:  <C-b> means Ctrl-b  ,  <C-b> : => enter command mode"
-exx "List sessions: tmux ls , tmux list-sessions  , <C-b> : ls"
-exx "Show sessions: <C-b> s ,<C-b> w (window preview)"
-exx ""
-exx "Start a new session:  tmux , tmux new -s my1 , :new -s my1"
-exx "Detach this session:  <C-b> d , tmux detach"
-exx "Re-attach a session:  tmux a -t my1  (or by the index of the session)"
-exx "Kill/Delete session:  tmux kill-sess -t my1  , all but current:  tmux kill-sess -a ,  all but 'my1':  tmux kill-sess -a -t my1"
-
-exx "Ctrl + b $   Rename session,   Ctrl + b d   Detach from session"
-exx "attach -d    Detach others on the session (Maximize window by detach other clients)"
-exx ""
-exx "tmux a / at / attach / attach-session   Attach to last session"
-exx "tmux a -t mysession   Attach to a session with the name mysession"
-exx ""
-exx "Ctrl + b (  (move to previous session) , <C-b> b )  (move to next session)"
-
-exx "Command	Description"
-exx "tmux	start tmux"
-exx "tmux new -s <name>	start tmux with <name>"
-exx "tmux ls	shows the list of sessions"
-exx "tmux a #	attach the detached-session"
-exx "tmux a -t <name>	attach the detached-session to <name>"
-exx "tmux kill-session –t <name>	kill the session <name>"
-exx "tmux kill-server	kill the tmux server"
-exx "Windows"
-exx "tmux new -s mysession -n mywindow"
-exx "start a new session with the name mysession and window mywindow"
-exx ""
-exx "Ctrl + b c"
-exx "Create window"
-exx ""
-exx "Ctrl + b ,"
-exx "Rename current window"
-exx ""
-exx "Ctrl + b &"
-exx "Close current window"
-exx ""
-exx "Ctrl + b p"
-exx "Previous window"
-exx ""
-exx "Ctrl + b n"
-exx "Next window"
-exx ""
-exx "Ctrl + b 0 ... 9"
-exx "Switch/select window by number"
-exx ""
-exx "swap-window -s 2 -t 1"
-exx "Reorder window, swap window number 2(src) and 1(dst)"
-exx ""
-exx "swap-window -t -1"
-exx "Move current window to the left by one position"
-exx ""
-exx "***** Panes"
-exx "Splits:  Ctrl + b %  (horizontal)  ,  Ctrl + b \\\"  (vertical)"
-exx "Moves:   <C-b> o  (next pane)  , <C-b> {  (left)  ,  <C-b> {  (right)  ,  <C-b> <cursor-key>  (move to pane in that direction)"
-exx "         <C-b> ;  (toggle last active)  ,  <C-b> <space>  (toggle different pane layouts)"
-exx "Send:    :setw sy (synchronize-panes, toggle sending all commands to all panes)"
-exx "Index:   <C-b> q  (show pane indexes)  ,  <C-b> q 0 .. 9  (switch to a pane by its index) "
-exx "Zoom:    <C-b> z  (toggle pane between full screen and back to windowed)"
-exx "Resize:  <C-b> <C-cursor-key>  (hold down Ctrl, first press b, then a cursor, don't hold, press again for more resize)"
-exx "Close:   <C-b> x  (close pane)"
-exx ""
-
-exx "Ctrl + b !"
-exx "Convert pane into a window"
-exx ""
-exx "Copy Mode"
-exx "setw -g mode-keys vi"
-exx "use vi keys in buffer"
-exx ""
-exx "Ctrl + b ["
-exx "Enter copy mode"
-exx ""
-exx "Ctrl + b PgUp"
-exx "Enter copy mode and scroll one page up"
-exx ""
-exx "q"
-exx "Quit mode"
-exx ""
-exx "g"
-exx "Go to top line"
-exx ""
-exx "G"
-exx "Go to bottom line"
-exx ""
-exx "Scroll up"
-exx ""
-exx "Scroll down"
-exx ""
-exx "h"
-exx "Move cursor left"
-exx ""
-exx "j"
-exx "Move cursor down"
-exx ""
-exx "k"
-exx "Move cursor up"
-exx ""
-exx "l"
-exx "Move cursor right"
-exx ""
-exx "w"
-exx "Move cursor forward one word at a time"
-exx ""
-exx "b"
-exx "Move cursor backward one word at a time"
-exx ""
-exx "/"
-exx "Search forward"
-exx ""
-exx "?"
-exx "Search backward"
-exx ""
-exx "n"
-exx "Next keyword occurance"
-exx ""
-exx "N"
-exx "Previous keyword occurance"
-exx ""
-exx "Spacebar"
-exx "Start selection"
-exx ""
-exx "Esc"
-exx "Clear selection"
-exx ""
-exx "Enter"
-exx "Copy selection"
-exx ""
-exx "Ctrl + b ]"
-exx "Paste contents of buffer_0"
-exx ""
-exx "show-buffer"
-exx "display buffer_0 contents"
-exx ""
-exx "capture-pane"
-exx "copy entire visible contents of pane to a buffer"
-exx ""
-exx "list-buffers"
-exx "Show all buffers"
-exx ""
-exx "choose-buffer"
-exx "Show all buffers and paste selected"
-exx ""
-exx "save-buffer buf.txt"
-exx "Save buffer contents to buf.txt"
-exx ""
-exx "delete-buffer -b 1"
-exx "delete buffer_1"
-exx ""
-exx "Misc"
-exx "Ctrl + b :      # Enter command mode"
-exx "set -g OPTION   # Set OPTION for all sessions"
-exx "setw -g OPTION  # Set OPTION for all windows"
-exx "set mouse on    # Enable mouse mode"
-exx "Help"
-exx "tmux list-keys  # list-keys"
-exx "Ctrl + b ?      # List key bindings (i.e. shortcuts)"
-exx "tmux info       # Show every session, window, pane, etc..."
-exx "\""   # require final line with a single " to close multi-line string
-exx "echo -e \"\$HELPNOTES\""
-chmod 755 $HELPFILE
-
-
-
-####################
-#
-echo "tmux quick info (call with 'itmux'):"
-#
-####################
-
-HELPFILE=/tmp/.custom/itmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
@@ -1266,11 +1080,11 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "tmux.conf quick info (call with 'itmuxconf'):"
+echo "tmux.conf Help (call with 'help-tmux-conf'):"
 #
 ####################
 
-HELPFILE=/tmp/.custom/itmuxconf.sh
+HELPFILE=/tmp/.custom/help-tmux-conf.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
@@ -1421,20 +1235,17 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Help tools (options for man/info and other tools) (call with 'help-help')"
+echo "Help Tools (call with 'help-help')"
 #
 ####################
 # [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'   # for .custom
 HELPFILE=/tmp/.custom/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "********************"
-exx "* Help Notes"
-exx "********************"
+exx "\${BLUE}$(figlet -w -t -f small Help Tools)\${NC}"
 exx ""
-exx "\${RED}Help sites:\${NC} Tools that focus on practical command examples:"
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
 exx "https://ostechnix.com/search-study-and-practice-linux-commands-on-the-fly/"
@@ -1495,12 +1306,13 @@ exx "sudo $MANAGER install tealdeer   # fails for me"
 exx "sudo $MANAGER install cargo      # 270 MB"
 exx "cargo install tealdeer      # seems to install ok"
 exx "export PATH=\\\$PATH:/home/\\\$USER/.cargo/bin   # And add to .bashrc to make permanent"
-exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-x86_64-musl"
-exx "sudo cp tldr-linux-x86_64-musl /usr/local/bin/tldr"
-exx "sudo chmod +x /usr/local/bin/tldr"
 exx "# tldr --update"
 exx "# tldr --list"
 exx "# tldr --clear-cache"
+exx "Alterntaive installation method:"
+exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-x86_64-musl"
+exx "sudo cp tldr-linux-x86_64-musl /usr/local/bin/tldr"
+exx "sudo chmod +x /usr/local/bin/tldr"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1509,7 +1321,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Vim Notes (start with 'help-vim')"
+echo "Vim Notes (call with 'help-vim')"
 #
 ####################
 # Vim, Tips and tricks: https://www.cs.umd.edu/~yhchan/vim.pdf
@@ -1528,8 +1340,8 @@ echo "Vim Notes (start with 'help-vim')"
 HELPFILE=/tmp/.custom/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "HELPNOTES=\""
 exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "HELPNOTES=\""
 exx "********************"
 exx "* Vim Notes..."
 exx "********************"
@@ -1538,7 +1350,7 @@ exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
 exx ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
 exx ""
-exx "***** MODES   :h vim-modes-intro"
+exx "\${RED}***** MODES   :h vim-modes-intro\${NC}"
 exx "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). The 3 main modes are normal, insert, and visual."
 exx "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
 exx "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
@@ -1548,7 +1360,7 @@ exx "Could also use r to replace, or d to delete a selected visual region."
 exx "Also note '>' to indent a selected visual region, or '<' to predent (unindent) the region."
 exx ": to go into command mode, and Esc to get back to normal mode."
 exx ""
-exx "***** MOTIONS   :h motions"
+exx "\${RED}***** MOTIONS\${NC}   :h motions"
 exx "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e' forward by end of word."
 exx "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
 exx "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
@@ -1559,7 +1371,7 @@ exx "g;	    Bring back cursor to the previous position."
 exx ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
 exx ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
 exx ""
-exx "***** EDITING   :h edits"
+exx "\${RED}***** EDITING\${NC}   :h edits"
 exx "x  delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words, '5dd delete 5 lines."
 exx ":10,18d delete lines 10 to 18 inclusive, r<char> replace char under cursor by another character."
 exx "u  undo (or :u, :undo), Ctrl-r to redo (or :redo)."
@@ -1570,13 +1382,13 @@ exx ">> shift/indent current line, << unindent, 5>> indent 5 lines down from cur
 exx ":10,20> indent lines 10 to 20 by standard indent amount. :10,20< unindent same lines."
 exx "(vim-commentary plugin), gc to comment visual block selected, gcgc to uncomment a region."
 exx ""
-exx "***** HELP SYSTEM   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
+exx "\${RED}***** HELP SYSTEM\${NC}   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
 exx "Even better, open the help in a new tab with ':tab help >>', then :q when done with help tab."
 exx "Open all help"
 exx "Maximise the window vertically with 'Ctrl-w _' or horizontally with 'Ctrl-w |' or 'Ctrl-w o' to leave only the help file open."
 exx "Usually don't want to close everything, so 'Ctrl-w 10+' to increase current window by 10 lines is also good.   :h ctrl-w"
 exx ""
-exx "***** SUBSTITUTION   :h :s   :h s_flags"
+exx "\${RED}***** SUBSTITUTION\${NC}   :h :s   :h s_flags"
 exx "https://www.theunixschool.com/2012/11/examples-vi-vim-substitution-commands.html"
 exx "https://www.thegeekstuff.com/2009/04/vi-vim-editor-search-and-replace-examples/"
 exx ":s/foo/bar/  replace first occurence in current line only,  add 'g' to end for every occurence on line, and 'i' to be case insensitive."
@@ -1593,7 +1405,7 @@ exx ":g/foo/ if getcurpos()[1] % 2 == 0 | s//bar/g | endif   # alternative appro
 exx ":for i in range(2, line('$'),2)| :exe i.'s/foo/bar/g'|endfor   # yet another way using a 'for' loop"   # https://gist.github.com/Integralist/042d1d6c93efa390b15b19e2f3f3827a
 exx "nmap <expr> <S-F6> ':%s/' . @/ . '//gc<LEFT><LEFT><LEFT>'   # Put into .vimrc then press Shift-F6 to interactively replace word at cursor globally (with confirmation)."
 exx ""
-exx "***** BUFFERS   :h buffers   Within a single window, can see buffers with :ls"
+exx "\${RED}***** BUFFERS\${NC}   :h buffers   Within a single window, can see buffers with :ls"
 exx "vim *   Open all files in current folder (or   'vim file1 file2 file3'   etc)."
 exx ":ls     List all open buffers (i.e. open files)   # https://dev.to/iggredible/using-buffers-windows-and-tabs-efficiently-in-vim-56jc"
 exx ":bn, :bp, :b #, :b name to switch. Ctrl-6 alone switches to previously used buffer, or #ctrl-6 switches to buffer number #."
@@ -1601,12 +1413,12 @@ exx ":bnext to go to next buffer (:bprev to go back), :buffer <name> (Vim can au
 exx ":bufferN where N is buffer number. :buffer2 for example, will jump to buffer #2."
 exx "Jump between your last 'position' with <Ctrl-O> and <Ctrl-i>. This is not buffer specific, but it works. Toggle between previous file with <Ctrl-^>"
 exx ""
-exx "***** WINDOWS   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
+exx "\${RED}***** WINDOWS\${NC}   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
 exx "vim -o *  Open all with horizontal splits,   vim -O *   Open all with vertical splits."
 exx "<C-W>W   to switch windows (note: do not need to take finger off Ctrl after <C-w> just double press on 'w')."
 exx "<C-W>N :sp (:split, :new, :winc n)  new horizontal split,   <C-W>V :vs (:vsplit, :winc v)  new vertical split"
 exx ""
-exx "***** TABS   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
+exx "\${RED}***** TABS\${NC}   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
 exx "vim -p *   Open all files in folder in tabs (or   'vim -p file1 file2 file3' etc)."
 exx ":tabnew, just open a new tab, :tabedit <filename> (or tabe), create a new file at filename; like :e, but in a new tab."
 exx "gt/gT  Go to next / previous tab (and loop back to first/last tab if at end). Also: 1gt go to tab 1, 5gt go to tab 5."
@@ -1618,7 +1430,7 @@ exx ":tabedit .   # Opens new tab, prompts for file to open in it. Use cursor ke
 exx "tab names are prefixed with a '+' if they have unsaved changes,  :w  to write changes."
 exx ":set mouse=a   # Mouse support works with tabs, just click on a tab to move there."
 exx ""
-exx "***** VIMRC OPTIONS   /etc/vimrc, ~/.vimrc"
+exx "\${RED}***** VIMRC OPTIONS\${NC}   /etc/vimrc, ~/.vimrc"
 exx ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle)"
 exx "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
 exx "inoremap <F3> <C-O>:set invnumber<CR>   # Also this line for the F3 toggle"
@@ -1630,7 +1442,7 @@ exx "cnoreabbrev <expr> h getcmdtype() == \\\":\\\" && getcmdline() == 'h' ? 'ta
 exx "nnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the current line (vim-commentry plugin)."
 exx "vnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the visual region (vim-commentry plugin)."
 exx ""
-exx "***** PLUGINS, VIM-PLUG    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
+exx "\${RED}***** PLUGINS, VIM-PLUG\${NC}    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
 exx "First, install vim-plug:"
 exx "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
 exx "Then add the following lines to ~/.vimrc ("
@@ -1655,7 +1467,7 @@ exx "Folloing will toggle comment/uncomment by pressing <space>/ on a line or a 
 exx "nnoremap <space>/ :Commentary<CR>"
 exx "vnoremap <space>/ :Commentary<CR>"
 exx ""
-exx "***** SPELL CHECKING / AUTOCOMPLETE"
+exx "\${RED}***** SPELL CHECKING / AUTOCOMPLETE\${NC}"
 exx ":setlocal spell spelllang=en   (default 'en', or can use 'en_us' or 'en_uk')."
 exx "Then,  :set spell  to turn on and  :set nospell  to turn off. Most misspelled words will be highlighted (but not all)."
 exx "]s to move to the next misspelled word, [s to move to the previous. When on any word, press z= to see list of possible corrections."
@@ -1663,12 +1475,12 @@ exx "Type the number of the replacement spelling and press enter <enter> to repl
 exx "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
 exx "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
 exx ""
-exx "***** SEARCH"
+exx "\${RED}***** SEARCH\${NC}"
 exx "/ search forwards, ? search backwards are well known but * and # are less so."
 exx "* search for word nearest to the cursor (forward), and # (backwards)."
 exx "Can repeat a search with / then just press Enter, but easier to use n, or N to repeat a search in the opposite direction."
 exx ""
-exx "***** PASTE ISSUES IN TERMINALS"
+exx "\${RED}***** PASTE ISSUES IN TERMINALS\${NC}"
 exx "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result, especially in Putty sessions etc."
 exx "Fix that with ':set paste' to put Vim in Paste mode before you paste, so Vim will just paste verbatim."
 exx "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
@@ -1681,32 +1493,10 @@ exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 
-####################
-#
-echo "Liquid prompt setup (call with 'start-liquidprompt')"
-#
-####################
-# https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
-# https://liquidprompt.readthedocs.io/en/stable/config.html#features
-HELPFILE=/tmp/.custom/start-liquidprompt.sh
-exx() { echo "$1" >> $HELPFILE; }
-echo "#!/bin/bash" > $HELPFILE
-exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt"
-exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
-exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
-exx "[[ \$- = *i* ]] && lp_theme powerline"
-exx "echo ''"
-exx "echo LiquidPrompt requires NerdFont to display icons correctly:"
-exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
-exx "echo Alternatives: https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
-exx "echo ''"
-chmod 755 $HELPFILE
-
-
 
 ####################
 #
-echo "grep Notes (show with 'help-grep')"
+echo "grep Notes (call with 'help-grep')"
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
@@ -1719,7 +1509,7 @@ exx "********************"
 exx "* Grep Practical Examples"
 exx "********************"
 exx ""
-exx "***** Consider using 'grep' instead of 'find'   # https://stackoverflow.com/a/16957078/524587"
+exx "\${RED}***** Consider using 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
 exx "Optional: -l (not 1, but lower-case L) can be added to only return the file name of matching files."
@@ -1731,7 +1521,7 @@ exx "It is possible to exclude one or more directories with --exclude-dir."
 exx "e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
 exx "grep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo \"\$HELPNOTES\""
+exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 
@@ -1755,12 +1545,11 @@ echo "cron Notes (call with 'help-cron')"
 # net use u: /delete
 # RoboCopy pull from \\WSL$\Ubuntu   # 15,157,379 Bytes/sec
 # rsync to /mnt/s/backupdir          #  2,338,573 Bytes/sec
-
 HELPFILE=/tmp/.custom/help-cron.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "********************"
 exx "* Cron Notes"
 exx "********************"
@@ -1839,19 +1628,19 @@ exx "SHELL=/bin/sh"
 exx "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 exx ""
 exx "# Example of job definition:"
-exx "# .---------------- minute (0 - 59)"
-exx "# |  .------------- hour (0 - 23)"
-exx "# |  |  .---------- day of month (1 - 31)"
-exx "# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ..."
-exx "# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat"
-exx "# |  |  |  |  |"
-exx "# *  *  *  *  * user-name command to be executed"
+exx "\${BLUE}.---------------- minute (0 - 59)"
+exx "|  .------------- hour (0 - 23)"
+exx "|  |  .---------- day of month (1 - 31)"
+exx "|  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ..."
+exx "|  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat"
+exx "|  |  |  |  |"
+exx "*  *  *  *  * user-name command to be executed"
 exx "17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly"
 exx "25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )"
 exx "47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )"
-exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )"
+exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )\${NC}"
 exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo \"\$HELPNOTES\""
+exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 
@@ -2007,6 +1796,30 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
 fi
 
 
+
+####################
+#
+echo "Liquid prompt setup (call with 'start-liquidprompt')"
+#
+####################
+# https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
+# https://liquidprompt.readthedocs.io/en/stable/config.html#features
+HELPFILE=/tmp/.custom/start-liquidprompt.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt"
+exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
+exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
+exx "[[ \$- = *i* ]] && lp_theme powerline"
+exx "echo ''"
+exx "echo LiquidPrompt requires NerdFont to display icons correctly:"
+exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
+exx "echo Alternatives: https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
+exx "echo ''"
+chmod 755 $HELPFILE
+
+
+
 ####################
 #
 print_header "List Installed Repositories"
@@ -2020,7 +1833,6 @@ if [ "$MANAGER" = "apt" ]; then
     sudo apt-cache policy | grep http
     echo ""
 fi
-
 if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then
     echo "=====>  sudo $MANAGER repolist"
     sudo $MANAGER repolist
@@ -2219,3 +2031,192 @@ fi
 
 # login_banner() { printf "\n##########\n$(ver)\n##########\n$(sys)\n##########\n"; [ -f /usr/bin/figlet ] && fignow; }
 # login_banner() { printf "\n##########\n$(sys)\n##########\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n##########\n"; type figlet >/dev/null 2>&1  && fignow; }
+
+
+
+##  ####################
+##  #
+##  echo "tmux terminal multiplexer (call with help-tmux)"
+##  #
+##  ####################
+##  
+##  # Note the "" to surround the $1 string otherwise prefix/trailing spaces will be removed
+##  # Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc
+##  # This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
+##  # In .custom, we can then simply create aliases if the files exist:
+##  # [ -f /tmp/help-tmux.sh ] && alias help-tmux='/tmp/help-tmux.sh' && alias help-t='/tmp/help-tmux.sh'   # for .custom
+##  
+##  # https://davidwinter.dev/tmux-the-essentials/
+##  # https://www.hamvocke.com/blog/a-guide-to-customizing-your-tmux-conf/
+##  # https://www.golinuxcloud.com/tmux-cheatsheet/
+##  # https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html
+##  
+##  HELPFILE=/tmp/.custom/help-tmux.sh
+##  exx() { echo "$1" >> $HELPFILE; }
+##  echo "#!/bin/bash" > $HELPFILE
+##  exx "RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+##  exx "HELPNOTES=\""
+##  exx "tmux is a terminal multiplexer which allows multiple panes and windows inside a single console."
+##  exx ""
+##  exx "Essentials:  <C-b> means Ctrl-b  ,  <C-b> : => enter command mode"
+##  exx "List sessions: tmux ls , tmux list-sessions  , <C-b> : ls"
+##  exx "Show sessions: <C-b> s ,<C-b> w (window preview)"
+##  exx ""
+##  exx "Start a new session:  tmux , tmux new -s my1 , :new -s my1"
+##  exx "Detach this session:  <C-b> d , tmux detach"
+##  exx "Re-attach a session:  tmux a -t my1  (or by the index of the session)"
+##  exx "Kill/Delete session:  tmux kill-sess -t my1  , all but current:  tmux kill-sess -a ,  all but 'my1':  tmux kill-sess -a -t my1"
+##  
+##  exx "Ctrl + b $   Rename session,   Ctrl + b d   Detach from session"
+##  exx "attach -d    Detach others on the session (Maximize window by detach other clients)"
+##  exx ""
+##  exx "tmux a / at / attach / attach-session   Attach to last session"
+##  exx "tmux a -t mysession   Attach to a session with the name mysession"
+##  exx ""
+##  exx "Ctrl + b (  (move to previous session) , <C-b> b )  (move to next session)"
+##  
+##  exx "Command	Description"
+##  exx "tmux	start tmux"
+##  exx "tmux new -s <name>	start tmux with <name>"
+##  exx "tmux ls	shows the list of sessions"
+##  exx "tmux a #	attach the detached-session"
+##  exx "tmux a -t <name>	attach the detached-session to <name>"
+##  exx "tmux kill-session –t <name>	kill the session <name>"
+##  exx "tmux kill-server	kill the tmux server"
+##  exx "Windows"
+##  exx "tmux new -s mysession -n mywindow"
+##  exx "start a new session with the name mysession and window mywindow"
+##  exx ""
+##  exx "Ctrl + b c"
+##  exx "Create window"
+##  exx ""
+##  exx "Ctrl + b ,"
+##  exx "Rename current window"
+##  exx ""
+##  exx "Ctrl + b &"
+##  exx "Close current window"
+##  exx ""
+##  exx "Ctrl + b p"
+##  exx "Previous window"
+##  exx ""
+##  exx "Ctrl + b n"
+##  exx "Next window"
+##  exx ""
+##  exx "Ctrl + b 0 ... 9"
+##  exx "Switch/select window by number"
+##  exx ""
+##  exx "swap-window -s 2 -t 1"
+##  exx "Reorder window, swap window number 2(src) and 1(dst)"
+##  exx ""
+##  exx "swap-window -t -1"
+##  exx "Move current window to the left by one position"
+##  exx ""
+##  exx "***** Panes"
+##  exx "Splits:  Ctrl + b %  (horizontal)  ,  Ctrl + b \\\"  (vertical)"
+##  exx "Moves:   <C-b> o  (next pane)  , <C-b> {  (left)  ,  <C-b> {  (right)  ,  <C-b> <cursor-key>  (move to pane in that direction)"
+##  exx "         <C-b> ;  (toggle last active)  ,  <C-b> <space>  (toggle different pane layouts)"
+##  exx "Send:    :setw sy (synchronize-panes, toggle sending all commands to all panes)"
+##  exx "Index:   <C-b> q  (show pane indexes)  ,  <C-b> q 0 .. 9  (switch to a pane by its index) "
+##  exx "Zoom:    <C-b> z  (toggle pane between full screen and back to windowed)"
+##  exx "Resize:  <C-b> <C-cursor-key>  (hold down Ctrl, first press b, then a cursor, don't hold, press again for more resize)"
+##  exx "Close:   <C-b> x  (close pane)"
+##  exx ""
+##  
+##  exx "Ctrl + b !"
+##  exx "Convert pane into a window"
+##  exx ""
+##  exx "Copy Mode"
+##  exx "setw -g mode-keys vi"
+##  exx "use vi keys in buffer"
+##  exx ""
+##  exx "Ctrl + b ["
+##  exx "Enter copy mode"
+##  exx ""
+##  exx "Ctrl + b PgUp"
+##  exx "Enter copy mode and scroll one page up"
+##  exx ""
+##  exx "q"
+##  exx "Quit mode"
+##  exx ""
+##  exx "g"
+##  exx "Go to top line"
+##  exx ""
+##  exx "G"
+##  exx "Go to bottom line"
+##  exx ""
+##  exx "Scroll up"
+##  exx ""
+##  exx "Scroll down"
+##  exx ""
+##  exx "h"
+##  exx "Move cursor left"
+##  exx ""
+##  exx "j"
+##  exx "Move cursor down"
+##  exx ""
+##  exx "k"
+##  exx "Move cursor up"
+##  exx ""
+##  exx "l"
+##  exx "Move cursor right"
+##  exx ""
+##  exx "w"
+##  exx "Move cursor forward one word at a time"
+##  exx ""
+##  exx "b"
+##  exx "Move cursor backward one word at a time"
+##  exx ""
+##  exx "/"
+##  exx "Search forward"
+##  exx ""
+##  exx "?"
+##  exx "Search backward"
+##  exx ""
+##  exx "n"
+##  exx "Next keyword occurance"
+##  exx ""
+##  exx "N"
+##  exx "Previous keyword occurance"
+##  exx ""
+##  exx "Spacebar"
+##  exx "Start selection"
+##  exx ""
+##  exx "Esc"
+##  exx "Clear selection"
+##  exx ""
+##  exx "Enter"
+##  exx "Copy selection"
+##  exx ""
+##  exx "Ctrl + b ]"
+##  exx "Paste contents of buffer_0"
+##  exx ""
+##  exx "show-buffer"
+##  exx "display buffer_0 contents"
+##  exx ""
+##  exx "capture-pane"
+##  exx "copy entire visible contents of pane to a buffer"
+##  exx ""
+##  exx "list-buffers"
+##  exx "Show all buffers"
+##  exx ""
+##  exx "choose-buffer"
+##  exx "Show all buffers and paste selected"
+##  exx ""
+##  exx "save-buffer buf.txt"
+##  exx "Save buffer contents to buf.txt"
+##  exx ""
+##  exx "delete-buffer -b 1"
+##  exx "delete buffer_1"
+##  exx ""
+##  exx "Misc"
+##  exx "Ctrl + b :      # Enter command mode"
+##  exx "set -g OPTION   # Set OPTION for all sessions"
+##  exx "setw -g OPTION  # Set OPTION for all windows"
+##  exx "set mouse on    # Enable mouse mode"
+##  exx "Help"
+##  exx "tmux list-keys  # list-keys"
+##  exx "Ctrl + b ?      # List key bindings (i.e. shortcuts)"
+##  exx "tmux info       # Show every session, window, pane, etc..."
+##  exx "\""   # require final line with a single " to close multi-line string
+##  exx "echo -e \"\$HELPNOTES\""
+##  chmod 755 $HELPFILE

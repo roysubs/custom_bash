@@ -942,27 +942,26 @@ chmod 755 $HELPFILE
 echo "byobu terminal multiplexer (call with help-byobu)"
 #
 ####################
+# byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/
+# byobu good tutorial: https://simonfredsted.com/1588   https://gist.github.com/jshaw/5255721
+# Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus
+# Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo
+# Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists
+# Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​
+# tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/
+# https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397
 
 HELPFILE=/tmp/.custom/help-byobu.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small byobu Help)\${NC}"
+exx "\${BLUE}\$(type figlet1 >/dev/null 2>&1 && figlet -w -t -k -f small byobu Help)\${NC}"
 exx ""
-exx "byobu is a suite of enhancements for tmux (on which it is built) with convenient shortcuts."
+exx "byobu is a suite of enhancements for tmux (which it is built on) with convenient shortcuts."
 exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
-exx "Note that byobu will connect to already open sessions by default (tmux just opens a new session by default)."
+exx "Note that byobu connects to already open sessions by default (tmux just opens a new session by default)."
 exx "byobu keybindings can be user defined in /usr/share/byobu/keybindings/"
-exx ""
-exx "byobu cheat sheet / keybindings: https://cheatography.com/mikemikk/cheat-sheets/byobu-keybindings/"
-exx "byobu good tutorial: https://simonfredsted.com/1588   https://gist.github.com/jshaw/5255721"
-exx "Learn byobu (enhancement for tmux) while listening to Mozart: https://www.youtube.com/watch?v=NawuGmcvKus"
-exx "Learn tmux (all commands work in byobu also): https://www.youtube.com/watch?v=BHhA_ZKjyxo"
-exx "Tutorial Part 1 and 2: https://www.youtube.com/watch?v=R0upAE692fY , https://www.youtube.com/watch?v=2sD5zlW8a5E , https://www.youtube.com/c/DevInsideYou/playlists"
-exx "Byobu: https://byobu.org/​ , tmux: https://tmux.github.io/​ , Screen: https://www.gnu.org/software/screen/​"
-exx "tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/"
-exx "https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397"
 exx ""
 exx "\${RED}BASIC NOTES\${NC}"
 exx "Use, alias b='byobu' then 'b' to start, 'man byobu', F12-: then 'list-commands' to see all byobu terminal commands"
@@ -2236,3 +2235,17 @@ fi
 ##  exx "\""   # require final line with a single " to close multi-line string
 ##  exx "echo -e \"\$HELPNOTES\""
 ##  chmod 755 $HELPFILE
+
+##  ####################
+##  # Quick help topics that can be defined in one-liners, basic syntax reminders for various tasks
+##  ####################
+##  # printf requires "\% characters to to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
+##  # Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
+##  # Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
+##  fn-help() { printf "\n$1\n==========\n\n$2\n\n"; }
+##  help-listdirs() { fn-help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, including hidden), -i (don't show tree structure), -l (don't follow symbolic links). Show additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable), tree . -fail --du -h\nlr   # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/."; }
+##  help-zip() { fn-help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
+##  help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>\nsudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path   # Alternate syntax"; }
+##  # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
+##  help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
+

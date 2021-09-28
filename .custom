@@ -144,7 +144,7 @@ alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn' 
 # Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 # Docker aliases, start with 'd' for docker and build further useful options
-alias d='docker'; d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
+alias d='docker'; alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
 alias d-unused='docker container ls -a --filter status=exited --filter status=created'
 alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
 
@@ -176,31 +176,15 @@ update-all() {
         return
     fi
 }
-function syshost() {
-    echo -e "\nYou are logged on ${BRed}$HOST\n${BRed}\nAdditionnal information:$NC "; uname -a; 
-    echo -e "\n${BRed}Users logged on:$NC "; w -hs | cut -d " " -f1 | sort | uniq
-    echo -e "\n${BRed}Current date :$NC "; date
-    echo -e "\n${BRed}Machine stats :$NC "; uptime
-    echo -e "\n${BRed}Memory stats :$NC "; free
-    echo -e "\n${BRed}Diskspace :$NC "; mydf / $HOME
-    echo -e "\n${BRed}Local IP Address :$NC"; my_ip
-    echo -e "\n${BRed}Open connections :$NC "; netstat -pan --inet; echo
-}
 extract () { # extract files. Ignore files with improper extensions.
     local x
     ee() { echo "$@"; $1 "$2"; }   # echo and execute
     for x in "$@"; do
         [[ -f $x ]] || continue
         case "$x" in
-            *.tar.bz2 | *.tbz2 )    ee "tar xvjf" "$x"  ;;
-            *.tar.gz | *.tgz ) ee "tar xvzf" "$x"       ;;
-            *.bz2 )             ee "bunzip2" "$x"       ;;
-            *.rar )             ee "unrar x" "$x"       ;;
-            *.gz )              ee "gunzip" "$x"        ;;
-            *.tar )             ee "tar xvf" "$x"       ;;
-            *.zip )             ee "unzip" "$x"         ;;
-            *.Z )               ee "uncompress" "$x"    ;;
-            *.7z )              ee "7z x" "$x"          ;;
+            *.tar.bz2 | *.tbz2 ) ee "tar xvjf" "$x" ;; *.tar.gz | *.tgz ) ee "tar xvzf" "$x"   ;; *.bz2 )  ee "bunzip2" "$x" ;;
+            *.rar )              ee "unrar x" "$x"  ;; *.gz )             ee "gunzip" "$x"     ;; *.tar )  ee "tar xvf" "$x" ;;
+            *.zip )              ee "unzip" "$x"    ;; *.Z )              ee "uncompress" "$x" ;; *.7z )   ee "7z x" "$x"    ;;
         esac
     done
 }
@@ -295,19 +279,6 @@ fi
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
-
-####################
-# Quick help topics that can be defined in one-liners, basic syntax reminders for various tasks
-####################
-# printf requires "\% characters to to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
-# Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
-# Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
-fn-help() { printf "\n$1\n==========\n\n$2\n\n"; }
-help-listdirs() { fn-help "Several ways to list directories only (but no files):" "ls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, including hidden), -i (don't show tree structure), -l (don't follow symbolic links). Show additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable), tree . -fail --du -h\nlr   # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/."; }
-help-zip() { fn-help "Common 'zip and '7z/7za' archive examples:" "7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
-help-mountcifs() { fn-help "Connect to CIFS/SAMBA shares on a Windows system:" "mkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>\nsudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path   # Alternate syntax"; }
-# https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
-help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
 
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here

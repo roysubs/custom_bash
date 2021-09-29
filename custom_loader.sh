@@ -237,6 +237,7 @@ check_and_install /usr/bin/python3.9 python39
 check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
 [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf
+[[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc
 check_and_install crontab crontabs   # cron is not installed by default on CentOS
 check_and_install ncdu ncdu
 check_and_install tree tree
@@ -914,7 +915,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small HyperV Help)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small HyperV Help)\${NC}"
 exx ""
 exx "\${RED}***** To correctly change the resolution of the Hyper-V console\${NC}"
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
@@ -956,7 +957,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet1 >/dev/null 2>&1 && figlet -w -t -k -f small byobu Help)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small byobu Help)\${NC}"
 exx ""
 exx "byobu is a suite of enhancements for tmux (which it is built on) with convenient shortcuts."
 exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
@@ -1035,7 +1036,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small tmux Help)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux Help)\${NC}"
 exx ""
 exx "C-b : (to enter command mode), then  :ls, :help, :set mouse on  (or other commands)"
 exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
@@ -1105,7 +1106,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small tmux.conf Options)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux.conf Options)\${NC}"
 exx ""
 exx "Some useful options for ~/.tmux.conf"
 exx ""
@@ -1172,7 +1173,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small ps Help)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small ps Help)\${NC}"
 exx ""
 exx "To see every process on the system using standard syntax:"
 exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
@@ -1215,7 +1216,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small Bash Notes)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small bash Notes)\${NC}"
 exx ""
 exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
@@ -1226,6 +1227,7 @@ exx "\${RED}***** Bash variables, special invocations, keyboard shortcuts\${NC}"
 exx "\\\$\\\$  Get process id (pid) of the currently running bash script."
 exx "\\\$n  Holds the arguments passed in while calling the script or arguments passed into a function inside the scope of that function. e.g: $1, $2… etc.,"
 exx "\\\$0  The filename of the currently running script."
+exx "\\<command> Run the original command, ignoring all aliases. e.g. \\ls"
 exx ""
 exx "–   e.g.  cd –	     Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
@@ -1262,7 +1264,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small Help Tools)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Help Tools)\${NC}"
 exx ""
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
@@ -1360,7 +1362,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small vim Help)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small vim Help)\${NC}"
 exx ""
 exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
@@ -1521,7 +1523,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small grep Notes)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small grep Notes)\${NC}"
 exx ""
 exx "\${RED}***** Consider using 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
@@ -1564,7 +1566,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small cron Notes)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small cron Help)\${NC}"
 exx ""
 exx "crontab -e   will edit current users cron"
 exx "crontab -e   will edit current users cron"
@@ -1673,7 +1675,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(figlet -w -t -k -f small awk Notes)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small awk Help)\${NC}"
 exx ""
 exx "***** Useful AWK One-Liners to Keep Handy"   
 exx "Search and scan files line by line, splits input lines into fields, compares input lines/fields to pattern and performs an action on matched lines."
@@ -1751,7 +1753,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "#!/bin/bash" > $HELPFILE
     exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(figlet -w -t -k -f small WSL Notes)\${NC}"
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Help)\${NC}"
     exx ""
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
     exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
@@ -1790,7 +1792,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
     exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
     exx ""
-    exx "Windows Terminal via PowerShell Tips and Split Panes"
+    exx "Windows Terminal (wt) via PowerShell Tips and Split Panes"
     exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
     exx "Alt+Shift+PLUS (vertical split of your default profile), Alt+Shift+MINUS (horizontal)."
     exx "Click the new tab button, then hold down Alt while pressing a profile, to open an 'auto' split (will vertical or horizontal to be most square)"
@@ -1798,10 +1800,67 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "To resize, hold down Alt+Shift, then CursorKey to change the size of the selected pane."
     exx "Close focused pane or tab with Ctrl+Shift+W. If you only have one pane, this close the tab or window if only one tab."
     exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
+    exx "To make bash launch in ~ instead of /mnt/c/Users in wt, open the wt Settings, find WSL2 profile, add \\\"commandline\\\": \\\"bash.exe ~\\\" (remember a comma after the previous line to make consistent), or \\\"startingDirectory\\\": \\\"//wsl$/Ubuntu/home/\\\"."
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
 fi
+
+
+
+####################
+#
+echo "WSL SSHD Server Notes (show with 'help-wsl-sshd')"
+#
+####################
+HELPFILE=/tmp/.custom/help-wsl-sshd.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL SSHD Server)\${NC}"
+exx ""
+exx "Connect to WSL via SSH: https://superuser.com/questions/1123552/how-to-ssh-into-wsl"
+exx "SSH into a WSL2 host remotely and reliably: https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2"
+exx "sudo apt install openssh-server # Install SSH server"
+exx "`/etc/ssh/sshd_config` # Change `Port 22` to `Port 2222` as Windows uses port 22"
+exx "sudo visudo  # We setup `service ssh` to not require a password"
+exx ""
+exx "# Allow members of group sudo to execute any command"
+exx "%sudo   ALL=(ALL:ALL) ALL"
+exx "%sudo   ALL=NOPASSWD: /usr/sbin/service ssh *"
+exx ""
+exx "sudo service ssh --full-restart # Restart ssh service  sudo /etc/init.d/ssh start"
+exx "You might see: sshd: no hostkeys available -- exiting"
+exx "If so, you need to run: sudo ssh-keygen -A to generate in /etc/ssh/"
+exx "Now restart the server: sudo /etc/init.d/ssh start"
+exx "You might see the following error on connecting: \\\"No supported authentication methods available (server sent: publickey)\\\""
+exx "To fix this, `sudo vi /etc/ssh/sshd_config`. Change as follows to allow username/password authentication:"
+exx "PasswordAuthentication = yes"
+exx "ChallengeResponseAuthentication = yes"
+exx "Restart ssh `sudo /etc/init.d/ssh restart` (or `sudo service sshd restart`)."
+exx "Note: If you set PasswordAuthentication to yes and ChallengeResponseAuthentication to no you are able to connect automatically with a key, and those that don't have a key will connwct with a password - very useful"
+exx ""
+exx "# Using PuttyGen, keygen-ssh and authorized_keys"
+exx "PuttyGen will create a public key file that looks like:"
+exx ""
+exx "---- BEGIN SSH2 PUBLIC KEY ----"
+exx "Comment: \\\"rsa-key-20121022\\\""
+exx "AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwu"
+exx "a6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOH"
+exx "tr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/u"
+exx "vObrJe8="
+exx "---- END SSH2 PUBLIC KEY ----"
+exx ""
+exx "However, this will not work, so what you need to do is to open the key in PuttyGen, and then copy it from there (this results in the key being in the right format and in 1 line):"
+exx ""
+exx "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwua6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOHtr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/uvObrJe8= rsa-key-20121022"
+exx ""
+exx "Paste this into `authorized_keys` then it should work."
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
 
 
 
@@ -1818,6 +1877,7 @@ echo "Liquid prompt script setup (call with 'start-liquidprompt')"
 ####################
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
 # https://liquidprompt.readthedocs.io/en/stable/config.html#features
+# https://liquidprompt.readthedocs.io/_/downloads/en/v2.0.0-rc.1/pdf/
 HELPFILE=/tmp/.custom/start-liquidprompt.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
@@ -1826,9 +1886,11 @@ exx "[[ \$- = *i* ]] && source ~/liquidprompt/liquidprompt"
 exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
 exx "[[ \$- = *i* ]] && lp_theme powerline"
 exx "echo ''"
-exx "echo LiquidPrompt requires NerdFont to display icons correctly:"
+exx "https://liquidprompt.readthedocs.io/_/downloads/en/v2.0.0-rc.1/pdf/"
+exx "echo LiquidPrompt requires a NerdFont to display icons correctly:"
 exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
-exx "echo Alternatives: https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
+exx "echo Alternatives Prompt Projects:"
+exx "https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
 exx "echo ''"
 chmod 755 $HELPFILE
 

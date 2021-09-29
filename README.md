@@ -430,8 +430,8 @@ git pull
 
 [Connect to WSL via SSH](https://superuser.com/questions/1123552/how-to-ssh-into-wsl)
 [SSH into a WSL2 host remotely and reliably](https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2)
-`sudo apt install openssh-server` # Install SSH server`  
-`/etc/ssh/sshd_config              ` # Change `Port 22` to `Port 2222` as Windows uses port 22  
+`sudo apt install openssh-server # Install SSH server`  
+`/etc/ssh/sshd_config` # Change `Port 22` to `Port 2222` as Windows uses port 22  
 `sudo visudo`  # We setup `service ssh` to not require a password
 ```
 # Allow members of group sudo to execute any command
@@ -439,7 +439,32 @@ git pull
 %sudo   ALL=NOPASSWD: /usr/sbin/service ssh *
 ```
 `sudo service ssh --full-restart` # Restart ssh service  `sudo /etc/init.d/ssh start` 
-You will successfully login.But I don't know the reason.
+You might see: `sshd: no hostkeys available -- exiting`  
+If so, you need to run: `sudo ssh-keygen -A` to generate in `/etc/ssh/`  
+Now restart the server: `sudo /etc/init.d/ssh start`  
+You might see the following error on connecting: "No supported authentication methods available (server sent: publickey)"  
+To fix this, `sudo vi /etc/ssh/sshd_config`. Change as follows to allow username/password authentication:  
+`PasswordAuthentication = yes`  
+`ChallengeResponseAuthentication = yes`  
+Restart ssh `sudo /etc/init.d/ssh restart` (or `sudo service sshd restart`).  
+Note: If you set PasswordAuthentication to yes and ChallengeResponseAuthentication to no you are able to connect automatically with a key, and those that don't have a key will connwct with a password - very useful
+
+# Using PuttyGen, keygen-ssh and authorized_keys
+PuttyGen will create a public key file that looks like:  
+```
+---- BEGIN SSH2 PUBLIC KEY ----  
+Comment: "rsa-key-20121022"  
+AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwu  
+a6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOH  
+tr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/u  
+vObrJe8=  
+---- END SSH2 PUBLIC KEY ----  
+```
+However, this will not work, so what you need to do is to open the key in PuttyGen, and then copy it from there (this results in the key being in the right format and in 1 line):  
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwua6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOHtr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/uvObrJe8= rsa-key-20121022
+```
+Paste this into `authorized_keys` then it should work.
 
 I also try use it as a remote gdb server for visual studio by VisualGDB,it not works well. VisualGDB will support it in the next version as the offical website shows.The link is https://sysprogs.com/w/forums/topic/visualgdb-with-windows-10-anniversary-update-linux-support/#post-9274
 

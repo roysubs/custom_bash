@@ -7,7 +7,7 @@
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
 ####################
 # Do not define a new language, this is just to a) demonstrate techniques that can be reused (awk/grep etc), and b) shorten complex/long commands.
-# Tempting to replace built-in commands, but almost never do (mainly just 'cat' in the below), as will impact scripts and expected output from commands.
+# Tempting to replace built-in commands, but almost never do (mainly just 'cat' and 'more' in the below), as will impact scripts and expected output from commands.
 # This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
@@ -39,7 +39,7 @@ On_Black='\e[40m'; On_Red='\e[41m'; On_Green='\e[42m'; On_Yellow='\e[43m'; On_Bl
 NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold White on red background.
 
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
-[ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd
+[ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
 
 alias sudo='sudo '                      # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
@@ -133,8 +133,8 @@ if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias 
 # Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'; alias less0='\less'   # Colour always supported, so piping
-alias tree='tree -C'; alias tree0='\tree'   # Colour always, so piping to less -R will show color
+alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also aliase 'more' to 'less'
+alias tree='tree -C'; alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
 if type pydf >/dev/null 2>&1; then alias df1='pydf'; fi      # replace 'df' by 'pydf', create 'df0' for the original
 if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; fi      # same for du
@@ -154,8 +154,8 @@ alias dtrans='docker stop transmission; docker container prune --force; docker p
 update-all() {
     MANAGER=
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-    type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"
-    type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER will be yum if both dnf and yum are present
+    type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
+    type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
     type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
     type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
     printf "\nCheck updates:\n\n"
@@ -188,13 +188,44 @@ extract () { # extract files. Ignore files with improper extensions.
         esac
     done
 }
+myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
+mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
+function mykill()   # provide $1 process name and prompt to kill any matches within myps output
+{
+    local pid pname sig="-TERM"   # default signal
+    if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+        echo "Usage: killps [-SIGNAL] pattern"
+        return;
+    fi
+    if [ $# = 2 ]; then sig=$1 ; fi
+    for pid in $(myps| awk '!/awk/ && $0~pat { print $1 }' pat=${!#} )
+    do
+        pname=$(myps | awk '$1~var { print $5 }' var=$pid )
+        if ask "Kill process $pid <$pname> with signal $sig?"
+            then kill $sig $pid
+        fi
+    done
+}
+ask()          # See 'killps' for example of use.
+{
+    echo -n "$@" '[y/n] ' ; read ans
+    case "$ans" in
+        y*|Y*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
 s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # do sudo, or sudo the previous command if no argument given
+ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return files with pattern in the filename
+fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execture', find files with pattern $1 in name and execute $2 on them
+maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }   # Creates an archive (*.tar.gz) from given directory.
+makezip() { zip -r "${1%%/}.zip" "$1" ; }              # Create a ZIP archive of a file or folder.
+sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
-function square(){ v1=$1; n=$(($v1*$v1)); echo $n; }
-function expo(){ v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }
-function factorial(){ v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }
+square(){ v1=$1; n=$(($v1*$v1)); echo $n; }
+expo(){ v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }
+factorial(){ v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }
 update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download and run latest version of custom_bash
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
@@ -233,7 +264,11 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # To get around no systemd, this will properly terminate the running WSL instance
-    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+
+    alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+
     alias wx='explorer.exe'
     alias wx.='explorer.exe .'
     # Open Windows apps from WSL console
@@ -248,7 +283,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
     # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
 
-    # Map c: / d: / e:, etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
+    # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
     for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done
     for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "ll$(basename ${d})"="cd $d && ll"; done
     # Map common Windows locations to navigate to from within WSL
@@ -284,18 +319,19 @@ fi
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
 hhtmp='/tmp/.custom'
-hh="/$hhtmp/help-awk.sh";         [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
-hh="/$hhtmp/help-bash.sh";        [[ -f $hh ]] && alias help-bash="$hh"
-hh="/$hhtmp/help-byobu.sh";       [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
-hh="/$hhtmp/help-cron.sh";        [[ -f $hh ]] && alias help-cron="$hh"
-hh="/$hhtmp/help-grep.sh";        [[ -f $hh ]] && alias help-grep="$hh"
-hh="/$hhtmp/help-help.sh";        [[ -f $hh ]] && alias help-help="$hh"
-hh="/$hhtmp/help-wsl.sh";         [[ -f $hh ]] && alias help-wsl="$hh"
-hh="/$hhtmp/help-hyperv.sh";      [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
-hh="/$hhtmp/help-vim.sh";         [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
-hh="/$hhtmp/help-tmux.sh";        [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
-hh="/$hhtmp/help-tmux-conf.sh";   [[ -f $hh ]] && alias help-tmux-conf="$hh"
-hh="/$hhtmp/help-ps.sh";          [[ -f $hh ]] && alias help-ps="$hh"
+hh="/$hhtmp/help-awk.sh";       [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh="/$hhtmp/help-bash.sh";      [[ -f $hh ]] && alias help-bash="$hh"
+hh="/$hhtmp/help-byobu.sh";     [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
+hh="/$hhtmp/help-cron.sh";      [[ -f $hh ]] && alias help-cron="$hh"
+hh="/$hhtmp/help-grep.sh";      [[ -f $hh ]] && alias help-grep="$hh"
+hh="/$hhtmp/help-help.sh";      [[ -f $hh ]] && alias help-help="$hh"
+hh="/$hhtmp/help-wsl.sh";       [[ -f $hh ]] && alias help-wsl="$hh"
+hh="/$hhtmp/help-wsl-sshd.sh";  [[ -f $hh ]] && alias help-wsl="$hh"
+hh="/$hhtmp/help-hyperv.sh";    [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+hh="/$hhtmp/help-vim.sh";       [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
+hh="/$hhtmp/help-tmux.sh";      [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+hh="/$hhtmp/help-tmux-conf.sh"; [[ -f $hh ]] && alias help-tmux-conf="$hh"
+hh="/$hhtmp/help-ps.sh";        [[ -f $hh ]] && alias help-ps="$hh"
 help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }

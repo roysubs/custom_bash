@@ -82,8 +82,7 @@ It is often useful to have multiple copies of a distro available. With the above
 `wsl --import Ubuntu D:\WSL\Ubuntu1 D:\WSL\Ubuntu.tar`  
 `wsl --import Ubuntu D:\WSL\Ubuntu2 D:\WSL\Ubuntu.tar`  
 
-# Other Distributions
-
+# Other Distributions [Awesome-WSL](https://github.com/sirredbeard/Awesome-WSL) information, distributions, and tools.
 \# Optionally, can install alpine, arch, or fedoraremix from the Chocolatey repository:  
 `choco install wsl-alpine       # Use Chocolatey to get Alpine (not offered by Microsoft)`  
 `choco install wsl-archlinux    # Use Chocolatey to get Arch (not offered by Microsoft)`  
@@ -111,6 +110,12 @@ Make sure you use WSL2: `wsl --set-version <Distro> 2`
 Configure WSL2 to use vsyscall=emulate: [microsoft/WSL#4694 (comment)](https://github.com/microsoft/WSL/issues/4694#issuecomment-556095344)  
 You have to restart the Windows service LxssManager for the step above to take effect.  
 \# Must reboot before using a distro, but first set all defaults to use WSL v2.  
+\# [Fedora Remix for WSL](https://www.whitewaterfoundry.com/fedora-remix-for-wsl/)  
+\# [Fedora Remix 34.5 for WSL with Windows Terminal Theme](https://www.whitewaterfoundry.com/blog/2021/5/21/pengwin-2105-released-see-whats-new-y89n3)
+LXRunOffline.exe install -n Fedora29 -f .\fedoraremix.exe -d D:\WSL\Fedora29  
+LXRunOffline.exe install help  
+LXRunOffline.exe config-uid -n Fedora -v <user_uid>  
+Set default user for Fedora as above in the command prompt. (You can get the user id by running the id command in Fedora Terminal)  
 
 # WSL Startup  
 

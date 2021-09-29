@@ -8,7 +8,7 @@
 ####################
 # Do not define a new language, this is just to a) demonstrate techniques that can be reused (awk/grep etc), and b) shorten complex/long commands.
 # Tempting to replace built-in commands, but almost never do (mainly just 'cat' and 'more' in the below), as will impact scripts and expected output from commands.
-# Mostly follow easy to remember mnemonics/abbreviations, so ai=apt install, tn=tmux new -s <session>, 
+# Mostly follow easy to remember mnemonics/abbreviations, ai=sudo 'a'pt 'i'nstall -y, tn='t'mux 'n'ew -s <session>, myip, etc
 # This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
@@ -96,8 +96,8 @@ g-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (
 alias git-push='g-push'; alias git-pull='git pull'; alias g-pull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
-alias cd1="cd /tmp/.custom; ls *.sh"   # 
-alias myip="curl http://ipecho.net/plain; echo"   # get public IP address when behind a router using NAT
+alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (custom help files etc)
+alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
 alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 

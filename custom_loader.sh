@@ -455,6 +455,48 @@ fi
 
 ####################
 #
+print_header "WSL Utilities"
+#
+####################
+echo "https://github.com/wslutilities/wslu"
+echo ""
+echo ""
+echo ""
+# sudo apk add wslu
+# Arch Linux
+# AUR version of wslu is pulled due to that it violated its policy.
+# 
+# Download the latest package from release and install using the command: sudo pacman -U *.zst
+# 
+# CentOS/RHEL
+# Add the repository for the corresponding Linux distribution:
+# 
+# CentOS 7: sudo yum-config-manager --add-repo https://download.opensuse.org/repositories/home:/wslutilities/CentOS_7/home:wslutilities.repo
+# CentOS 8: sudo yum-config-manager --add-repo https://download.opensuse.org/repositories/home:/wslutilities/CentOS_8/home:wslutilities.repo
+# Red Hat Enterprise Linux 7: sudo yum-config-manager --add-repo https://download.opensuse.org/repositories/home:/wslutilities/RHEL_7/home:wslutilities.repo
+# Then install with the command sudo yum install wslu.
+# 
+# Debian / Kali
+# You can install wslu with the following command:
+# 
+# sudo apt install gnupg2 apt-transport-https
+# wget -O - https://pkg.wslutiliti.es/public.key | sudo tee -a /etc/apt/trusted.gpg.d/wslu.asc
+# echo "deb https://pkg.wslutiliti.es/debian buster main" | sudo tee -a /etc/apt/sources.list
+# sudo apt update
+# sudo apt install wslu
+
+# sudo apt install gnupg2 apt-transport-https
+# wget -O - https://pkg.wslutiliti.es/public.key | sudo tee -a /etc/apt/trusted.gpg.d/wslu.asc
+# echo "deb https://pkg.wslutiliti.es/kali kali-rolling main" | sudo tee -a /etc/apt/sources.list
+# sudo apt update
+# sudo apt install wslu
+
+# Fedora
+# sudo dnf copr enable wslutilities/wslu
+# sudo dnf install wslu
+
+####################
+#
 print_header "Update .bashrc so that it will load .custom during any interactive login sessions"
 #
 ####################

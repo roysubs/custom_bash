@@ -322,6 +322,7 @@ fi
 hhtmp='/tmp/.custom'
 hh="/$hhtmp/help-awk.sh";       [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
 hh="/$hhtmp/help-bash.sh";      [[ -f $hh ]] && alias help-bash="$hh"
+hh="/$hhtmp/help-jobs.sh";      [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
 hh="/$hhtmp/help-byobu.sh";     [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
 hh="/$hhtmp/help-cron.sh";      [[ -f $hh ]] && alias help-cron="$hh"
 hh="/$hhtmp/help-grep.sh";      [[ -f $hh ]] && alias help-grep="$hh"
@@ -329,7 +330,7 @@ hh="/$hhtmp/help-help.sh";      [[ -f $hh ]] && alias help-help="$hh"
 hh="/$hhtmp/help-wsl.sh";       [[ -f $hh ]] && alias help-wsl="$hh"
 hh="/$hhtmp/help-wsl-sshd.sh";  [[ -f $hh ]] && alias help-wsl-sshd="$hh"
 hh="/$hhtmp/help-hyperv.sh";    [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
-hh="/$hhtmp/help-vim.sh";       [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh" && alias help-v="$hh"
+hh="/$hhtmp/help-vim.sh";       [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh"   && alias help-v="$hh"
 hh="/$hhtmp/help-tmux.sh";      [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
 hh="/$hhtmp/help-tmux-conf.sh"; [[ -f $hh ]] && alias help-tmux-conf="$hh"
 hh="/$hhtmp/help-ps.sh";        [[ -f $hh ]] && alias help-ps="$hh"

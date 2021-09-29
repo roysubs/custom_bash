@@ -1297,10 +1297,48 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "Jobs (Background Tasks) (call with 'help-jobs')"
+#
+####################
+# https://stackoverflow.com/questions/1624691/linux-kill-background-task
+HELPFILE=/tmp/.custom/help-jobs.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs (bg, jobs, kill)\${NC}"
+exx ""
+exx "Two main ways to create a background task:"
+exx "1. Put '&' at the end of a command to start it in background:  sleep 300 &; bg -l; kill %"
+exx "2. On a running job, press Ctrl-Z, then type 'bg' to "
+exx ""
+exx "To kill background jobs, refer to them by:   jobs -l   then use the number of the job"
+exx "kill %1   # To kill job [1]"
+exx "kill %%   # To kill the most recent background job"
+exx "kill all background tasks: kill -9 %%   # or, jobs -p | xargs kill -9"
+exx ""
+exx "In the bash shell, % introduces a job name. Job number n may be referred to as %n."
+exx "Also refer to a prefix of the name, e.g. %ce refers to a stopped ce job. If a prefix matches more"
+exx "than one job, bash reports an error. Using %?ce, on the other hand, refers to any job containing"
+exx "the string ce in its command line. If the substring matches more than one job, bash reports an error."
+exx "%% and %+ refer to the shell's notion of the current job, which is the last job stopped while it was"
+exx "in the foreground or started in the background. The previous job may be referenced using %-. In output"
+exx "pertaining to jobs (e.g., the output of the jobs command), the current job is always flagged with a +"
+exx "and the previous job with a -. A single % (with no accompanying job specification) also refers to the"
+exx "current job."
+exx ""
+exx "Also note 'skill' and 'killall' (though 'killall' is quite dangerous)."
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "Help Tools (call with 'help-help')"
 #
 ####################
-# [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'   # for .custom
 HELPFILE=/tmp/.custom/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
@@ -1788,6 +1826,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # Go ahead and run the PowerShell to adjust the system as it's such a minor/useful alteration
     powershell.exe -NoProfile -c '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }' 2>&1
     
+    # https://devblogs.microsoft.com/commandline/windows-terminal-tips-and-tricks/
     # Now create /tmp/help-wsl.sh
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
     HELPFILE=/tmp/.custom/help-wsl.sh

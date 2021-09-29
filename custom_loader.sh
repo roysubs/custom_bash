@@ -218,7 +218,7 @@ print_header "Check and install small/essential packages"
 INSTALL="sudo $MANAGER install"
 if [ "$MANAGER" = "apk" ]; then INSTALL="$MANAGER add"; fi
 # Only install each a binary from that package is not already present on the system
-check_and_install() { which $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
+check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
              # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.

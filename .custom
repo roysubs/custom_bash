@@ -8,6 +8,7 @@
 ####################
 # Do not define a new language, this is just to a) demonstrate techniques that can be reused (awk/grep etc), and b) shorten complex/long commands.
 # Tempting to replace built-in commands, but almost never do (mainly just 'cat' and 'more' in the below), as will impact scripts and expected output from commands.
+# Mostly follow easy to remember mnemonics/abbreviations, so ai=apt install, tn=tmux new -s <session>, 
 # This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
@@ -87,13 +88,12 @@ alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing wi
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, gpull, gpush
-git config --global color.ui always; git config --global core.pager 'less -R'   # https://unix.stackexchange.com/a/62850/441685
+type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # https://unix.stackexchange.com/a/62850/441685
 alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
-alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'
-alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
-alias g-pull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 g-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+alias git-push='g-push'; alias git-pull='git pull'; alias g-pull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # 
@@ -104,10 +104,10 @@ if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; 
 # Make package management tools use generic syntax for most common operations (as apt/yum/dnf/dpkg/apk/zypper/snap/flatpak all get confusing)
 # - Only create aliases for package manager that are present on the system
 # - ii / inst / setup alias to package install,   rr / remove / del => aliases to package remove / del
-if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; fi   # apk, does not require 'sudo' as root in alpine
-if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; fi   # apt
-if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; fi   # yum
-if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; fi   # dnf
+if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
+if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; alias uu='sudo apt remove'; fi   # apt
+if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; fi   # yum
+if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; fi   # dnf
 if type ii > /dev/null 2>&1; then alias inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
 # Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
@@ -217,7 +217,7 @@ ask()          # See 'killps' for example of use.
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
 s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # do sudo, or sudo the previous command if no argument given
 ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return files with pattern in the filename
-fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execture', find files with pattern $1 in name and execute $2 on them
+fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
 maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }   # Creates an archive (*.tar.gz) from given directory.
 makezip() { zip -r "${1%%/}.zip" "$1" ; }              # Create a ZIP archive of a file or folder.
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
@@ -235,7 +235,8 @@ cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ 
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
-duall() { du -hsc .; }   # Just return a total size for everything under PWD (including hidden ones)..
+dua() { du -hsc .; }          # 'all' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+duasu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
 dux() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # Extended du. This is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large).
 duxm() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 duxg() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G

@@ -88,18 +88,18 @@ alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, 
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
-alias lxe='ll *.sh *.py *.exe *.bat *.cmd *.ps1'; alias lx='lxe'  # list executable by extensions.
-alias lxp='find . -maxdepth 1 -perm -111 -type f'                 # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+alias lxe='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
+alias lxp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, gpull, gpush
-type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # https://unix.stackexchange.com/a/62850/441685
+type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
 alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
-g-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
-alias git-push='g-push'; alias git-pull='git pull'; alias g-pull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+alias gpull='git pull'; alias gitpull='git pull'; alias gitpush='g-push'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 
 alias update-custom-bash='pushd .; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc

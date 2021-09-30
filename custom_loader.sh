@@ -125,8 +125,10 @@ type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
 type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
 type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+
 echo -e "\n\n=====>   A variant of '$DISTRO' was found."
-echo -e "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo -e     "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo ""
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
@@ -218,10 +220,15 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-INSTALL="sudo $MANAGER install"
-if [ "$MANAGER" = "apk" ]; then INSTALL="$MANAGER add"; fi
+# apk does not require 'sudo' or a '-y' to install
+if [ "$MANAGER" = "apk" ]; then
+    INSTALL="$MANAGER add"
+else
+    INSTALL="sudo $MANAGER install -y"
+fi
+
 # Only install each a binary from that package is not already present on the system
-check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2 -y; }
+check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2; }
              # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
@@ -2070,6 +2077,24 @@ exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
 exx "echo Alternatives Prompt Projects:"
 exx "echo https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
 exx "echo ''"
+exx "echo 'Some of the adaptive info Liquid Prompt may (if configured, or needed in a given context) display:'"
+exx "echo '- Error code of the last command if it failed in some way (in red at end of prompt).'"
+exx "echo '- Mumber of attached sleeping jobs (when you interrupt a command with Ctrl-Z and bring it back with fg), if there are any;'"
+exx "echo '- Number of attached running jobs (commands started with a &), if there are any;'"
+exx "echo '- Average processors load (if over a given limit with a colormap for increasing load).'"
+exx "echo '- Green ⏚ if battery is charging and above threshold, or yellow ⏚ if battery is charging and under threshold, or a yellow ⌁ if the battery is discharging but above threshold, or a red ⌁ if the battery is discharging and under threshold.'"
+exx "echo '- Number of detached sessions (screen or tmux), if any.'"
+exx "echo '- The current host, if you are connected via SSH (either a blue hostname or different colors for different hosts).'"
+exx "echo '- A green @ if the connection has X11 support, a yellow one if not.'"
+exx "echo '- An up arrow if an HTTP proxy is in use.'"
+exx "echo '- Name of the current branch if you are in a version control repository (git, mercurial, subversion, bazaar or fossil), in green if everything is up to date, in red if there is changes, in yellow if there is pending commits to push.'"
+exx "echo '- Number of added/deleted lines (git) or files (fossil), if changes have been made and the number of pending commits, if any.'"
+exx "echo '- A red star if there is some untracked files in the repository.'"
+exx "echo '- The current user, in bold yellow if it is root, in light white if it is not the same as the login user.'"
+exx "echo '- A tag associated to the current shell session (you can easily add any prefix tag to your prompt, by invoking prompt_tag MYTAG).'"
+exx "echo '- A smart mark: ± for git directories, ☿ for mercurial, ‡ for svn, ‡± for git-svn, ⌘ for fossil, $ or % for simple user, a red # for root.'"
+exx "echo ''"
+exx "echo vi ~/.config/liquidpromptrc  # Change liquidprompt configuration options"
 chmod 755 $HELPFILE
 
 

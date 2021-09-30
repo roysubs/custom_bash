@@ -1,6 +1,6 @@
 #!/bin/bash
 ####################
-# .custom configuration is maintained to always be compatible with Ubuntu/Debian and RedHat/Fedora/CentOS (and WSL extensions if running on that).
+# .custom configuration is always compatible with Ubuntu/Debian & RedHat/Fedora/CentOS, and has WSL extensions that only instll if WSL is detected.
 # This is called from .bashrc so as to not heavily modify core distro files. All aliases and functions are self-contained if possible (to make as modular as possible).
 # For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless, so use it).
 # git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
@@ -12,9 +12,15 @@
 # This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
+# Almost every function and alias is standalone do not build complex relationships (only exception is 'ask' function used by 'mykill' as a demonstration of 'ask')
+type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
+type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
+type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default when dnf and yum are both present
+type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
+type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 
 ####################
-# Exports and Aliases:   (with 'export', variable is available in all child processes, but without 'export', the variable will not be available outside of this script. https://stackoverflow.com/a/21722203/524587
+# Exports and Aliases:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
@@ -58,7 +64,7 @@ alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | eg
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
 alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
-alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, syntax demo for when need to add to filename output
+alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
 # alias df="df -Tha --total"   # We might as well add an alias for our preferred du output as well:
 # alias du="du -ach | sort -h" # Let’s keep going in the same direction by making our free output more human friendly:
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
@@ -95,6 +101,7 @@ alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop
 g-push() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 alias git-push='g-push'; alias git-pull='git pull'; alias g-pull='git pull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 
+alias update-custom-bash='pushd .; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (custom help files etc)
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
@@ -143,15 +150,11 @@ alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn' 
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
 # Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
-# Docker aliases, start with 'd' for docker and build further useful options
-alias d='docker'; alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-runit='docker run -it'; alias d-execit='docker exec -it'
-alias d-unused='docker container ls -a --filter status=exited --filter status=created'
-alias dtrans='docker stop transmission; docker container prune --force; docker ps -a'
 
 ####################
 # Functions:
 ####################
-update-all() {
+update-distro() {
     MANAGER=
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
@@ -226,7 +229,7 @@ exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be 
 square(){ v1=$1; n=$(($v1*$v1)); echo $n; }
 expo(){ v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }
 factorial(){ v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }
-update-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download and run latest version of custom_bash
+# download-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download latest custom_loader, commented out, just use 'git clone https://github.com/roysubs/custom_bash ~/custom_bash'
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
@@ -311,16 +314,11 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 fi
 
-# https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
-# The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
-# Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
-# Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
-
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
 ####################
-hhtmp='/tmp/.custom'
-hh="/$hhtmp/help-awk.sh";       [[ -f $hh ]] && alias help-awk="$hh"    # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hhtmp='/tmp/.custom'   # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh="/$hhtmp/help-awk.sh";       [[ -f $hh ]] && alias help-awk="$hh"    
 hh="/$hhtmp/help-bash.sh";      [[ -f $hh ]] && alias help-bash="$hh"
 hh="/$hhtmp/help-jobs.sh";      [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
 hh="/$hhtmp/help-byobu.sh";     [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
@@ -334,12 +332,13 @@ hh="/$hhtmp/help-vim.sh";       [[ -f $hh ]] && alias help-vim="$hh"    && alias
 hh="/$hhtmp/help-tmux.sh";      [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
 hh="/$hhtmp/help-tmux-conf.sh"; [[ -f $hh ]] && alias help-tmux-conf="$hh"
 hh="/$hhtmp/help-ps.sh";        [[ -f $hh ]] && alias help-ps="$hh"
-help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }   # Just a uawdul demonstration to read a web page
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-hh='/tmp/.custom/liquid.sh'; [[ -f $hh ]] && alias liquid='source "$hh"'   # Can source a script from an alias/function created during .bashrc
-
+hh="/$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid='source "$hh"'   # Can source a script from an alias/function created during .bashrc
+hh="/$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found, so adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
+1
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################

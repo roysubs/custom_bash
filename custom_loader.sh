@@ -38,6 +38,10 @@
 # https://www.addictivetips.com/ubuntu-linux-tips/edit-the-bashrc-file-on-linux/
 # https://crunchbang.org/forums/viewtopic.php?id=1093
 # https://serverfault.com/questions/3743/what-useful-things-can-one-add-to-ones-bashrc?page=1&tab=votes#tab-top
+# https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
+# The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
+# Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
+# Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 
 ####################
 #
@@ -45,8 +49,7 @@
 #
 ####################
 
-TMP="/tmp/custom_bash"
-mkdir $TMP &> /dev/null
+hh=/tmp/.custom   # This is the location of all helper scripts, could change this location
 
 ### print_header() will display up to 3 arguments as a simple banner
 print_header() {
@@ -117,11 +120,11 @@ print_header "Find package manager and run package/distro updates"
 ####################
 
 MANAGER=
-which apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-which yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
-which dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
-which zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-which apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
+type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
+type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
+type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
+type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 echo -e "\n\n=====>   A variant of '$DISTRO' was found."
 echo -e "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
@@ -236,8 +239,16 @@ check_and_install /usr/bin/python3.9 python39
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
 check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
-[[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf
-[[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc
+[[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
+# if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
+#         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+#     fi
+# fi
+[[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
+if [ "$MANAGER" = "dnf" ]; then if ! type pydf &> /dev/null; then wget -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+        RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+    fi
+fi
 check_and_install crontab crontabs   # cron is not installed by default on CentOS
 check_and_install ncdu ncdu
 check_and_install tree tree
@@ -514,16 +525,15 @@ print_header "Update .bashrc so that it will load .custom during any interactive
 # https://unix.stackexchange.com/questions/295274/grep-to-find-the-correct-line-sed-to-change-the-contents-then-putting-it-back
 
 # Backup ~/.custom
-TMP=/tmp/.custom
-if [ ! -d $TMP ]; then mkdir -p $TMP; fi
+if [ ! -d $hh ]; then mkdir -p $hh; fi
 
 if [ -f ~/.custom ]; then
-    echo "Create Backup : $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
-    cp ~/.custom $TMP/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
+    echo "Create Backup : $hh/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+    cp ~/.custom $hh/.custom_$(date +"%Y-%m-%d__%H-%M-%S").sh   # Need to rename this to make way for the new downloaded file
 fi
 if [ -f ~/.bashrc ]; then
-    echo "Create Backup : $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
-    exe cp ~/.bashrc $TMP/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
+    echo "Create Backup : $hh/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh"
+    exe cp ~/.bashrc $hh/.bashrc_$(date +"%Y-%m-%d__%H_%M_%S").sh   # Backup .bashrc in case of issues
 fi
 
 HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
@@ -535,7 +545,7 @@ RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 # Remove our .custom from the end of .bashrc (-v show everything except our match, -q silent show no output, -x full line match, -F fixed string / no regexp)
 
 rc=~/.bashrc
-rctmp=$TMP/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
+rctmp=$hh/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
 grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && sudo cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
 grep -vxF "$GETCUSTOM" $rc > $rctmp.2    && sudo cp $rctmp.2 $rc
 grep -vxF "$RUNCUSTOM" $rc > $rctmp.3    && sudo cp $rctmp.3 $rc
@@ -777,8 +787,8 @@ echo "break /etc/sudoers in this format (so don't do this!):"
 echo "   # sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers"
 echo ""
 
-echo "Create Backup : $TMP/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh"
-sudo cp /etc/sudoers $TMP/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
+echo "Create Backup : $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+sudo cp /etc/sudoers $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
 
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
@@ -948,11 +958,22 @@ print_header "HELP FILES : Create various help scripts for notes and tips and al
 
 ####################
 #
+echo "Copy Docker Aliases '.customdk' into the helper folder"
+#
+####################
+if [ -f ./.customdk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    cp .customdk $hh/.customdk
+fi
+
+
+
+####################
+#
 echo "Hyper-V VM Notes if this Linux is running inside a full VM"
 #
 ####################
 
-HELPFILE=/tmp/.custom/help-hyperv.sh
+HELPFILE=$hh/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -994,7 +1015,7 @@ echo "byobu terminal multiplexer (call with help-byobu)"
 # tmux and how to configure it, a detailed guide: https://thevaluable.dev/tmux-config-mouseless/
 # https://superuser.com/questions/423310/byobu-vs-gnu-screen-vs-tmux-usefulness-and-transferability-of-skills#423397
 
-HELPFILE=/tmp/.custom/help-byobu.sh
+HELPFILE=$hh/help-byobu.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1073,7 +1094,7 @@ echo "tmux Help (call with 'help-tmux'):"
 #
 ####################
 
-HELPFILE=/tmp/.custom/help-tmux.sh
+HELPFILE=$hh/help-tmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1143,7 +1164,7 @@ echo "tmux.conf Help (call with 'help-tmux-conf'):"
 #
 ####################
 
-HELPFILE=/tmp/.custom/help-tmux-conf.sh
+HELPFILE=$hh/help-tmux-conf.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1210,7 +1231,7 @@ echo "ps notes (call with 'help-ps')"
 #
 ####################
 
-HELPFILE=/tmp/.custom/help-ps.sh
+HELPFILE=$hh/help-ps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1252,8 +1273,8 @@ echo "Bash shell notes (call with 'help-bash')"
 # https://ostechnix.com/navigate-directories-faster-linux/
 # https://itsfoss.com/linux-command-tricks/
 
-# [ -f /tmp/.custom/help-bash.sh ] && alias help-bash='/tmp/.custom/help-bash.sh'   # for .custom
-HELPFILE=/tmp/.custom/help-bash.sh
+# [ -f $hh/help-bash.sh ] && alias help-bash='$hh/help-bash.sh'   # for .custom
+HELPFILE=$hh/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1264,6 +1285,8 @@ exx "\$EDITOR was originally for instruction-based editors like ed. When editors
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
 exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
 exx "Ctrl-x then Ctrl-e is a bash built-in to open vim (\$EDITOR) automatically."
+exx ""
+exx "Test shell scripts with https://www.shellcheck.net/"
 exx ""
 exx "\${RED}***** Bash variables, special invocations, keyboard shortcuts\${NC}"
 exx "\\\$\\\$  Get process id (pid) of the currently running bash script."
@@ -1301,20 +1324,22 @@ echo "Jobs (Background Tasks) (call with 'help-jobs')"
 #
 ####################
 # https://stackoverflow.com/questions/1624691/linux-kill-background-task
-HELPFILE=/tmp/.custom/help-jobs.sh
+HELPFILE=$hh/help-jobs.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs (bg, jobs, kill)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs, Ctrl-Z, bg)\${NC}"
 exx ""
 exx "Two main ways to create a background task:"
 exx "1. Put '&' at the end of a command to start it in background:  sleep 300 &; bg -l; kill %"
 exx "2. On a running job, press Ctrl-Z, then type 'bg' to "
 exx ""
 exx "To kill background jobs, refer to them by:   jobs -l   then use the number of the job"
-exx "kill %1   # To kill job [1]"
-exx "kill %%   # To kill the most recent background job"
+exx "kill %1      # To stop a job (in this case, job [1]). Will NOT kill the job."
+exx "kill %%      # To stop the most recent background job"
+exx "kill -9 %1   # To kill a job (in this case, job [1]). This will fully kill the job."
+exx "kill -9 %%   # To kill the most recent background job"
 exx "kill all background tasks: kill -9 %%   # or, jobs -p | xargs kill -9"
 exx ""
 exx "In the bash shell, % introduces a job name. Job number n may be referred to as %n."
@@ -1339,7 +1364,7 @@ chmod 755 $HELPFILE
 echo "Help Tools (call with 'help-help')"
 #
 ####################
-HELPFILE=/tmp/.custom/help-help.sh
+HELPFILE=$hh/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1390,8 +1415,9 @@ exx "# manly dpkg -i -R"
 exx "manly --help       # help"
 exx ""
 exx "\${RED}***** tldr\${NC}"
+exx "sudo $MANAGER install tldr   # Works on CentOS, but might not on Ubuntu"
 exx "sudo $MANAGER install npm"
-exx "sudo npm install -g tldr"
+exx "sudo npm install -g tldr     # Alternative"
 exx "tldr find"
 exx "# tldr --list-all  # list all cached entries"
 exx "# tldr --update    # update cache"
@@ -1437,7 +1463,7 @@ echo "Vim Notes (call with 'help-vim')"
 # https://stackoverflow.com/questions/28958713/vim-how-to-stay-in-visual-mode-after-fixing-indentation-with
 
 # [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
-HELPFILE=/tmp/.custom/help-vim.sh
+HELPFILE=$hh/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1598,7 +1624,7 @@ echo "grep Notes (call with 'help-grep')"
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
-HELPFILE=/tmp/.custom/help-grep.sh
+HELPFILE=$hh/help-grep.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1616,6 +1642,30 @@ exx "grep --exclude=\*.o -rnw '/path/to/somewhere/' -e 'pattern'   # Exclude sea
 exx "It is possible to exclude one or more directories with --exclude-dir."
 exx "e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
 exx "grep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/somewhere/' -e 'pattern'"
+exx ""
+exx "Search for a pattern within a file:"
+exx "grep \\\"search_pattern\\\" path/to/file"
+exx ""
+exx "Search for an exact string (disables regular expressions):"
+exx "grep --fixed-strings \\\"exact_string\\\" path/to/file"
+exx ""
+exx "Search for a pattern in all files recursively in a directory, showing line numbers of matches, ignoring binary files:"
+exx "grep --recursive --line-number --binary-files=without-match \\\"search_pattern\\\" path/to/directory"
+exx ""
+exx "Use extended regular expressions (supports ?, +, {}, () and |), in case-insensitive mode:"
+exx "grep --extended-regexp --ignore-case \\\"search_pattern\\\" path/to/file"
+exx ""
+exx "Print 3 lines of context around, before, or after each match:"
+exx "grep --context|before-context|after-context=3 \\\"search_pattern\\\" path/to/file"
+exx ""
+exx "Print file name and line number for each match:"
+exx "grep --with-filename --line-number \\\"search_pattern\\\" path/to/file"
+exx ""
+exx "Search for lines matching a pattern, printing only the matched text:"
+exx "grep --only-matching \\\"search_pattern\\\" path/to/file"
+exx ""
+exx "Search stdin for lines that do not match a pattern:"
+exx "cat path/to/file | grep --invert-match \\\"search_pattern\\\""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1641,7 +1691,7 @@ echo "cron Notes (call with 'help-cron')"
 # net use u: /delete
 # RoboCopy pull from \\WSL$\Ubuntu   # 15,157,379 Bytes/sec
 # rsync to /mnt/s/backupdir          #  2,338,573 Bytes/sec
-HELPFILE=/tmp/.custom/help-cron.sh
+HELPFILE=$hh/help-cron.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
@@ -1733,6 +1783,30 @@ exx "17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly"
 exx "25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )"
 exx "47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )"
 exx "52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )"
+exx ""
+exx "Edit the crontab file for the current user:"
+exx "crontab -e"
+exx ""
+exx "Edit the crontab file for a specific user:"
+exx "sudo crontab -e -u user"
+exx ""
+exx "Replace the current crontab with the contents of the given file:"
+exx "crontab path/to/file"
+exx ""
+exx "View a list of existing cron jobs for current user:"
+exx "crontab -l"
+exx ""
+exx "Remove all cron jobs for the current user:"
+exx "crontab -r"
+exx ""
+exx "Sample job which runs at 10:00 every day (* means any value):"
+exx "0 10 * * * command_to_execute"
+exx ""
+exx "Sample job which runs every minute on the 3rd of April:"
+exx "* * 3 Apr * command_to_execute"
+exx ""
+exx "Sample job which runs a certain script at 02:30 every Friday:"
+exx "30 2 * * Fri /absolute/path/to/script.sh"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1750,7 +1824,7 @@ echo "awk Notes (show with 'help-awk')"
 # https://www.shebanglinux.com/best-awk-one-liners/
 # http://softpanorama.org/Tools/Awk/awk_one_liners.shtml
 
-HELPFILE=/tmp/.custom/help-awk.sh
+HELPFILE=$hh/help-awk.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1798,9 +1872,32 @@ exx "awk '{gsub(/engineer/, \\\"doctor\\\")};{print}' contents.txt   # Substitut
 exx "awk '{gsub(/jayesh|hitesh|bhavesh/,\\\"mahesh\\\");print}' contents.txt   # Find the string 'jayesh', 'hitesh' or 'bhavesh' and replace them with string 'mahesh', run the following command:"
 exx ""
 exx "df -h | awk '{print \\\$1, \\\$4}'   # Find Free Disk Space with Device Name"   # $1 => \\\$1, $4 => \\\$4
-exx "This awk one-liner is very useful if you think your server is under attack. It prints out a list of open connections to your server and sorts them by amount."
-exx "You should get the list of all open connections to your server by amount:"
+exx "A useful list of open connections to your server sorted by amount (useful if suspect server attacks)."
 exx "netstat -ntu | awk '{print \\\$5}' | cut -d: -f1 | sort | uniq -c | sort -n   # Find Number of open connections per ip"
+exx ""
+exx "Print the fifth column (a.k.a. field) in a space-separated file:"
+exx "awk '{print \\\$5}' filename"
+exx ""
+exx "Print the second column of the lines containing \\\"foo\\\" in a space-separated file:"
+exx "awk '/foo/ {print \\\$2}' filename"
+exx ""
+exx "Print the last column of each line in a file, using a comma (instead of space) as a field separator:"
+exx "awk -F ',' '{print \\\$NF}' filename"
+exx ""
+exx "Sum the values in the first column of a file and print the total:"
+exx "awk '{s+=\\\$1} END {print s}' filename"
+exx ""
+exx "Print every third line starting from the first line:"
+exx "awk 'NR%3==1' filename"
+exx ""
+exx "Print different values based on conditions:"
+exx "awk '{if (\\\$1 == \\\"foo\\\") print \\\"Exact match foo\\\"; else if (\\\$1 ~ \\\"bar\\\") print \\\"Partial match bar\\\"; else print \\\"Baz\\\"}' filename"
+exx ""
+exx "Print all lines where the 10th column value equals the specified value :"
+exx "awk '(\\\$10 == value)'"
+exx ""
+exx "Print all the lines which the 10th column value is between a min and a max :"
+exx "awk '(\\\$10 >= min_value && \\\$10 <= max_value)'"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1829,7 +1926,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # https://devblogs.microsoft.com/commandline/windows-terminal-tips-and-tricks/
     # Now create /tmp/help-wsl.sh
     # [ -f /tmp/help-wsl.sh ] && alias help-wsl='/tmp/help-wsl.sh'   # for .custom
-    HELPFILE=/tmp/.custom/help-wsl.sh
+    HELPFILE=$hh/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
     exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1894,7 +1991,7 @@ fi
 echo "WSL SSHD Server Notes (show with 'help-wsl-sshd')"
 #
 ####################
-HELPFILE=/tmp/.custom/help-wsl-sshd.sh
+HELPFILE=$hh/help-wsl-sshd.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1959,7 +2056,7 @@ echo "Liquid prompt script setup (call with 'start-liquidprompt')"
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
 # https://liquidprompt.readthedocs.io/en/stable/config.html#features
 # https://liquidprompt.readthedocs.io/_/downloads/en/v2.0.0-rc.1/pdf/
-HELPFILE=/tmp/.custom/liquid.sh
+HELPFILE=$hh/liquid.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "[[ ! -d ~/liquidprompt ]] && git clone --branch stable https://github.com/nojhan/liquidprompt.git ~/liquidprompt"
@@ -2208,7 +2305,7 @@ fi
 ##  # https://www.golinuxcloud.com/tmux-cheatsheet/
 ##  # https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html
 ##  
-##  HELPFILE=/tmp/.custom/help-tmux.sh
+##  HELPFILE=$hh/help-tmux.sh
 ##  exx() { echo "$1" >> $HELPFILE; }
 ##  echo "#!/bin/bash" > $HELPFILE
 ##  exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"

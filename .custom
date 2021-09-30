@@ -338,7 +338,7 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 hh="/$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid='source "$hh"'   # Can source a script from an alias/function created during .bashrc
 hh="/$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found, so adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
-1
+
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)
 ####################

@@ -88,9 +88,9 @@ alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, 
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
-alias lxe='ll *.sh *.py *.exe *.bat *.cmd *.ps1'   # list files with common exe-type extensions
-alias lxp='find . -maxdepth 1 -perm -111 -type f'  # Find executable files, by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
-alias lll='ls --human-readable --size -1 -S --classify'  # Quick long-listing with just size and name and total size summary line
+alias lxe='ll *.sh *.py *.exe *.bat *.cmd *.ps1'; alias lx='lxe'  # list executable by extensions.
+alias lxp='find . -maxdepth 1 -perm -111 -type f'                 # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
 alias sl='ls'          # Common typo
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, gpull, gpush
@@ -336,8 +336,8 @@ help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cr
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid='source "$hh"'   # Can source a script from an alias/function created during .bashrc
-hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; so adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
+hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
+hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
 
 ####################
 # Display simple login banner (but do not display this if in a new tmux/byobu session)

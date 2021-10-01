@@ -166,10 +166,10 @@ update-distro() {
         apk update
         apk upgrade
     else
-        $MANAGER update
-        $MANAGER upgrade
-        $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
-        $MANAGER autoremove
+        sudo $MANAGER update
+        sudo $MANAGER upgrade
+        sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+        sudo $MANAGER autoremove
     fi
     if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then

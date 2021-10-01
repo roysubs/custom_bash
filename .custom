@@ -12,12 +12,7 @@
 # This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
 # Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
-# Almost every function and alias is standalone do not build complex relationships (only exception is 'ask' function used by 'mykill' as a demonstration of 'ask')
-type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
-type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default when dnf and yum are both present
-type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+# Almost every function and alias is standalone; do not build complex relationships (exception: 'ask' function used by 'mykill' as a demonstration)
 
 ####################
 # Exports and Aliases:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
@@ -155,7 +150,6 @@ alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'
 # Functions:
 ####################
 update-distro() {
-    MANAGER=
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
@@ -164,15 +158,20 @@ update-distro() {
     printf "\nCheck updates:\n\n"
     echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
     echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
-    if [ "$MANAGER" == "apt" ]; then exe sudo exe sudo apt-get update --ignore-missing -y; fi   # Note sure if this is needed
-    exe sudo $MANAGER update -y
-    exe sudo $MANAGER upgrade -y
-    exe sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
-    exe sudo $MANAGER autoremove -y
-    type apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-    if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then sudo apt dist-upgrade -y; fi
+    if [ "$MANAGER" == "apt" ]; then sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
+    if [ "$MANAGER" == "apt" ]; then type apt-file &> /dev/null && sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
+    if [ "$MANAGER" == "apk" ]; then
+        apk update
+        apk upgrade
+    else
+        $MANAGER update
+        $MANAGER upgrade
+        $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+        $MANAGER autoremove
+    fi
+    if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
         echo "A reboot is required (/var/run/reboot-required is present)." >&2
         echo "Re-run this script after reboot to check." >&2
@@ -191,6 +190,7 @@ extract () { # extract files. Ignore files with improper extensions.
         esac
     done
 }
+minitop() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using watch
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
 function mykill()   # provide $1 process name and prompt to kill any matches within myps output
@@ -244,8 +244,8 @@ dux() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc 
 duxm() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 duxg() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 duxsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
-viconf() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }
-viconfsu() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }
+vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
+vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
 targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
 untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory

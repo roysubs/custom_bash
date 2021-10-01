@@ -126,6 +126,19 @@ type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $M
 type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
 type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
 
+# apk does not require 'sudo' or a '-y' to install
+if [ "$MANAGER" = "apk" ]; then
+    INSTALL="$MANAGER add"
+else
+    INSTALL="sudo $MANAGER install -y"
+fi
+
+# Only install each a binary from that package is not already present on the system
+check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2; }
+             # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
+
+[[ "$MANAGER" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
+
 echo -e "\n\n=====>   A variant of '$DISTRO' was found."
 echo -e     "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
 echo ""
@@ -135,6 +148,7 @@ printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER d
 # Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
 if type dnf &> /dev/null 2>&1; then
     if [[ $(rpm -qa | grep epel-release) ]]; then
+        echo ""
         echo "$DISTRO : EPEL Repository is already installed"
     else
         exe dnf install epel-release
@@ -147,13 +161,14 @@ if type dnf &> /dev/null 2>&1; then
     fi
 fi
 
-
 # To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
 # sudo rpm -qa | grep epel                                                               # Check the epel version installed
 # sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
 # sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
 # yum repolist   # check if epel is installed
 # if type dnf &> /dev/null 2>&1; then exe sudo $MANAGER -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
+
+
 
 function getLastUpdate()
 {
@@ -179,7 +194,7 @@ function runDistroUpdate()
         print_header "apt updates will run as last update was more than ${updateIntervalReadable} ago"
         if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
         if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
-        if [ "$MANAGER" == "apt" ]; then exe sudo exe sudo apt-get update --ignore-missing -y; fi   # Note sure if this is needed
+        if [ "$MANAGER" == "apt" ]; then exe sudo apt-get update --ignore-missing -y; fi   # Not sure if this is needed
         exe sudo $MANAGER update -y
         exe sudo $MANAGER upgrade -y
         exe sudo $MANAGER install ca-certificates -y
@@ -203,7 +218,7 @@ if [ -f /var/run/reboot-required ]; then
     echo "Re-run this script after reboot to finish the install."
     return   # Script will exit here if a reboot is required
 fi
-if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then 
+if [[ "$MANAGER" == "dnf" ]] || [[ "$MANAGER" == "yum" ]]; then 
     needsReboot=$(needs-restarting -r &> /dev/null 2>&1; echo $?)   # Supress the output message from needs-restarting (from yum-utils)
     if [[ $needsReboot == 1 ]]; then
         echo "Note: A reboot is required (by checking: needs-restarting -r)."
@@ -219,17 +234,6 @@ fi
 print_header "Check and install small/essential packages"
 #
 ####################
-
-# apk does not require 'sudo' or a '-y' to install
-if [ "$MANAGER" = "apk" ]; then
-    INSTALL="$MANAGER add"
-else
-    INSTALL="sudo $MANAGER install -y"
-fi
-
-# Only install each a binary from that package is not already present on the system
-check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2; }
-             # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
@@ -252,7 +256,7 @@ check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 #     fi
 # fi
 [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
-if [ "$MANAGER" = "dnf" ]; then if ! type pydf &> /dev/null; then wget -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
         RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
     fi
 fi
@@ -1265,6 +1269,8 @@ exx "Print only the process IDs of syslogd:"
 exx "   ps -C syslogd -o pid="
 exx "Print only the name of PID 42:"
 exx "   ps -q 42 -o comm="
+exx ""
+exx "https://www.ubuntupit.com/useful-examples-of-linux-ps-command-for-aspiring-sysadmins/"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -2072,29 +2078,25 @@ exx "[[ \$- = *i* ]] && source ~/liquidprompt/themes/powerline/powerline.theme"
 exx "[[ \$- = *i* ]] && lp_theme powerline"
 exx "echo ''"
 exx "echo https://liquidprompt.readthedocs.io/_/downloads/en/v2.0.0-rc.1/pdf/"
-exx "echo LiquidPrompt requires a NerdFont to display icons correctly:"
-exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
 exx "echo Alternatives Prompt Projects:"
 exx "echo https://github.com/chris-marsh/pureline https://github.com/reujab/silver"
 exx "echo ''"
-exx "echo 'Some of the adaptive info Liquid Prompt may (if configured, or needed in a given context) display:'"
+exx "echo 'Some adaptive info Liquid Prompt may display as needed::'"
 exx "echo '- Error code of the last command if it failed in some way (in red at end of prompt).'"
-exx "echo '- Mumber of attached sleeping jobs (when you interrupt a command with Ctrl-Z and bring it back with fg), if there are any;'"
 exx "echo '- Number of attached running jobs (commands started with a &), if there are any;'"
+exx "echo '- Mumber of attached sleeping jobs (when you interrupt a command with Ctrl-Z and bring it back with fg), if there are any;'"
 exx "echo '- Average processors load (if over a given limit with a colormap for increasing load).'"
-exx "echo '- Green ⏚ if battery is charging and above threshold, or yellow ⏚ if battery is charging and under threshold, or a yellow ⌁ if the battery is discharging but above threshold, or a red ⌁ if the battery is discharging and under threshold.'"
 exx "echo '- Number of detached sessions (screen or tmux), if any.'"
-exx "echo '- The current host, if you are connected via SSH (either a blue hostname or different colors for different hosts).'"
-exx "echo '- A green @ if the connection has X11 support, a yellow one if not.'"
-exx "echo '- An up arrow if an HTTP proxy is in use.'"
-exx "echo '- Name of the current branch if you are in a version control repository (git, mercurial, subversion, bazaar or fossil), in green if everything is up to date, in red if there is changes, in yellow if there is pending commits to push.'"
-exx "echo '- Number of added/deleted lines (git) or files (fossil), if changes have been made and the number of pending commits, if any.'"
-exx "echo '- A red star if there is some untracked files in the repository.'"
-exx "echo '- The current user, in bold yellow if it is root, in light white if it is not the same as the login user.'"
-exx "echo '- A tag associated to the current shell session (you can easily add any prefix tag to your prompt, by invoking prompt_tag MYTAG).'"
-exx "echo '- A smart mark: ± for git directories, ☿ for mercurial, ‡ for svn, ‡± for git-svn, ⌘ for fossil, $ or % for simple user, a red # for root.'"
+exx "echo '- Current host if connected via SSH (either a blue hostname or different colors for different hosts).'"
+exx "echo '- Adaptive branch, added/delted lines, pending commits etc if in aersion control repository (git, mercurial, subversion, bazaar or fossil).'"
 exx "echo ''"
-exx "echo vi ~/.config/liquidpromptrc  # Change liquidprompt configuration options"
+exx "echo 'Default configurations apply (useful in most cases) but to configure as required:'"
+exx "echo '# cp ~/liquidprompt/liquidpromptrc-dist ~/.liquidpromptrc'"
+exx "echo '# vi ~/.liquidpromptrc'"
+exx "echo ''"
+exx "echo LiquidPrompt requires a NerdFont to display icons correctly:"
+exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
+exx "echo ''"
 chmod 755 $HELPFILE
 
 

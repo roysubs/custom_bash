@@ -21,6 +21,9 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
 alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since we now have history, need a way to replicate original history
 alias hs='history | grep -A 1 -B 1'    # Search history, show matches plus 1 line 'A'bove and 1 line 'B'elow each match (to get context for why the command was run)
+alias h="history|grep"
+alias f="find . |grep"
+alias p="ps aux |grep"
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red, # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
@@ -77,16 +80,25 @@ if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing ali
 alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
 alias l='\ls --color=always --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 # Note on color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
+alias la='ls -A'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias ll='ls -l'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
 alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
-alias lss='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
+alias lsec='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
-alias lxe='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
-alias lxp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+alias lsx='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
+alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
+alias lh='ls -am'      # 'horizontal', display as comma separated list
+alias lss='ls -shAxSr' # sort by size
+alias lt='ls -lAtrh'   # sort by time date and human readable
 alias sl='ls'          # Common typo
+alias mx='chmod a+x'   # Make executable
+alias 000='chmod 000'
+alias 644='chmod 644'
+alias 755='chmod 755'
+alias perm='stat --printf "%a %n \n "' # requires a file name e.g. perm file
 # git: g, gst, ga, gcm, gcl, gstash, glog, gtop
 # gc, gcg, gcname, gadu, gall, gpull, gpush
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
@@ -96,11 +108,7 @@ alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 alias gpull='git pull'; alias gitpull='git pull'; alias gitpush='g-push'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 
-alias update-custom-bash='pushd .; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
-alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
-alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (custom help files etc)
-alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
-alias myupload="sftp username@server.com:/path/to/upload/directory"   # Template: adjust this alias to suit your needs
+alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 
 # Make package management tools use generic syntax for most common operations (as apt/yum/dnf/dpkg/apk/zypper/snap/flatpak all get confusing)
@@ -149,15 +157,20 @@ alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'
 ####################
 # Functions:
 ####################
-update-distro() {
+alias aupdate='sudo apt update && sudo apt upgrade'
+alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
+alias dupdate='sudo apt update && sudo apt upgrade'
+alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
+
+upup() {
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
     type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
     type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
-    printf "\nCheck updates:\n\n"
-    echo -e "\n\n>>>>>   A variant of '$DISTRO' was found."
-    echo -e ">>>>>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+    printf "\nCheck updates:"
+    echo -e "\n\n====>>>>    A variant of '$DISTRO' was found."
+    echo -e "====>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
     if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$MANAGER" == "apt" ]; then sudo apt dist-upgrade -y; fi
     if [ "$MANAGER" == "apt" ]; then sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
@@ -190,7 +203,9 @@ extract () { # extract files. Ignore files with improper extensions.
         esac
     done
 }
-minitop() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using watch
+targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
+untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
+pswatch() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using ps and watch
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
 function mykill()   # provide $1 process name and prompt to kill any matches within myps output
@@ -238,16 +253,14 @@ cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ 
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
-dua() { du -hsc .; }          # 'all' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
-duasu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
-dux() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # Extended du. This is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large).
-duxm() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
-duxg() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
-duxsu() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
+dut() { du -hsc .; }          # 'total' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+dutsu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
+du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
-targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
-untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
@@ -313,6 +326,29 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # Run PS scripts from within WSL, note that you must use the Windows path, so cmd D:\test.ps1, and not cmd /mnt/d/test.ps1
     run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 fi
+
+####################
+# Personal settings, some examples of useful shortcuts for personalised techniques, these can be in this script or in 
+####################
+alias reload='pushd .; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
+alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
+alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
+alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
+alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
+alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
+alias google='lynx http://google.co.uk'
+alias bbc='lynx https://news.bbc.co.uk/text_only.stm'
+alias theregister='lynx https://theregister.com'
+alias google0='lynx -term=vt100 http://google.co.uk'
+alias bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
+alias theregister0='lynx -term=vt100 https://theregister.com'
+websyn() { if [ -z $2 ]; then header=$2; else header=40; fi; lynx -dump "http://www.google.com/search?hl=en&q=synonym%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+webdef() { if [ -z $2 ]; then header=$2; else header=40; fi; lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }  # https://ubuntuforums.org/showthread.php?t=679762&page=2
+webdefapi() { lynx -dump "https://api.dictionaryapi.dev/api/v2/entries/en/${1}" | jq '.[] | .meanings[] | select(.partOfSpeech=="noun") | .definitions | .[].definition'; }
+webref() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   '"${2:-noun}"'$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
+me="~/.customme"; [[ -f $me ]] && source $me   # The above personal settings will be overwritten by anything in "~/.customme' if it is present
 
 ####################
 # Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here

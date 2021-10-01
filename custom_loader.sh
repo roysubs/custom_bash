@@ -139,8 +139,8 @@ check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed"
 
 [[ "$MANAGER" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
 
-echo -e "\n\n=====>   A variant of '$DISTRO' was found."
-echo -e     "=====>   Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo -e "\n\n====>>>>    A variant of '$DISTRO' was found."
+echo -e     "====>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
 echo ""
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
@@ -1346,7 +1346,9 @@ exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs, Ct
 exx ""
 exx "Two main ways to create a background task:"
 exx "1. Put '&' at the end of a command to start it in background:  sleep 300 &; bg -l; kill %"
-exx "2. On a running job, press Ctrl-Z, then type 'bg' to "
+exx "2. On a running task, press Ctrl-Z to suspend, then type 'bg' to change it to a background job"
+exx ""
+exx "Type 'jobs' to see all background jobs, and fg <job-number> to bring a job to the foreground"
 exx ""
 exx "To kill background jobs, refer to them by:   jobs -l   then use the number of the job"
 exx "kill %1      # To stop a job (in this case, job [1]). Will NOT kill the job."
@@ -1455,6 +1457,198 @@ exx "sudo chmod +x /usr/local/bin/tldr"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Apps (call with 'help-apps')"
+#
+####################
+HELPFILE=$hh/help-help.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Apps)\${NC}"
+exx ""
+exx "Just a list of various apps"
+exx ""
+exx "bc, dc, $(( )), calc, apcalc: Calculators, echo \\\"1/2\\\" | bc -l  # need -l to get fraction, https://unix.stackexchange.com/a/480316/441685"
+exx "lynx elinks links2 : browsers"
+exx "wyrd : text based calendar"
+exx ""
+exx "Some template structures:"
+exx "for i in {1,2,3,4,5}; do echo \$i; done"
+exx "Perform a command with different arguments:"
+exx "for argument in 1 2 3; do command \$argument; done"
+exx "Perform a command in every directory:"
+exx "for d in *; do (cd \$d; command); done"
+exx ""
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+# Best Linux Terminal Console Games
+# In our daily life, we all need a source of recreation, which gives us relief and removes our monotony and insipidity. The games we will discuss below will work like those activities for enjoyment and time passing. This list of best Linux terminal console games will blow up your mind and help you choose the best one.
+# 
+# 1. Nudoku
+# Nudoku - Linux terminal console gamesNudoku is an open source terminal-based sudoku game. This game is more or less known to all. If you are in quest of something that will give you a release from your flatness and flex your brain, then it is just the game for you. It is a user-provided stream game and has a simple interface. This game has three different levels- easy, normal, and hard.
+# 
+# To install Nudoku on Linux, run:
+# 
+# sudo apt-get install nudoku
+# 2. 2048-cli
+# 2048_cli
+# 
+# It is a video game prepared by an Italian web developer, Gabrielle Cirulli. The purpose of the game is to move puzzles to make tiles that will create the number 2048. The effectuation of GUI-based 2048 is the present 2048-cli game. It is an interesting game to play for time passing and relaxation. It is a brain game.
+# 
+# For Installation, type:
+# 
+# sudo apt-get install libncurses5-dev
+# sudo apt-get install libsdl2-dev libsdl2-ttf-dev
+# sudo apt-get install 2048-cli
+# 3. My man
+# My man - Terminal gameMy man is a text-mode Linux terminal video game. It is the current version of the Japanese well-known Pac-man game. It is an arcade game and best for passing your free time peacefully.
+# 
+# Download MyMan Game
+# 
+# 4. Greed
+# greed_ Terminal gameThis game is a great source of amusement. The goal of this game is to move around a grid of numbers to erase the screen as much as possible. When you move the grid in a direction, you erase the N number of grid squares. Greed will prevent you from making a move that would have placed you off the grid. You will find this game very much interesting. This game is a combination of Pac-man and Tron.
+# 
+# For installation, type:
+# 
+# sudo apt-get install greed
+# To run, type:
+# 
+# greed
+# 5. Pacm4conesole
+# pacm4conesoleYes, you have guessed it correctly. Pacm4conesole is the terminal version of the widespread arcade hit, Pac-man. It is one of the most famous arcade games, and it is for sure that you will enjoy it.
+# 
+# For installation, type:
+# 
+# sudo apt-get install pacman4console
+# To run, type:
+# 
+# pacman4console
+# 6. Moon-Buggy
+# moon buggy
+# 
+# Moon buggy is a simple graphics game. Here you have to drive a car on the moon’s surface. This game is controlled by a couple of keys that will help you move the car avoiding the obstacles to earn more points. You can make your car jump over the carters and avoid a clash. Overall it is a game full of excitement. You can install moon buggy using the snap store.
+# 
+# For installation, type:
+# 
+# sudo apt-get install moon-buggy
+# To run, type:
+# 
+# moon-buggy
+# 7. Robot Finds Kitten
+# Robot Finds KittenIt is another easy-to-play, free, fascinating Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as “less a game and more a way of life.”
+# 
+# Download Robot Finds Kitten
+# 
+# 8. nInvaders
+# nInvadersDo the namespace invaders ring a bell on your mind? Yes, it is the terminal version of the GUI space invaders game. In this game, all you have to do is protect the earth from space invaders by destroying and controlling the warships.
+# 
+# For installation, type:
+# 
+# sudo apt-get install ninvaders
+# To run, type:
+# 
+# ninvaders
+# 9. Zangband
+# ZAngband
+# 
+# This game is based on Angband. Like Angband, Zangband also has outstanding features like foes, artifacts, monster pits, and vaults. It is a single-player game. It is one of the most engrossing games you will ever play. Like its predecessor, it is a rogue-like game and very interesting to play for time passing. If you are looking for an adventurous game, then it is made for you. In this game, you will find yourself in the land of adventure and exploration. This is indeed one of the best Linux terminal console games.
+# 
+# To install Zangband Game on Linux, run:
+# 
+# sudo apt-get install zangband
+# 10. Nethack
+# NethackNethack is also a cross-platform roguelike, a computer game. The latest version of this game was released on April 28th, 2018. It is a mind-blowing sensational game. Almost everyone feels a strong pull towards this game for its unique features. It has both GUI and text interface. The key concept of this game is to discover the details of a dungeon but not to kill all thongs which will approach you.
+# 
+# For installation, type:
+# 
+# sudo apt-get install nethack-console
+# To run, type:
+# 
+# nethack
+# 11. Linux Lunar Lander
+# lunar_lander
+# 
+# In this game, you will have to fly a lunar module to the surface of the moon. It is an exciting terminal game on Linux. Here, the player controls a spaceship and has to safely land on the moon without causing any damage to the lunar module.
+# 
+# 12. Secret Adventure
+# secret_adventureNow let’s discuss some spicy, adventurous games that will make your day and remove all your boredom. It is a game full of fun and adventurers. But for playing this game, you must install Emacs text editor on your system.
+# 
+# emacs -batch -l dunnet
+# 13. Bastet
+# bastetSeeing this name, some flashbacks must have come to your mind, and you know that it is such an addictive game. There is hardly any person who has not to spend hours playing the game Tetris. Bastet is the Tetris of Linux terminal console games. Here you will have to make complete horizontal lines by correctly rotating and positioning the pieces that fall from the top of the screen. Though it is regarded as the clone of Tetris, some of its features are different from Tetris.
+# 
+# For installation, type:
+# 
+# sudo apt-get install bastet
+# To run, type:
+# 
+# bastet
+# 14. nSnake
+# nSnake - Linux Terminal gamenSnake is the updated version of the game on Nokia phones. Many people like to play it and see the snake growing bigger.
+# 
+# For installation, type:
+# 
+# sudo apt-get install nsnake
+# To run, type:
+# 
+# nsnake
+# 15. Air Traffic Control
+# air_traffic_controlHere you can control the air traffic system in your terminal by being a pilot. While playing this game, I guarantee you that you will feel like a real pilot. Here you have to fly jets and planes and save the lives of thousands of travelers without risking their life.
+# 
+# For Installation:
+# 
+# sudo apt-get install bsdgames
+# Run:
+# 
+# atc
+# 16. Backgammon
+# backgammonIf you have not played it yet, then I strongly recommend you to play this game. The game is full of amusement, and it is such an amazing one. So, it is worth a try. Install this game in windows version in Wine. Then it will be easier for you to play the game.  And Linux lovers will surely enjoy it.
+# 
+# For Installation:
+# 
+# sudo apt-get install bsdgames
+# Run the game:
+# 
+# backgammon
+# Press ‘y’ when prompted for rules of the game.
+# 
+# 17. BSD games
+# This is not a single game. Rather it is a collection of classic text-based games. Banner, Battlestar, bcd, boggle, Canfield, gumoku, etcetera are included in this game. I recommend you to check out this amazing set of BSD games.
+# 
+# For installation, type:
+# 
+# sudo apt-get install bsdgames
+# 18. Sudoku
+# sudokuWho hasn’t heard or played this game! From our very childhood, we are acquainted with this brain game where you have to solve puzzles. Stop collecting it from newspapers and play it as long as you want by sitting at home. Here you will also get the facility to play at different stages like easy, medium, and hard.
+# 
+# For installation, type:
+# 
+# sudo apt-get install sudoku
+# To run, type:
+# 
+# sudoku
+# 19. Alienwave (Space Invader)
+# sudo apt-get install libncurses5-dev libncursesw5-dev
+# sudo make
+# sudo make install
+# sudo cp alienwave /usr/games
+# alienwave # Start game
+# 
+# 20. Tron
+# ssh sshtron.zachlatta.com
+
+
+
+
+
 
 
 
@@ -2090,7 +2284,7 @@ exx "echo '- Number of detached sessions (screen or tmux), if any.'"
 exx "echo '- Current host if connected via SSH (either a blue hostname or different colors for different hosts).'"
 exx "echo '- Adaptive branch, added/delted lines, pending commits etc if in aersion control repository (git, mercurial, subversion, bazaar or fossil).'"
 exx "echo ''"
-exx "echo 'Default configurations apply (useful in most cases) but to configure as required:'"
+exx "echo 'The default settings are good in most cases, but can be altered as follows:'"
 exx "echo '# cp ~/liquidprompt/liquidpromptrc-dist ~/.liquidpromptrc'"
 exx "echo '# vi ~/.liquidpromptrc'"
 exx "echo ''"

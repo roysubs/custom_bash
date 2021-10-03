@@ -1,22 +1,24 @@
 #!/bin/bash
 ####################
-# .custom configuration is always compatible with Ubuntu/Debian & RedHat/Fedora/CentOS, and has WSL extensions that only instll if WSL is detected.
-# This is called from .bashrc so as to not heavily modify core distro files. All aliases and functions are self-contained if possible (to make as modular as possible).
-# For simple aliases (e.g. 'ii'), test if any repo commands exist first (this one does, but it's an IRC client, mostly useless, so use it).
-# git clone https://github.com/roysubs/custom_bash      # Preferred way to get project, then run '. custom_loader.sh' from inside that folder.
-# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash              # Alternative one-line installation.
-####################
-# Do not define a new language, this is just to a) demonstrate techniques that can be reused (awk/grep etc), and b) shorten complex/long commands.
-# Tempting to replace built-in commands, but almost never do (mainly just 'cat' and 'more' in the below), as will impact scripts and expected output from commands.
-# Mostly follow easy to remember mnemonics/abbreviations, ai=sudo 'a'pt 'i'nstall -y, tn='t'mux 'n'ew -s <session>, myip, etc
-# This is a framework to build on along with the custom_loader.sh. e.g. the functions and help files (which are only aliased if present).
-# Why use 'type' over 'which': https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
-# Strip stackexchange url's, questions/xxx/a_b_c => q/xxx. e.g. https://stackoverflow.com/q/7812324 is same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
+# git clone https://github.com/roysubs/custom_bash     # Then cd into project and run '. custom_loader.sh' to configure.
+# .custom is always compatible with Ubuntu/Debian, RedHat/Fedora/CentOS, and Alpine.
+# WSL extensions only instll if WSL is detected and include many tools to help with that setup.
+# Maintain a clean, basic shell, i.e. Should not be something to become dependent upon, just techniques that help with complex/long commands, useful tools.
+# Do not clutter up core config files. i.e. Only 2 lines are added to .bashrc to call .custom; just delete those lines to completely remove this prokect.
+# Avoid using aliases/functions that override other packages, unless those packages are redundant (e.g. 'ii' overrides the 'ii' IRC client).
 # Almost every function and alias is standalone; do not build complex relationships (exception: 'ask' function used by 'mykill' as a demonstration)
+# Do not replace built-in commands as would impact expected output in pipeline and scripts. Exceptions: 'cat' and 'more' in the below).
+# Simple abbreviations/mnemonics for most aliases, ai='sudo apt install -y, tn='t'mux 'n'ew -s <session>, myip, etc
+# Many aliases will not be created if the omponent that they rely upon is missing (i.e. standalone, can drop into a server and will work).
+# Why use 'type' over 'which'? https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
+# Various links to discussions use short notation, e.g. https://stackoverflow.com/q/7812324 is the same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
+# curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
 ####################
 # Exports and Aliases:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
+shopt -s histappend
+shopt -s checkwinsize
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
 alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since we now have history, need a way to replicate original history
@@ -46,23 +48,44 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
 
-alias sudo='sudo '                      # Allows alias expansion when using sudo vi etc https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
+alfn() {
+    echo -e "\nAliases / Functions with '$1' in either\ntheir name or contents. Use 'def <name>'\ntoview alias or function contents.\n"
+    alias | grep $1 | while read -r line; do
+        delimiter="='"
+        s=$line$delimiter
+        array=();
+        while [[ -n $s ]]; do
+            array+=("${s%%"$delimiter"*}")
+            s=${s#*"$delimiter"} 
+        done
+        echo ${array[0]} | awk '{print $2}'
+    done
+    declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1
+}
+alfn() {
+    alias | sed 's/=/ /g' | awk '{print $2}' | grep $1
+    declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1
+}
+
+alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 alias xx='exit'                         # Quit immediately
 alias v='vim'                           # Quick vim access
+:h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 alias b='byobu'                         # Quick byobu access
 alias t='tmux'                          # Quick tmux access
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
-alias cpv='rsync -ah --info=progress2'  # Use just like 'cp' but will show progress while copying. Alternatively, install 'pv'
+alias cpv='rsync -ah --info=progress2'  # 'cp visual', use just like 'cp' but will show progress during the copy. Alternatively, install 'pv'
 alias fhere="find . -name "             # Reminder for find syntax
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
 alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
 alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
+alias ducks='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # Browse system for heavy usage
 # alias df="df -Tha --total"   # We might as well add an alias for our preferred du output as well:
 # alias du="du -ach | sort -h" # Let’s keep going in the same direction by making our free output more human friendly:
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
@@ -75,38 +98,38 @@ alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on
 # Standardise 'ls' output (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
 # Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
 # Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
-# 'lss' (ls with stat) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
-if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing aliases created in .bashrc / .bash_profile etc
-alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all ".*" files, putting this to 'ls' as almost always wnat to see .* files), -d list directories themselves, not their contents
-alias l='\ls --color=always --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 # Note on color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
+# Note 'lls' ('l'ong format 'l's with stat/security) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
+if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing aliases created in .bashrc / .bash_profile etc
+alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
+alias l='\ls --color=always --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias la='ls -A'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias ll='ls -l'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag
-alias ls.='ls -d .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
+alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
+alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
-alias lsec='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *' # "ls + security on current directory" (show octal and normal permission flags) using 'stat' for the current directory
-alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls'
 alias lsx='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
 alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
-alias lh='ls -am'      # 'horizontal', display as comma separated list
-alias lss='ls -shAxSr' # sort by size
-alias lt='ls -lAtrh'   # sort by time date and human readable
+alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A almost all, except '.' and '..'
+alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
+alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'  # sort by -t time/date, hhuman readable
 alias sl='ls'          # Common typo
-alias mx='chmod a+x'   # Make executable
-alias 000='chmod 000'
-alias 644='chmod 644'
-alias 755='chmod 755'
-alias perm='stat --printf "%a %n \n "' # requires a file name e.g. perm file
-# git: g, gst, ga, gcm, gcl, gstash, glog, gtop
-# gc, gcg, gcname, gadu, gall, gpull, gpush
+alias lsec='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *'; alias lstat='lsec'; # replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
+alias lperm='stat --printf "%A %a %n \n "'   # Show permissions in %A (ls format) and %a (Octal format), requires a file/directory name.
+alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'l'ong 'l's with 's'ecurity
+alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
+alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
+alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
+alias mx='chmod a+x'   # Make Executable
+# git: g, gst, ga, gcm, gcl, gstash, glog, gtop gc, gcg, gcname, gadu, gall, gpull, gpush
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
 alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 alias gpull='git pull'; alias gitpull='git pull'; alias gitpush='g-push'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # get all visible repositories for a given git account $1
 
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
@@ -115,9 +138,9 @@ if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; 
 # - Only create aliases for package manager that are present on the system
 # - ii / inst / setup alias to package install,   rr / remove / del => aliases to package remove / del
 if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
-if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; alias uu='sudo apt remove'; fi   # apt
-if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; fi   # yum
-if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; fi   # dnf
+if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; alias uu='sudo apt remove'; alias ishow='apt show'; isize() { apt-cache --no-all-versions show $1 | grep '^Size: '; }; fi  # apt
+if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; alias ishow='yum info'; isize() { yum info $1 | grep '^Size'; }; fi   # yum
+if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep '^Size'; }; fi   # dnf
 if type ii > /dev/null 2>&1; then alias inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
 # Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
@@ -143,16 +166,16 @@ if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias 
 # Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also aliase 'more' to 'less'
+alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless.
 alias tree='tree -C'; alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
-if type pydf >/dev/null 2>&1; then alias df1='pydf'; fi      # replace 'df' by 'pydf', create 'df0' for the original
-if type ncdu >/dev/null 2>&1; then alias du1='ncdu'; fi      # same for du
+if type pydf >/dev/null 2>&1; then alias df.='pydf'; fi        # 'df.' is an alternative to df, do this for other commands with alternatives
+if type ncdu >/dev/null 2>&1; then alias du.='ncdu'; fi        # same for du. => ncdu
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 # Default 'python' to 'python3' (i.e. 3.6 as of now). Debian/Ubuntu use python2 for underlying system functions, but these aliases only affec this shell instance
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
 # Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
-alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
+alias p.='python3'; alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 
 ####################
 # Functions:
@@ -162,7 +185,7 @@ alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && 
 alias dupdate='sudo apt update && sudo apt upgrade'
 alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 
-upup() {
+updistro() {
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
@@ -205,10 +228,14 @@ extract () { # extract files. Ignore files with improper extensions.
 }
 targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
 untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
+mktar() { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }
+mktgz() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
+mktbz() { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }
 pswatch() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using ps and watch
+remindme() { sleep $1 && zenity --info --text "$2"; }
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
-function mykill()   # provide $1 process name and prompt to kill any matches within myps output
+mykill()   # provide $1 process name and prompt to kill any matches within myps output
 {
     local pid pname sig="-TERM"   # default signal
     if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
@@ -238,12 +265,14 @@ ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return f
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
 maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }   # Creates an archive (*.tar.gz) from given directory.
 makezip() { zip -r "${1%%/}.zip" "$1" ; }              # Create a ZIP archive of a file or folder.
+backup_bash_dotfiles() { ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; cd ~; tar -czvf $ARCHIVE .bash_profile .bashrc .bash_functions .bash_aliases .bash_prompt 2> /dev/null; echo "All backed up in $ARCHIVE"; }
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
-square(){ v1=$1; n=$(($v1*$v1)); echo $n; }
-expo(){ v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }
-factorial(){ v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }
+square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
+expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
+factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
+split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter; array=(); while [[ $s ]]; do array+=( "${s%%"$delimiter"*}" ); s=${s#*"$delimiter"}; done; declare -p array; echo $array; }
 # download-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download latest custom_loader, commented out, just use 'git clone https://github.com/roysubs/custom_bash ~/custom_bash'
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
@@ -253,8 +282,8 @@ cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ 
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
-dut() { du -hsc .; }          # 'total' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
-dutsu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+du.t() { du -hsc .; }          # 'total' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+du.tsu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
 du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
 du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
@@ -262,15 +291,156 @@ du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ |
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
-cowall() { for f in /usr/share/cowsay/cows/*.cow; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }
-figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+type cowsay &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
+type cowsay &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
+type cowsay &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"
+type ponysay &> /dev/null && ponyrandom() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*; else files=/usr/share/ponysay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
+type ponysay &> /dev/null && ponyall() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*.pony; else files=/usr/share/ponysay/*.pony; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | ponysay -f $f; sleep 2; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
+type ponysay &> /dev/null && alias fpony="fortune | ponysay -f $(ponyrandom)"
+type ponysay &> /dev/null && ponymix() { files=(/usr/share/ponysay/ponies/*.pony); while IFS= read -d $'\0' -r file; do fortune | ponysay -f "$file" -b round; echo $file; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
+figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
 figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
-figrnd() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
+figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
-toiletexample() { while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done; }
+toiletgayclock() { while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done; }
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
+
+####################
+# Web tools, require to be online for these to work
+####################
+alias google='lynx http://google.co.uk'; alias google0='lynx -term=vt100 http://google.co.uk'
+alias bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
+alias theregister='lynx https://theregister.com'; alias theregister0='lynx -term=vt100 https://theregister.com'
+
+#########
+# Networking
+#########
+alias n.install='ii iftop iptstate net-tools lsof nmap'
+alias d.="sudo ifdown eth0"
+alias u.="sudo ifup eth0"
+alias if.="sudo iftop -Pp -i eth0"
+alias i.="ifconfig"
+alias r.="route"
+alias ipt.="sudo iptstate -l -1"
+alias iptq.="sudo iptstate -l -1|grep $1"
+alias n.1='netstat -tua'
+alias n.2="netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,21-94 | tail"
+alias n.3='watch --interval=2 "sudo netstat -apn -l -A inet"'
+alias n.4='watch --interval=2 "sudo netstat -anp --inet --inet6"'
+alias n.5='sudo lsof -i'
+alias n.6='watch --interval=2 "sudo netstat -p -e --inet --numeric-hosts"'
+alias n.7='watch --interval=2 "sudo netstat -tulpan"'
+alias n.8='sudo netstat -tulpan'
+alias n.9='watch --interval=2 "sudo netstat -utapen"'
+alias n.10='watch --interval=2 "sudo netstat -ano -l -A inet"'
+alias n.11='netstat -an | sed -n "1,/Active UNIX domain sockets/ p" | more'
+alias netl='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
+alias ping='ping -c 10'
+alias whois='whois -H'
+ni.(){   # Network information
+    echo "--------------- Network Information ---------------"
+    sudo /sbin/ifconfig | awk /'inet addr/ {print $2}'
+    sudo /sbin/ifconfig | awk /'Bcast/ {print $3}'
+    sudo /sbin/ifconfig | awk /'inet addr/ {print $4}'
+    sudo /sbin/ifconfig | awk /'HWaddr/ {print $4,$5}'
+    echo "---------------------------------------------------"
+}
+####################
+# Personal settings, some examples of useful shortcuts for personalised techniques, these can be in this script or in 
+####################
+alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
+alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
+alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
+alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
+alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
+alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
+# defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
+me="~/.customme"; [[ -f $me ]] && source $me   # The above are samples; if "~/.custom' if it is present
+
+####################
+# Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
+####################
+hhtmp='/tmp/.custom'   # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hh="$hhtmp/help-awk.sh";         [[ -f $hh ]] && alias help-awk="$hh"    
+hh="$hhtmp/help-bash.sh";        [[ -f $hh ]] && alias help-bash="$hh"
+hh="$hhtmp/help-jobs.sh";        [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
+hh="$hhtmp/help-byobu.sh";       [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
+hh="$hhtmp/help-cron.sh";        [[ -f $hh ]] && alias help-cron="$hh"
+hh="$hhtmp/help-grep.sh";        [[ -f $hh ]] && alias help-grep="$hh"
+hh="$hhtmp/help-help.sh";        [[ -f $hh ]] && alias help-help="$hh"
+hh="$hhtmp/help-apps.sh";        [[ -f $hh ]] && alias help-apps="$hh"
+hh="$hhtmp/help-games-term.sh";  [[ -f $hh ]] && alias help-games-term="$hh"
+hh="$hhtmp/help-wsl.sh";         [[ -f $hh ]] && alias help-wsl="$hh"
+hh="$hhtmp/help-wsl-sublime.sh"; [[ -f $hh ]] && alias help-wsl-sublime="$hh"
+hh="$hhtmp/help-wsl-audio.sh";   [[ -f $hh ]] && alias help-wsl-audio="$hh"
+hh="$hhtmp/help-wsl-x.sh";       [[ -f $hh ]] && alias help-wsl-x="$hh"
+hh="$hhtmp/help-wsl-sshd.sh";    [[ -f $hh ]] && alias help-wsl-sshd="$hh"
+hh="$hhtmp/help-hyperv.sh";      [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+hh="$hhtmp/help-vim.sh";         [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh"   && alias help-v="$hh"
+hh="$hhtmp/help-tmux.sh";        [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+hh="$hhtmp/help-tmux-conf.sh";   [[ -f $hh ]] && alias help-tmux-conf="$hh"
+hh="$hhtmp/help-ps.sh";          [[ -f $hh ]] && alias help-ps="$hh"
+help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }   # Just a uawdul demonstration to read a web page
+help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
+hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
+hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
+alias a?='cat ~/.alias.help'
+alias f?='cat ~/.function.help'
+alias dn='OPTIONS=$(\ls -F | grep /$); select s in $OPTIONS; do cd $PWD/$s; break;done'
+alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; break;done'
+alias espeak-wav-file='espeak -s 150 -w voice.wav -f'
+alias espeak-wav='espeak -s 150 -w voice.wav'
+alias espeak-us='espeak -v en-us -s 150'
+alias espeak-file='espeak -s 150 -f'
+alias install='sudo aptitude install'
+alias remove='sudo aptitude remove'
+alias purge='sudo aptitude purge'
+alias hold='sudo aptitude hold'
+alias unhold='sudo aptitude unhold'
+alias markauto='sudo aptitude markauto'
+alias unmarkauto='sudo aptitude unmarkauto'
+alias forbid-version='sudo aptitude forbid-version'
+alias update='sudo aptitude update'
+alias upgrade='sudo aptitude safe-upgrade'
+alias full-upgrade='sudo aptitude full-upgrade'
+alias build-dep='sudo aptitude build-dep'
+alias forget-new='sudo aptitude forget-new'
+alias search='sudo aptitude search'
+alias show='sudo aptitude show'
+alias clean='sudo aptitude clean'
+alias autoclean='sudo aptitude autoclean'
+alias changelog='sudo aptitude changelog'
+alias download='sudo aptitude download'
+alias reinstall='sudo aptitude reinstall'
+alias why='sudo aptitude why'
+alias why-not='sudo aptitude why-not'
+alias linux-image='sudo aptitude search linux-image' # linux-image kernel update check
+alias aptadd='sudo apt-cache add'
+alias aptgencaches='sudo apt-cache gencaches'
+alias aptshowpkg='sudo apt-cache showpkg'
+alias aptshowsrc='sudo apt-cache showsrc'
+alias aptstats='sudo apt-cache stats'
+alias aptdump='sudo apt-cache dump'
+alias aptdumpavail='sudo apt-cache dumpavail'
+alias aptunmet='sudo apt-cache unmet'
+alias aptsearch='sudo apt-cache search'
+alias aptshow='sudo apt-cache show'
+alias aptdepends='sudo apt-cache depends'
+alias aptrdepends='sudo apt-cache rdepends'
+alias aptpkgnames='sudo apt-cache pkgnames'
+alias aptdotty='sudo apt-cache dotty'
+alias aptxvcg='sudo apt-cache xvcg'
+alias aptpolicy='sudo apt-cache policy'
+alias apth='apt-history'
+alias apthi='apt-history install'
+alias apthu='apt-history upgrade'
+alias apthr='apt-history remove'
+alias apthback='apt-history rollback'
 
 ####################
 # WSL: This section will only run if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
@@ -282,42 +452,66 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
     alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # To get around no systemd, this will properly terminate the running WSL instance
     alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
-
     alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'
     alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
-
-    alias wx='explorer.exe'
-    alias wx.='explorer.exe .'
-    # Open Windows apps from WSL console
-    alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # Chrome, can use with URLs:       chrome www.google.com
-    alias webgitcustombash='chrome https://github.com/roysubs/custom_bash'
-    alias webgitcustomps='chrome https://github.com/roysubs/Custom-Tools'
-    alias webgitbasicsahk='chrome https://github.com/roysubs/Basics-AHK'
+    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"   # notepad++ C:\Temp\Test.txt , 
+    alias n++='notepad++'                                              # n C:\Temp\Test.txt
+    alias x='explorer.exe'
+    alias x.='explorer.exe .'
+    alias xcloud='explorer.exe "D:\0 Cloud"'
+    alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # This alias will work with any URL:  chrome www.google.com
+    # All of the below use + instead of %20 : real percent encoding uses %20 while form data in URLs is in a modified form that uses +. So you're most likely to only see + in URLs in the query string after a '?'. https://stackoverflow.com/questions/1634271/url-encoding-the-space-character-or-20
+    # Space	%20     :  %3A     ]  %5D     +  %2B     /  %2F     \  %5C     ‘  %27          
+    # $  %24        <  %3C     {  %7B     #  %23     ;  %3B     ^  %5E     ,  %2C  
+    # &  %26        >  %3E     }  %7D     %  %25     =  %3D     |  %7C          
+    # `  %60        [  %5B     “  %22     @  %40     ?  %3F     ~  %7E          
+    urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/[ ][ ]*/\+/g'); }
+    gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; $ddg="https://duckduckgo.com/?q=${phrase}"; echo $ddg; }
+    # Can do a lot with 'gg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
+    # However, some useful speific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
+    tt() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+$phrase"; trans -b "$@"; chrome $url; }   # tt conflicts with package 'treetop', but not something I would need
+    ttnl() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; [ type trans ] && trans -t nl -b "$@"; chrome $url; }
+    xxx() { chrome https://translate.google.com/?hl=nl&sl=nl&tl=en&text=wat%20uur%20is%20het&op=translate; }
+    tten() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; [ type trans ] && trans -t en -b "$@"; chrome $url; }
+    dic() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=dictionary+$phrase"; [ type trans ] && trans -d "$@"; chrome $url; }
+    syn() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=synonym+$phrase"; echo $url; chrome $url; }
+    yy() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.youtube.com/results?search_query=$phrase"; echo $url; chrome $url; } 
+    ym() { if [[ -z "$1" ]]; then echo "Enter a search string!"; else mpv "$(youtube-dl --default-search 'ytsearch1:' \"$1\" --get-url | tail -1)"; fi }
+    # transw() { phrase=$(echo $1 | sed 's/[ ][ ]*/%20/g');  [ type trans ] && trans -t en -b "$@"; chrome "https://translate.google.com/?sl=auto&tl=en&text=${phrase}&op=translate"; }
+    # weather() { lynx -dump http://www.google.com/search?q=weather+$1+$2+$3 | grep -E "($1|°)" | grep -v '\[' | head -3; }
+    # weather7() { for (( i=0; i<7; ++i)); do day=$(date --date="+$i day" +"%a"); weather $1 $2 $i; done; }
+    # lynx -dump https://www.thomascook.com/holidays/weather/amsterdam/forecast/ | awk '/1\./{y=1;next}y' | sed '/View weather for/,$d'
+    # Following are some handy shortucts, '1' stands for 'one-liners', useful to find answers and some general reading/inspiration to look at other sites.
+    awk1() { chrome https://duckduckgo.com/?q=awk+one+liners; chrome https://catonmat.net/awk-one-liners-explained-part-one; chrome http://softpanorama.org/Tools/Awk/awk_one_liners.shtml; chrome https://www.shebanglinux.com/best-awk-one-liners/; }
+    grep1() { chrome https://duckduckgo.com/?q=grep+one+liners; chrome https://www.richud.com/wiki/Grep_one_liners; chrome https://lagooko.blogspot.com/2015/12/grep-handy-one-liner.html; chrome https://adminoneliner.blogspot.com/2015/12/grep-command-one-liners.html; }
+    sed1() { chrome https://duckduckgo.com/?q=sed+one+liners; chrome https://edoras.sdsu.edu/doc/sed-oneliners.html; chrome http://www.unixguide.net/unix/sedoneliner.shtml; chrome https://catonmat.net/sed-one-liners-explained-part-one; }
+    python1() { chrome https://duckduckgo.com/?q=python+one-liners&atb=v251-1&ia=web; chrome https://pythonbooks.org/free-books/; chrome https://automatetheboringstuff.com/; chrome https://www.geeksforgeeks.org/powerful-one-liner-python-codes/; chrome https://blog.finxter.com/10-python-one-liners/; }
+    # perl1() {}
+    # bash1() {}
+    alias mygit='chrome https://github.com/roysubs/custom_bash; chrome https://github.com/roysubs/Custom-Tools; chrome https://github.com/roysubs/Basics-AHK'
     alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
+    alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'
+    alias uknews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.spectator.co.uk/; chrome https://archive.ph/https://www.telegraph.co.uk/; chrome https://archive.ph/http://thetimes.co.uk/; chrome https://archive.ph/https://www.scotsman.com/; chrome https://archive.ph/https://www.newscientist.com/'
+    # foreach i in arrnews, prefix https://archive.ph/ and then open that
 
-    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"; alias n='notepad++'   # notepad++ C:\Temp\Test.txt , n C:\Temp\Test.txt
-    # If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is probably redundant since I now use git tokens)
-    # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
-    # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
-
+    # Map common Windows locations to navigate to from within WSL. Use ':' on these mappings to identify as WSL mappings to Windows
     # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
-    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done
-    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "ll$(basename ${d})"="cd $d && ll"; done
-    # Map common Windows locations to navigate to from within WSL
-    [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && ll'
-    [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ll' && alias pf64:='cd /mnt/c/Program\ Files && ll'
-    [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ll' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ll'
-    [ -d /mnt/d/0\ Cloud ] && alias cloud:='cd /mnt/d/0\ Cloud && ll'
+    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done         #  "d:" => cd to /mnt/d
+    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "l$(basename ${d})"="cd $d && ll"; done   # "ld:" => cd to and list d:""
+    [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && sudo ls'
+    [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ls' && alias pf64:='cd /mnt/c/Program\ Files && ls'
+    [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ls' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ls'
+    [ -d /mnt/d/0\ Cloud ] && alias cloud:='cd /mnt/d/0\ Cloud && ls'
     # Linux is case-sensitive, but Windows is case-insensitive. What if user is 'john' in Linux, but 'John' in Windows?
-    # In fact, this turns out to be a non-issue as WSL is somehow case-insensitive (but only when on Windows mounts). The following handles this either way though
-    alias whome='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
+    # If set completion-ignore-case On is in .inputrc, this is not a problem, but otherwise it is so use the following to handle this:
+    alias home:='cd $(find /mnt/c/Users -maxdepth 1 -type d -regextype posix-extended -iregex /mnt/c/users/$USER)'
 
     # Microsoft already provides a "code" shell script to call from WSL, so do not use code.exe from a full installation or from chocolatey
     # shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as these will cause errors inside WSL. Only use one of the official "code" shell script.
-    [ -f /mnt/c/tools/vscode/bin/code ] && alias code='/mnt/c/tools/vscode/bin/code'   # Default Portable Edition location with Chocolatey package
-    [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Program Files/Microsoft\ VS\ Code/bin/code"   # Default System install location
-    [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
-    alias c='code'   # Also alias 'c' to point at VS Code
+    # [ -f /mnt/c/tools/vscode/bin/code ] && alias code='/mnt/c/tools/vscode/bin/code'   # Default Portable Edition location with Chocolatey package
+    # [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Program Files/Microsoft\ VS\ Code/bin/code"   # Default System install location
+    # [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
+    # alias c='code'   # Also alias 'c' to point at VS Code
 
     # Demonstrate using Windows clip.exe within WSL to get a string into the clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
     alias get-ip='hostname -I | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
@@ -325,59 +519,67 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
     # Run PS scripts from within WSL, note that you must use the Windows path, so cmd D:\test.ps1, and not cmd /mnt/d/test.ps1
     run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
+
+    # X Window GUI support. As with all of this section, will *only* set if WSL is detected (so will not affect a non-WSL install).
+    # https://sourceforge.net/projects/vcxsrv/. During VcXsrv setup, leave DISPLAY as "-1" (for autodetect) and it will see WSL2.
+    # Run 'xeyes &' to test (always use '&' to background any X app so that it does not hold the WSL terminal while running). https://nickjanetakis.com/blog/using-wsl-and-mobaxterm-to-create-a-linux-dev-environment-on-windows#wsl-conemu-and-mobaxterm-to-the-rescue
+    export DISPLAY="$(/sbin/ip route | awk '/default/ { print $3 }'):0"
+    alias term='xterm -bg AntiqueWhite -fg Black &'
+    alias termb='xterm -bg AntiqueWhite -fg NavyBlue &'
+    alias termg='xterm -bg AntiqueWhite -fg OliveDrab &'
+    alias termr='xterm -bg AntiqueWhite -fg DarkRed &'
+    alias aterm='xterm -ls -fg gray -bg black'
+    alias xtop='xterm -fn 6x13 -bg LightSlateGray -fg black -e top &'
+    alias xsu='xterm -fn 7x14 -bg DarkOrange4 -fg white -e su &'
 fi
 
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+    . /etc/bash_completion
+fi
 ####################
-# Personal settings, some examples of useful shortcuts for personalised techniques, these can be in this script or in 
-####################
-alias reload='pushd .; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
-alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
-alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
-alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
-alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
-alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
-alias google='lynx http://google.co.uk'
-alias bbc='lynx https://news.bbc.co.uk/text_only.stm'
-alias theregister='lynx https://theregister.com'
-alias google0='lynx -term=vt100 http://google.co.uk'
-alias bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
-alias theregister0='lynx -term=vt100 https://theregister.com'
-websyn() { if [ -z $2 ]; then header=$2; else header=40; fi; lynx -dump "http://www.google.com/search?hl=en&q=synonym%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
-webdef() { if [ -z $2 ]; then header=$2; else header=40; fi; lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }  # https://ubuntuforums.org/showthread.php?t=679762&page=2
-webdefapi() { lynx -dump "https://api.dictionaryapi.dev/api/v2/entries/en/${1}" | jq '.[] | .meanings[] | select(.partOfSpeech=="noun") | .definitions | .[].definition'; }
-webref() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   '"${2:-noun}"'$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
-# defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
-# defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
-me="~/.customme"; [[ -f $me ]] && source $me   # The above personal settings will be overwritten by anything in "~/.customme' if it is present
-
-####################
-# Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
-####################
-hhtmp='/tmp/.custom'   # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
-hh="$hhtmp/help-awk.sh";       [[ -f $hh ]] && alias help-awk="$hh"    
-hh="$hhtmp/help-bash.sh";      [[ -f $hh ]] && alias help-bash="$hh"
-hh="$hhtmp/help-jobs.sh";      [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
-hh="$hhtmp/help-byobu.sh";     [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
-hh="$hhtmp/help-cron.sh";      [[ -f $hh ]] && alias help-cron="$hh"
-hh="$hhtmp/help-grep.sh";      [[ -f $hh ]] && alias help-grep="$hh"
-hh="$hhtmp/help-help.sh";      [[ -f $hh ]] && alias help-help="$hh"
-hh="$hhtmp/help-wsl.sh";       [[ -f $hh ]] && alias help-wsl="$hh"
-hh="$hhtmp/help-wsl-sshd.sh";  [[ -f $hh ]] && alias help-wsl-sshd="$hh"
-hh="$hhtmp/help-hyperv.sh";    [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
-hh="$hhtmp/help-vim.sh";       [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh"   && alias help-v="$hh"
-hh="$hhtmp/help-tmux.sh";      [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
-hh="$hhtmp/help-tmux-conf.sh"; [[ -f $hh ]] && alias help-tmux-conf="$hh"
-hh="$hhtmp/help-ps.sh";        [[ -f $hh ]] && alias help-ps="$hh"
-help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }   # Just a uawdul demonstration to read a web page
-help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
-hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
-
-####################
-# Display simple login banner (but do not display this if in a new tmux/byobu session)
+# Display login banner, except for when starting a new tmux/byobu session)
 ####################
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 [ -z "$TMUX" ] && login_banner   # Only display login_banner if this is not a new tmux session
 # [ -z "$TMUX" ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session
+
+
+# PS1="\[\033[1;34m\](\[\033[1;37m\]\w\[\033[1;34m\]) \[\033[1;32m\]*\[\033[1;0m\] "                        # (/tmp/.custom) *
+# PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '   # boss@Asus:/tmp/.custom$
+
+
+temp() {    # 
+    if [ $# -eq 0 ] ; then
+      cat << EOF >&2
+Usage: $0 temperature[F|C|K]
+where the suffix:
+   F	indicates input is in Fahrenheit (default)
+   C	indicates input is in Celsius
+   K	indicates input is in Kelvin
+EOF
+        return
+    fi
+    unit="$(echo $1|sed -e 's/[-[[:digit:]]*//g' | tr '[:lower:]' '[:upper:]' )"
+    temp="$(echo $1|sed -e 's/[^-[[:digit:]]*//g')"
+    case ${unit:=F}
+    in
+        F ) # Fahrenheit to Celsius formula:  Tc = (F -32 ) / 1.8
+        farn="$temp"
+        cels="$(echo "scale=2;($farn - 32) / 1.8" | bc)"
+        kelv="$(echo "scale=2;$cels + 273.15" | bc)"
+        ;;
+        C ) # Celsius to Fahrenheit formula: Tf = (9/5)*Tc+32
+        cels=$temp
+        kelv="$(echo "scale=2;$cels + 273.15" | bc)"
+        farn="$(echo "scale=2;((9/5) * $cels) + 32" | bc)"
+        ;;
+        K ) # Celsius = Kelvin + 273.15, then use Cels -> Fahr formula
+        kelv=$temp
+        cels="$(echo "scale=2; $kelv - 273.15" | bc)"
+        farn="$(echo "scale=2; ((9/5) * $cels) + 32" | bc)"
+    esac
+    echo "Fahrenheit = $farn"
+    echo "Celsius    = $cels"
+    echo "Kelvin     = $kelv"
+}
+

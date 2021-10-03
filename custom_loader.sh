@@ -23,6 +23,7 @@
 # https://askubuntu.com/questions/734647/right-click-to-paste-in-terminal?newreg=00145d6f91de4cc781cd0f4b76fccd2e
 
 # Useful Toolkits to look through:
+# https://www.commandlinefu.com/commands/browse
 # Nam Nguyen : https://github.com/gdbtek/ubuntu-cookbooks/blob/master/libraries/util.bash referenced from https://serverfault.com/questions/20747/find-last-time-update-was-performed-with-apt-get
 # SSH keys setup : https://github.com/creynoldsaccenture/bash-toolkit
 # BEF (Bash Essential Functions) : https://github.com/shoogle/bash-essential-functions/blob/master/modules/bef-filepaths.sh
@@ -39,6 +40,23 @@
 # https://crunchbang.org/forums/viewtopic.php?id=1093
 # https://serverfault.com/questions/3743/what-useful-things-can-one-add-to-ones-bashrc?page=1&tab=votes#tab-top
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
+# https://www.grymoire.com/Unix/Sed.html  Excellent Sed Guide
+# https://blog.ssdnodes.com/blog/13-smart-terminal-tools-to-level-up-your-linux-servers/ # Some very useful tools
+# tldr: Read simplified instructions on common terminal commands
+# how2: Get answers to your terminal questions
+# z: Jump to ‘frecently’ used places
+# trash-cli: Put files in the trash
+# nnn: Manage your files visually
+# bat: View files with syntax highlighting
+# pomo: A Pomodoro timer in your terminal
+# fselect: Find files with the speed of SQL
+# exa: List files with more features (and colors) than ls
+# peco: Get grep-like filtering with interactivity
+# has: Do you 'has' the dependencies you need?
+# progress: See how much longer mv, dd, cp, and more will take
+# mackup: Sync and restore your application settings
+# transfer.sh: Share files directly from the command line
+# https://www.tecmint.com/12-top-command-examples-in-linux/
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
@@ -216,6 +234,7 @@ if [ -f /var/run/reboot-required ]; then
     echo "A reboot is required (/var/run/reboot-required is present)."   # >&2
     echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME"
     echo "Re-run this script after reboot to finish the install."
+    . .custom   # In case this is first run of custom-loader.sh, source in .custom anyway to make those aliases and functions available
     return   # Script will exit here if a reboot is required
 fi
 if [[ "$MANAGER" == "dnf" ]] || [[ "$MANAGER" == "yum" ]]; then 
@@ -223,6 +242,7 @@ if [[ "$MANAGER" == "dnf" ]] || [[ "$MANAGER" == "yum" ]]; then
     if [[ $needsReboot == 1 ]]; then
         echo "Note: A reboot is required (by checking: needs-restarting -r)."
         echo "Re-run this script after reboot to finish the install."
+        . .custom   # In case this is first run of custom-loader.sh, source in .custom anyway to make those aliases and functions available
         return   # Script will exit here if a reboot is required
     fi
 fi
@@ -234,6 +254,10 @@ fi
 print_header "Check and install small/essential packages"
 #
 ####################
+
+# Initially try to grab everything (quicker), then test the packages
+[[ "$MANAGER" = "apt" ]] && sudo apt install dpkg git vim nnn curl wget perl python39 python3-pip dfc pydf crontabs ncdu tree dos2unix mount neofetch byobu zip unzip
+[[ "$MANAGER" = "dnf" ]] && sudo dnf install dpkg git vim nnn curl wget perl python39 python3-pip dfc pydf crontabs ncdu tree dos2unix mount neofetch byobu zip unzip
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
@@ -1454,6 +1478,12 @@ exx "Alterntaive installation method:"
 exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-x86_64-musl"
 exx "sudo cp tldr-linux-x86_64-musl /usr/local/bin/tldr"
 exx "sudo chmod +x /usr/local/bin/tldr"
+exx ""
+exx "\${RED}***** how2 (free form questions, 'stackoverflow for the terminal')\${NC}"
+exx "like man, but you can query it using natural language"
+exx "sudo $MANAGER install npm"
+exx "npm install -g how-2"
+exx "how2 how do I unzip a .gz?"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1465,7 +1495,7 @@ chmod 755 $HELPFILE
 echo "Apps (call with 'help-apps')"
 #
 ####################
-HELPFILE=$hh/help-help.sh
+HELPFILE=$hh/help-apps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
@@ -1475,7 +1505,7 @@ exx ""
 exx "Just a list of various apps"
 exx ""
 exx "bc, dc, $(( )), calc, apcalc: Calculators, echo \\\"1/2\\\" | bc -l  # need -l to get fraction, https://unix.stackexchange.com/a/480316/441685"
-exx "lynx elinks links2 : browsers"
+exx "lynx elinks links2 w3m : console browsers"
 exx "wyrd : text based calendar"
 exx ""
 exx "Some template structures:"
@@ -1484,170 +1514,92 @@ exx "Perform a command with different arguments:"
 exx "for argument in 1 2 3; do command \$argument; done"
 exx "Perform a command in every directory:"
 exx "for d in *; do (cd \$d; command); done"
-exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
-# Best Linux Terminal Console Games
-# In our daily life, we all need a source of recreation, which gives us relief and removes our monotony and insipidity. The games we will discuss below will work like those activities for enjoyment and time passing. This list of best Linux terminal console games will blow up your mind and help you choose the best one.
-# 
-# 1. Nudoku
-# Nudoku - Linux terminal console gamesNudoku is an open source terminal-based sudoku game. This game is more or less known to all. If you are in quest of something that will give you a release from your flatness and flex your brain, then it is just the game for you. It is a user-provided stream game and has a simple interface. This game has three different levels- easy, normal, and hard.
-# 
-# To install Nudoku on Linux, run:
-# 
-# sudo apt-get install nudoku
-# 2. 2048-cli
-# 2048_cli
-# 
-# It is a video game prepared by an Italian web developer, Gabrielle Cirulli. The purpose of the game is to move puzzles to make tiles that will create the number 2048. The effectuation of GUI-based 2048 is the present 2048-cli game. It is an interesting game to play for time passing and relaxation. It is a brain game.
-# 
-# For Installation, type:
-# 
-# sudo apt-get install libncurses5-dev
-# sudo apt-get install libsdl2-dev libsdl2-ttf-dev
-# sudo apt-get install 2048-cli
-# 3. My man
-# My man - Terminal gameMy man is a text-mode Linux terminal video game. It is the current version of the Japanese well-known Pac-man game. It is an arcade game and best for passing your free time peacefully.
-# 
-# Download MyMan Game
-# 
-# 4. Greed
-# greed_ Terminal gameThis game is a great source of amusement. The goal of this game is to move around a grid of numbers to erase the screen as much as possible. When you move the grid in a direction, you erase the N number of grid squares. Greed will prevent you from making a move that would have placed you off the grid. You will find this game very much interesting. This game is a combination of Pac-man and Tron.
-# 
-# For installation, type:
-# 
-# sudo apt-get install greed
-# To run, type:
-# 
-# greed
-# 5. Pacm4conesole
-# pacm4conesoleYes, you have guessed it correctly. Pacm4conesole is the terminal version of the widespread arcade hit, Pac-man. It is one of the most famous arcade games, and it is for sure that you will enjoy it.
-# 
-# For installation, type:
-# 
-# sudo apt-get install pacman4console
-# To run, type:
-# 
-# pacman4console
-# 6. Moon-Buggy
-# moon buggy
-# 
-# Moon buggy is a simple graphics game. Here you have to drive a car on the moon’s surface. This game is controlled by a couple of keys that will help you move the car avoiding the obstacles to earn more points. You can make your car jump over the carters and avoid a clash. Overall it is a game full of excitement. You can install moon buggy using the snap store.
-# 
-# For installation, type:
-# 
-# sudo apt-get install moon-buggy
-# To run, type:
-# 
-# moon-buggy
-# 7. Robot Finds Kitten
-# Robot Finds KittenIt is another easy-to-play, free, fascinating Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as “less a game and more a way of life.”
-# 
-# Download Robot Finds Kitten
-# 
-# 8. nInvaders
-# nInvadersDo the namespace invaders ring a bell on your mind? Yes, it is the terminal version of the GUI space invaders game. In this game, all you have to do is protect the earth from space invaders by destroying and controlling the warships.
-# 
-# For installation, type:
-# 
-# sudo apt-get install ninvaders
-# To run, type:
-# 
-# ninvaders
-# 9. Zangband
-# ZAngband
-# 
-# This game is based on Angband. Like Angband, Zangband also has outstanding features like foes, artifacts, monster pits, and vaults. It is a single-player game. It is one of the most engrossing games you will ever play. Like its predecessor, it is a rogue-like game and very interesting to play for time passing. If you are looking for an adventurous game, then it is made for you. In this game, you will find yourself in the land of adventure and exploration. This is indeed one of the best Linux terminal console games.
-# 
-# To install Zangband Game on Linux, run:
-# 
-# sudo apt-get install zangband
-# 10. Nethack
-# NethackNethack is also a cross-platform roguelike, a computer game. The latest version of this game was released on April 28th, 2018. It is a mind-blowing sensational game. Almost everyone feels a strong pull towards this game for its unique features. It has both GUI and text interface. The key concept of this game is to discover the details of a dungeon but not to kill all thongs which will approach you.
-# 
-# For installation, type:
-# 
-# sudo apt-get install nethack-console
-# To run, type:
-# 
-# nethack
-# 11. Linux Lunar Lander
-# lunar_lander
-# 
-# In this game, you will have to fly a lunar module to the surface of the moon. It is an exciting terminal game on Linux. Here, the player controls a spaceship and has to safely land on the moon without causing any damage to the lunar module.
-# 
-# 12. Secret Adventure
-# secret_adventureNow let’s discuss some spicy, adventurous games that will make your day and remove all your boredom. It is a game full of fun and adventurers. But for playing this game, you must install Emacs text editor on your system.
-# 
-# emacs -batch -l dunnet
-# 13. Bastet
-# bastetSeeing this name, some flashbacks must have come to your mind, and you know that it is such an addictive game. There is hardly any person who has not to spend hours playing the game Tetris. Bastet is the Tetris of Linux terminal console games. Here you will have to make complete horizontal lines by correctly rotating and positioning the pieces that fall from the top of the screen. Though it is regarded as the clone of Tetris, some of its features are different from Tetris.
-# 
-# For installation, type:
-# 
-# sudo apt-get install bastet
-# To run, type:
-# 
-# bastet
-# 14. nSnake
-# nSnake - Linux Terminal gamenSnake is the updated version of the game on Nokia phones. Many people like to play it and see the snake growing bigger.
-# 
-# For installation, type:
-# 
-# sudo apt-get install nsnake
-# To run, type:
-# 
-# nsnake
-# 15. Air Traffic Control
-# air_traffic_controlHere you can control the air traffic system in your terminal by being a pilot. While playing this game, I guarantee you that you will feel like a real pilot. Here you have to fly jets and planes and save the lives of thousands of travelers without risking their life.
-# 
-# For Installation:
-# 
-# sudo apt-get install bsdgames
-# Run:
-# 
-# atc
-# 16. Backgammon
-# backgammonIf you have not played it yet, then I strongly recommend you to play this game. The game is full of amusement, and it is such an amazing one. So, it is worth a try. Install this game in windows version in Wine. Then it will be easier for you to play the game.  And Linux lovers will surely enjoy it.
-# 
-# For Installation:
-# 
-# sudo apt-get install bsdgames
-# Run the game:
-# 
-# backgammon
-# Press ‘y’ when prompted for rules of the game.
-# 
-# 17. BSD games
-# This is not a single game. Rather it is a collection of classic text-based games. Banner, Battlestar, bcd, boggle, Canfield, gumoku, etcetera are included in this game. I recommend you to check out this amazing set of BSD games.
-# 
-# For installation, type:
-# 
-# sudo apt-get install bsdgames
-# 18. Sudoku
-# sudokuWho hasn’t heard or played this game! From our very childhood, we are acquainted with this brain game where you have to solve puzzles. Stop collecting it from newspapers and play it as long as you want by sitting at home. Here you will also get the facility to play at different stages like easy, medium, and hard.
-# 
-# For installation, type:
-# 
-# sudo apt-get install sudoku
-# To run, type:
-# 
-# sudoku
-# 19. Alienwave (Space Invader)
-# sudo apt-get install libncurses5-dev libncursesw5-dev
-# sudo make
-# sudo make install
-# sudo cp alienwave /usr/games
-# alienwave # Start game
-# 
-# 20. Tron
-# ssh sshtron.zachlatta.com
-
-
-
-
+####################
+#
+echo "Console Games (call with 'help-games-console')"
+#
+####################
+HELPFILE=$hh/help-games-console.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Console Games)\${NC}"
+exx ""
+exx "Just a list of various console games:"
+exx ""
+exx "The Classic Rogue Games: Angband / Crawl / Nethack / Rogue (the only app in bsdgames-nonfree)"
+exx "sudo apt install angband crawl nethack-console"
+exx "'Angband is a more balanced game, but Zangband and PosChengband are crazy.' https://www.reddit.com/r/angband/comments/6ir244/angband_or_zangband/"
+exx "There are ~100 variants of Angband: http://www.roguebasin.com/index.php?title=List_of_Angband_variantsexx"
+exx "ZAngband / ToME 'Troubles of Middle-earth' / Moria / Sil   https://www.reddit.com/r/roguelikes/comments/3po8g0/comment/cw80nis/?utm_source=reddit&utm_medium=web2x&context=3"
+exx "Sil seems to be mainly for Windows GUI   amirrorclear.net/flowers/game/sil/   http://angband.oook.cz/comic/"
+exx "Roguelikes stem from a game called Rogue that was written before computers had graphics and instead used symbols"
+exx "on the screen to represent a dungeon filled with monsters and treasure, that was randomly generated each time"
+exx "you played. Rogue also had 'permanent death': you have only one life and must choose wisely lest you have to"
+exx "start again. Finally, it had a system of unidentified items whose powers you must discover for yourself."
+exx ""
+exx "Repo version is often behind the latest, so grab latest source from http://rephial.org/release"
+exx "https://angband.readthedocs.io/en/latest/hacking/compiling.html"
+exx "https://angband.readthedocs.io/en/latest/hacking/compiling.html#linux-other-unix"
+exx "cd ~; mkdir angband; cd angband"
+exx "wget https://github.com/angband/angband/archive/refs/tags/4.2.3.tar.gz"
+exx "tar xzf 4.2.3.tar.gz"
+exx "cd andband-4.2.3"
+exx "./configure"
+exx "make"
+exx "make install"
+exx "***** Errors: Make can't find \\\"ncurses.h\\\" (see also Compiling)"
+exx "make"
+exx "CC main-gcu.c"
+exx "main-gcu.c:63:22: error: ncurses.h: No such file or directory"
+exx "Which indicates that you need to install the ncurses library. You can fix that by installing the \\\"ncurses-devel\\\" and re-running \\\"./configure\\\"."
+exx "sudo $MANAGER install ncurses-devel"
+exx "./configure"
+exx "***** If you do a system install (making Angband available for all users on the system), make sure you add the users to the \\\"games\\\" group. Otherwise, when your users attempt to run Angband, they will get error messages about not being able to write to various files in the /usr/local/games/lib/angband folders."
+exx "./configure --with-setgid=games --with-libpath=/usr/local/games/lib/angband --bindir=/usr/local/games"
+exx "make"
+exx "make install"
+exx ""
+exx "sudo apt install bsdgames"
+exx "adventure, arithmetic, atc (Air Traffic Control), backgammon, battlestar, bcd, boggle, caesar, canfield, countmail, cribbage, dab, go-fish, gomoku, hack, hangman, hunt, mille, monop, morse, number, pig, phantasia, pom, ppt, primes, quiz, random, rain, robots, rot13, sail, snake, tetris, trek, wargames, worm, worms, wump, wtf"
+exx ""
+exx "sudo apt install bsdgames-nonfree  # Contains only the 'rogue' game"
+exx "sudo apt install pacman4console  # Terminal version of Pac-man"
+exx "sudo apt install greed        # Combination of Pac-man and Tron, move around a grid of numbers to erase as much as possible."
+exx "sudo apt install moon-buggy   # moon-buggy, console graphical game, driving on the moon"
+exx "sudo apt install moon-lander  # moon-lander, console graphical game, fly lunar module to surface of the moon"
+exx "sudo apt install ninvaders    # Space Invaders"
+exx "sudo apt install nsnake       # Snake game"
+exx "sudo apt install nudoku       # Linux terminal sudoku game"
+exx "sudo apt install sudoku       # Sudoku"
+exx "sudo apt install bastet       # Tetris clone"
+exx "ssh sshtron.zachlatta.com     # Multiplayer Online Tron Game, requires other players to connect to score"
+exx ""
+exx "Alienwave (Space Invader)"
+exx "sudo apt-get install libncurses5-dev libncursesw5-dev"
+exx "sudo make"
+exx "sudo make install"
+exx "sudo cp alienwave /usr/games"
+exx "alienwave # Start game"
+exx ""
+exx "2048-cli, move puzzles to make tiles that will create the number 2048."
+exx "sudo apt-get install libncurses5-dev"
+exx "sudo apt-get install libsdl2-dev libsdl2-ttf-dev"
+exx "sudo apt-get install 2048-cli"
+exx "2048-cli"
+exx ""
+exx "My man, Terminal Pac-man game (arcade)."
+exx "Robot Finds KittenIt is another easy-to-play, free, fascinating Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as “less a game and more a way of life.”"
+exx "secret_adventure   # secret_adventure, to play this game, you must install Emacs text editor on your system."
+exx "emacs -batch -l dunnet"
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
 
 
 
@@ -2014,6 +1966,8 @@ exx "* * 3 Apr * command_to_execute"
 exx ""
 exx "Sample job which runs a certain script at 02:30 every Friday:"
 exx "30 2 * * Fri /absolute/path/to/script.sh"
+exx ""
+exx "https://stackoverflow.com/questions/9619362/running-a-cron-every-30-seconds"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2148,12 +2102,42 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "To access WSL folders: go into bash and type:   explorer.exe .    (must use .exe or will not work),   or, from Explorer, \\wsl$"
     exx "From here, I can use GUI tools like BeyondCompare (to diff files easily, much easier than pure console tools)."
     exx ""
-    exx "The following has been run by custom_bash.sh to alter the jarring Windows Event sounds inside WSL sessions:"
-    exx ""
+    exx "Run the following to alter the jarring Windows Event sounds inside WSL sessions (it is run automatically by custom_bash.sh):"
     exx "\\\$toChange = @(\\\".Default\\\",\\\"SystemAsterisk\\\",\\\"SystemExclamation\\\",\\\"Notification.Default\\\",\\\"SystemNotification\\\",\\\"WindowsUAC\\\",\\\"SystemHand\\\")"
     exx "foreach (\\\$c in \\\$toChange) { Set-ItemProperty -Path \\\"HKCU:\\\AppEvents\\\Schemes\\\Apps\\\.Default\\\\\\\$c\\\.Current\\\" -Name \\\"(Default)\\\" -Value \\\"C:\\WINDOWS\\media\\ding.wav\\\" }"
     exx ""
-    exx "***** Run X-Display GUI from WSL"   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376
+    exx "\${RED}***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work\${NC}"
+    exx "In this case, to see Task Manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
+    exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
+    exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
+    exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
+    exx ""
+    exx "\${RED}***** Windows Terminal (wt) via PowerShell Tips and Split Panes\${NC}"
+    exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
+    exx "Alt+Shift+PLUS (vertical split of your default profile), Alt+Shift+MINUS (horizontal)."
+    exx "Click the new tab button, then hold down Alt while pressing a profile, to open an 'auto' split (will vertical or horizontal to be most square)"
+    exx "Click on a tab with mouse or just Alt-CursorKey to move to different tabs."
+    exx "To resize, hold down Alt+Shift, then CursorKey to change the size of the selected pane."
+    exx "Close focused pane or tab with Ctrl+Shift+W. If you only have one pane, this close the tab or window if only one tab."
+    exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
+    exx "To make bash launch in ~ instead of /mnt/c/Users in wt, open the wt Settings, find WSL2 profile, add \\\"commandline\\\": \\\"bash.exe ~\\\" (remember a comma after the previous line to make consistent), or \\\"startingDirectory\\\": \\\"//wsl$/Ubuntu/home/\\\"."
+    exx "\""   # require final line with a single " to end the multi-line text variable
+    exx "echo -e \"\$HELPNOTES\\n\""
+    chmod 755 $HELPFILE
+
+    ####################
+    #
+    echo "WSL X Window Setup (show with 'help-wsl-x')"
+    #
+    ####################
+    HELPFILE=$hh/help-wsl-x.sh
+    exx() { echo "$1" >> $HELPFILE; }
+    echo "#!/bin/bash" > $HELPFILE
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "HELPNOTES=\""
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL X Window GUI)\${NC}"
+    exx ""
+    exx "\${RED}***** Run X-Display GUI from WSL   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376\${NC}"
     exx "Can use for various login apps (aws-azure-login) from WSL - Unable to Open X-Display"
     exx "Since WSL distro does not come with GUI, we need to install a X-Server on our Windows Host and Connect to it from WSL."
     exx "1. Install VcXsrv Windows X Server from https://sourceforge.net/projects/vcxsrv/"
@@ -2168,84 +2152,137 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "6. Test by running xeyes"
     exx "sudo apt install x11-apps"
     exx "Now run 'xeyes' and you should be able to see the the xeyes application"
-    exx ""
-    exx "***** Enable SSH Server on WSL to connect from elsewhere (using different default ports)"
-    exx ""
-    exx "***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work"
-    exx "In this case, to see Task Manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
-    exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
-    exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
-    exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
-    exx ""
-    exx "Windows Terminal (wt) via PowerShell Tips and Split Panes"
-    exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
-    exx "Alt+Shift+PLUS (vertical split of your default profile), Alt+Shift+MINUS (horizontal)."
-    exx "Click the new tab button, then hold down Alt while pressing a profile, to open an 'auto' split (will vertical or horizontal to be most square)"
-    exx "Click on a tab with mouse or just Alt-CursorKey to move to different tabs."
-    exx "To resize, hold down Alt+Shift, then CursorKey to change the size of the selected pane."
-    exx "Close focused pane or tab with Ctrl+Shift+W. If you only have one pane, this close the tab or window if only one tab."
-    exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
-    exx "To make bash launch in ~ instead of /mnt/c/Users in wt, open the wt Settings, find WSL2 profile, add \\\"commandline\\\": \\\"bash.exe ~\\\" (remember a comma after the previous line to make consistent), or \\\"startingDirectory\\\": \\\"//wsl$/Ubuntu/home/\\\"."
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
+
+    ####################
+    #
+    echo "WSL Sublime GUI X Window App (show with 'help-wsl-sublime')"
+    #
+    ####################
+    HELPFILE=$hh/help-wsl-sublime.sh
+    exx() { echo "$1" >> $HELPFILE; }
+    echo "#!/bin/bash" > $HELPFILE
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "HELPNOTES=\""
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Sublime X Windows)\${NC}"
+    exx ""
+    exx "# This is to demonstrate running a full GUI app within WSL:"
+    exx "sudo apt update"
+    exx "sudo apt install apt-transport-https ca-certificates curl software-properties-common"
+    exx "# Import the repository’s GPG key using the following:"
+    exx "curl -fsSL https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -"
+    exx "# Add Sublime Text APT repository:"
+    exx "sudo add-apt-repository \\\"deb https://download.sublimetext.com/apt/stable/\\\""
+    exx "# Update apt sources then you can install Sublime Text 3:"
+    exx "sudo apt update"
+    exx "sudo apt install sublime-text"
+    exx "# It might be required to create a symbolic link (but this should be automatic):"
+    exx "# sudo ln -s /opt/sublime/sublime_text /usr/bin/subl"
+    exx "Start Sublime from console (with & to prevent holding console):"
+    exx "subl file.ext &"
+    exx "\""   # require final line with a single " to end the multi-line text variable
+    exx "echo -e \"\$HELPNOTES\\n\""
+    chmod 755 $HELPFILE
+
+    ####################
+    #
+    echo "WSL Audio Setup (show with 'help-wsl-audio')"
+    #
+    ####################
+    HELPFILE=$hh/help-wsl-audio.sh
+    exx() { echo "$1" >> $HELPFILE; }
+    echo "#!/bin/bash" > $HELPFILE
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "HELPNOTES=\""
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
+    exx ""
+    exx "***** To enable sound (PulseAudio) on WSL2:"
+    exx "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
+    exx "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
+    exx "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
+    exx "Copy the 'bin' folder from there to C:\bin and rename to C:\pulse (this contains the pulseaudio.exe)"
+    exx "Create C:\pulse\config.pa and add the following to that file:"
+    exx "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    exx "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    exx "load-module module-waveout sink_name=output source_name=input record=0"
+    exx "This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2."
+    exx "On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):"
+    exx "sudo apt install libpulse0"
+    exx "Add the following to ~/.bashrc:"
+    exx "export HOST_IP=\\\"\$(ip route |awk '/^default/{print \\\$3}')\\\""
+    exx "export PULSE_SERVER=\\\"tcp:\$HOST_IP\\\""
+    exx "#export DISPLAY=\\\"\$HOST_IP:0.0\\\""
+    exx "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
+    exx "Copy nssm.exe to C:\pulse\nssm.exe, then run:"
+    exx "C:\pulse\nssm.exe install PulseAudio"
+    exx "Application path:  C:\pulse\pulseaudio.exe"
+    exx "Startup directory: C:\pulse"
+    exx "Arguments:         -F C:\pulse\config.pa --exit-idle-time=-1"
+    exx "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
+    exx "On the Details tab, enter PulseAudio in the Display name field"
+    exx "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
+    exx "If you want to remove this service at some point:   C:\pulse\nssm.exe remove PulseAudio"
+    exx "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
+    exx "\""   # require final line with a single " to end the multi-line text variable
+    exx "echo -e \"\$HELPNOTES\\n\""
+    chmod 755 $HELPFILE
+
+    ####################
+    #
+    echo "WSL SSHD Server Notes (show with 'help-wsl-sshd')"
+    #
+    ####################
+    HELPFILE=$hh/help-wsl-sshd.sh
+    exx() { echo "$1" >> $HELPFILE; }
+    echo "#!/bin/bash" > $HELPFILE
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "HELPNOTES=\""
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL SSHD Server)\${NC}"
+    exx ""
+    exx "Connect to WSL via SSH: https://superuser.com/questions/1123552/how-to-ssh-into-wsl"
+    exx "SSH into a WSL2 host remotely and reliably: https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2"
+    exx "sudo apt install openssh-server # Install SSH server"
+    exx "/etc/ssh/sshd_config # Change Port 22 to Port 2222 as Windows uses port 22"
+    exx "sudo visudo  # We setup service ssh to not require a password"
+    exx ""
+    exx "# Allow members of group sudo to execute any command"
+    exx "%sudo   ALL=(ALL:ALL) ALL"
+    exx "%sudo   ALL=NOPASSWD: /usr/sbin/service ssh *"
+    exx ""
+    exx "sudo service ssh --full-restart # Restart ssh service  sudo /etc/init.d/ssh start"
+    exx "You might see: sshd: no hostkeys available -- exiting"
+    exx "If so, you need to run: sudo ssh-keygen -A to generate in /etc/ssh/"
+    exx "Now restart the server: sudo /etc/init.d/ssh start"
+    exx "You might see the following error on connecting: \\\"No supported authentication methods available (server sent: publickey)\\\""
+    exx "To fix this, sudo vi /etc/ssh/sshd_config. Change as follows to allow username/password authentication:"
+    exx "PasswordAuthentication = yes"
+    exx "ChallengeResponseAuthentication = yes"
+    exx "Restart ssh sudo /etc/init.d/ssh restart (or sudo service sshd restart)."
+    exx "Note: If you set PasswordAuthentication to yes and ChallengeResponseAuthentication to no you are able to connect automatically with a key, and those that don't have a key will connwct with a password - very useful"
+    exx ""
+    exx "# Using PuttyGen, keygen-ssh and authorized_keys"
+    exx "PuttyGen will create a public key file that looks like:"
+    exx ""
+    exx "---- BEGIN SSH2 PUBLIC KEY ----"
+    exx "Comment: \\\"rsa-key-20121022\\\""
+    exx "AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwu"
+    exx "a6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOH"
+    exx "tr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/u"
+    exx "vObrJe8="
+    exx "---- END SSH2 PUBLIC KEY ----"
+    exx ""
+    exx "However, this will not work, so what you need to do is to open the key in PuttyGen, and then copy it from there (this results in the key being in the right format and in 1 line):"
+    exx ""
+    exx "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwua6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOHtr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/uvObrJe8= rsa-key-20121022"
+    exx ""
+    exx "Paste this into authorized_keys then it should work."
+    exx "\""   # require final line with a single " to end the multi-line text variable
+    exx "echo -e \"\$HELPNOTES\\n\""
+    chmod 755 $HELPFILE
+
 fi
-
-
-
-####################
-#
-echo "WSL SSHD Server Notes (show with 'help-wsl-sshd')"
-#
-####################
-HELPFILE=$hh/help-wsl-sshd.sh
-exx() { echo "$1" >> $HELPFILE; }
-echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
-exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL SSHD Server)\${NC}"
-exx ""
-exx "Connect to WSL via SSH: https://superuser.com/questions/1123552/how-to-ssh-into-wsl"
-exx "SSH into a WSL2 host remotely and reliably: https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2"
-exx "sudo apt install openssh-server # Install SSH server"
-exx "/etc/ssh/sshd_config # Change Port 22 to Port 2222 as Windows uses port 22"
-exx "sudo visudo  # We setup service ssh to not require a password"
-exx ""
-exx "# Allow members of group sudo to execute any command"
-exx "%sudo   ALL=(ALL:ALL) ALL"
-exx "%sudo   ALL=NOPASSWD: /usr/sbin/service ssh *"
-exx ""
-exx "sudo service ssh --full-restart # Restart ssh service  sudo /etc/init.d/ssh start"
-exx "You might see: sshd: no hostkeys available -- exiting"
-exx "If so, you need to run: sudo ssh-keygen -A to generate in /etc/ssh/"
-exx "Now restart the server: sudo /etc/init.d/ssh start"
-exx "You might see the following error on connecting: \\\"No supported authentication methods available (server sent: publickey)\\\""
-exx "To fix this, sudo vi /etc/ssh/sshd_config. Change as follows to allow username/password authentication:"
-exx "PasswordAuthentication = yes"
-exx "ChallengeResponseAuthentication = yes"
-exx "Restart ssh sudo /etc/init.d/ssh restart (or sudo service sshd restart)."
-exx "Note: If you set PasswordAuthentication to yes and ChallengeResponseAuthentication to no you are able to connect automatically with a key, and those that don't have a key will connwct with a password - very useful"
-exx ""
-exx "# Using PuttyGen, keygen-ssh and authorized_keys"
-exx "PuttyGen will create a public key file that looks like:"
-exx ""
-exx "---- BEGIN SSH2 PUBLIC KEY ----"
-exx "Comment: \\\"rsa-key-20121022\\\""
-exx "AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwu"
-exx "a6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOH"
-exx "tr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/u"
-exx "vObrJe8="
-exx "---- END SSH2 PUBLIC KEY ----"
-exx ""
-exx "However, this will not work, so what you need to do is to open the key in PuttyGen, and then copy it from there (this results in the key being in the right format and in 1 line):"
-exx ""
-exx "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwua6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOHtr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/uvObrJe8= rsa-key-20121022"
-exx ""
-exx "Paste this into authorized_keys then it should work."
-exx "\""   # require final line with a single " to end the multi-line text variable
-exx "echo -e \"\$HELPNOTES\\n\""
-chmod 755 $HELPFILE
-
 
 
 
@@ -2327,9 +2364,7 @@ echo ""
 echo ""
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 echo "Note the above configuration details for any useful additional manual actions."
-echo "'update-distro' to run through all update/upgrade actions (def 'distro-update' to check)."
-echo "'update-custom-tools' will update .custom to latest version from Github."
-echo "'cat ~/.custom' to view the functions that will load in all new interactive shells."
+echo "'updistro' to run through all update/upgrade actions (def 'updistro' to check)."
 echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"
 echo ""
 # Only show the following lines if WSL is detected
@@ -2987,3 +3022,802 @@ fi
 ##  # mode:shell-script
 ##  # sh-shell:bash
 ##  # End:
+
+# Chagning keyboard layouts
+# The following came from #http://eklhad.net/linux/app/onehand.html (now seems dead)
+# alias keyboard-asdf="loadkeys /usr/lib/kbd/keytables/dvorak.map"
+# alias keyboard-aoeu="loadkeys /usr/lib/kbd/keytables/us.map"   # didn't work - must be a different command?
+# But the below do work (from the KDE Control Module Layout tab in the bottom where it says Command)
+# alias keyboard-asdf="setxkbmap -layout us -variant dvorak"
+# alias keyboard-aoeu="setxkbmap -layout us -variant basic"
+
+
+###   ### profile example:
+###   
+###   #BASH environment
+###   shopt -s histappend
+###   shopt -s cmdhist
+###   export PROMPT_COMMAND="history -n" #; history -a
+###   export HISTIGNORE="&:ls:[bf]g:exit"
+###   export HISTCONTROL="ignoreboth:ignorespace:erasedups"
+###   #PS1='\[\e[0;32m\]\u@\h\[\e[m\] \[\e[1;34m\]\w\[\e[m\] \[\e[1;32m\]\$ \[\e[m\]\[\e[1;37m\] '
+###   #PS1='\[\e[1;37m\]\@\e[m\] \[\e[0;33m\]\u\[\e[m\] \[\e[1;34m\]\w\[\e[m\] \[\e[1;32m\]\$ \[\e[m\]'
+###   
+###   ##################
+###   #users and groups#
+###   ##################
+###   
+###   uinf(){
+###   echo "current directory="`pwd`;
+###   echo "you are="`whoami`
+###   echo "groups in="`id -n -G`;
+###   tree -L 1 -h $HOME;
+###   echo "terminal="`tty`;
+###   }
+###   
+###   #################
+###   #search and find#
+###   #################
+###   
+###   alias ww="which"
+###   
+###   #search and grep
+###   g(){
+###   cat $1|grep $2
+###   }
+###   
+###   #find
+###   ff(){
+###   find . -name $@ -print;
+###   }
+###   
+###   ######################
+###   #directory navigation#
+###   ######################
+###   
+###   alias c="cd"
+###   alias u="cd .."
+###   alias cdt="cd $1&&tree -L 3 -h"
+###   alias c-="cd -"
+###   
+###   ##ls when cd
+###   cd(){
+###   if [ -n "$1" ]; then
+###   builtin cd "$@"&&ls -la --color=auto
+###   else
+###   builtin cd ~&&ls -la --color=auto
+###   fi
+###   }
+###   
+###   #######################
+###   #directory information#
+###   #######################
+###   
+###   alias du="du -h"
+###   alias ds="du -h|sort -n"
+###   alias dusk="du -s -k -c *| sort -rn"
+###   alias dush="du -s -k -c -h *| sort -rn"
+###   alias t3="tree -L 3 -h"
+###   alias t="tree"
+###   alias dir="dir --color=auto"
+###   
+###   #ls
+###   alias ls="ls --color=auto"
+###   alias ll="ls -l"
+###   alias l="ls -CF"
+###   alias la="ls -la"
+###   alias li="ls -ai1|sort" # sort by index number
+###   alias lt="ls -alt|head -20" # 20, all, long listing, modification time
+###   alias lh="ls -Al" # show hidden files
+###   alias lx="ls -lXB" # sort by extension
+###   alias lk="ls -lSr" # sort by size
+###   alias lss="ls -shAxSr" # sort by size
+###   alias lc="ls -lcr" # sort by change time
+###   alias lu="ls -lur" # sort by access time
+###   alias ld="ls -ltr" # sort by date
+###   alias lm="ls -al|more" # pipe through ‘more’
+###   alias lsam="ls -am" # List files horizontally
+###   alias lr="ls -lR" # recursive
+###   alias lsx="ls -ax" # sort right to left rather then in columns
+###   alias lh="ls -lAtrh" # sort by date and human readable
+###   
+###   #top10 largest in directory
+###   t10(){
+###   pwd&&du -ab $1|sort -n -r|head -n 10
+###   }
+###   
+###   #top10 apparent size
+###   t10a(){
+###   pwd&&du -ab --apparent-size $1|sort -n -r|head -n 10
+###   }
+###   
+###   #dsz - finds directory sizes and lists them for the current directory
+###   dsz (){
+###   du -shx * .[a-zA-Z0-9_]* 2> /dev/null | \
+###   egrep '^ *[0-9.]*[MG]' | sort -n > /tmp/list
+###   egrep '^ *[0-9.]*M' /tmp/list
+###   egrep '^ *[0-9.]*G' /tmp/list
+###   rm /tmp/list
+###   }
+###   
+###   #################################
+###   #file and directory manipulation#
+###   #################################
+###   
+###   alias n="nano"
+###   alias rm="rm -i"
+###   alias cp="cp -i"
+###   alias mv="mv -i"
+###   alias dclr="find . -maxdepth 1 -type f -exec rm {} \;" #clean out directory,leaving intact
+###   
+###   
+###   #remove from startup but keep init script handy
+###   sym(){
+###   update-rc.d -f $1 remove
+###   }
+###   
+###   #force directory rm
+###   rmd(){
+###   rm -fr $@;
+###   }
+###   
+###   #makes a directory, then changes into it
+###   #mkcd (){
+###   #mkdir -p $1&& cd $1
+###   #}
+###   
+###   # makes directory($1), and moves file in current (pwd+$2) to new directory and changes to new directory
+###   mkcd(){
+###   THIS=`pwd`
+###   mkdir -p $1&&mv $THIS/$2 $1&&cd $1
+###   }
+###   
+###   #changes to the parent directory, then removes the one you were just in.
+###   cdrm(){
+###   THIS=`pwd`
+###   cd ..
+###   rmd $THIS
+###   }
+###   
+###   ##########
+###   #archives#
+###   ##########
+###   
+###   # Extract files from any archive
+###   ex () {
+###   if [ -f $1 ] ; then
+###   case $1 in
+###   *.tar.bz2) tar xjf $1 ;;
+###   *.tar.gz) tar xzf $1 ;;
+###   *.bz2) bunzip2 $1 ;;
+###   *.rar) rar x $1 ;;
+###   *.gz) gunzip $1 ;;
+###   *.tar) tar xf $1 ;;
+###   *.tbz2) tar xjf $1 ;;
+###   *.tgz) tar xzf $1 ;;
+###   *.zip) unzip $1 ;;
+###   *.Z) uncompress $1 ;;
+###   *.7z) 7z x $1 ;;
+###   *) echo "'$1' cannot be extracted via extract()" ;;
+###   esac
+###   else
+###   echo "'$1' is not a valid file"
+###   fi
+###   }
+###   
+###   #######################
+###   #processes and sysinfo#
+###   #######################
+###   
+###   alias fr="free -otm"
+###   alias d="df"
+###   alias df="df -h"
+###   alias h="htop"
+###   alias pst="pstree"
+###   alias psx="ps auxw|grep $1"
+###   alias pss="ps --context ax"
+###   alias psu="ps -eo pcpu -o pid -o command -o user|sort -nr|head"
+###   alias cpuu="ps -e -o pcpu,cpu,nice,state,cputime,args --sort pcpu | sed '/^ 0.0 /d'"
+###   alias memu='ps -e -o rss=,args= | sort -b -k1,1n | pr -TW$COLUMNS'
+###   alias ducks='ls -A | grep -v -e '\''^\.\.$'\'' |xargs -i du -ks {} |sort -rn |head -16 | awk '\''{print $2}'\'' | xargs -i du -hs {}' # useful alias to browse your filesystem for heavy usage quickly
+###   
+###   #system roundup
+###   sys(){
+###   if [ `id -u` -ne 0 ]; then echo "you are not root"&&exit;fi;
+###   uname -a
+###   echo "runlevel" `runlevel`
+###   uptime
+###   last|head -n 5;
+###   who;
+###   echo "============= CPUs ============="
+###   grep "model name" /proc/cpuinfo #show CPU(s) info
+###   cat /proc/cpuinfo | grep 'cpu MHz'
+###   echo ">>>>>current process"
+###   pstree
+###   echo "============= MEM ============="
+###   #KiB=`grep MemTotal /proc/meminfo | tr -s ' ' | cut -d' ' -f2`
+###   #MiB=`expr $KiB / 1024`
+###   #note various mem not accounted for, so round to appropriate sizeround=32
+###   #echo "`expr \( \( $MiB / $round \) + 1 \) \* $round` MiB"
+###   free -otm;
+###   echo "============ NETWORK ============"
+###   ip link show
+###   /sbin/ifconfig | awk /'inet addr/ {print $2}'
+###   /sbin/ifconfig | awk /'Bcast/ {print $3}'
+###   /sbin/ifconfig | awk /'inet addr/ {print $4}'
+###   /sbin/ifconfig | awk /'HWaddr/ {print $4,$5}'
+###   echo "============= DISKS =============";
+###   df -h;
+###   echo "============= MISC =============="
+###   echo "==<kernel modules>=="
+###   lsmod|column -t|awk '{print $1}';
+###   echo "=======<pci>========"
+###   lspci -tv;
+###   echo "=======<usb>======="
+###   lsusb;
+###   }
+###   
+###   #readable df
+###   dfh(){
+###   df -PTah $@
+###   }
+###   
+###   #Locate processes
+###   function pspot () {
+###   echo `ps auxww | grep $1 | grep -v grep`
+###   }
+###   
+###   #Nuke processes
+###   function pk () {
+###   killing=`ps auxww | grep $1 | grep -v grep | cut -c10-16`
+###   echo "Killing $killing"
+###   kill -9 $killing
+###   }
+###   
+###   #########
+###   #network#
+###   #########
+###   
+###   alias d.="sudo ifdown eth0"
+###   alias u.="sudo ifup eth0"
+###   alias if.="sudo iftop -Pp -i eth0"
+###   alias i.="ifconfig"
+###   alias r.="route"
+###   alias ipt.="sudo iptstate -l -1"
+###   alias iptq.="sudo iptstate -l -1|grep $1"
+###   alias n1.='netstat -tua'
+###   alias n2.="netstat -alnp --protocol=inet|grep -v CLOSE_WAIT|cut -c-6,21-94|tail"
+###   alias n3.='watch --interval=2 "sudo netstat -apn -l -A inet"'
+###   alias n4.='watch --interval=2 "sudo netstat -anp --inet --inet6"'
+###   alias n5.='sudo lsof -i'
+###   alias n6.='watch --interval=2 "sudo netstat -p -e --inet --numeric-hosts"'
+###   alias n7.='watch --interval=2 "sudo netstat -tulpan"'
+###   alias n8.='sudo netstat -tulpan'
+###   alias n9.='watch --interval=2 "sudo netstat -utapen"'
+###   alias n10.='watch --interval=2 "sudo netstat -ano -l -A inet"'
+###   alias n11.='netstat -an | sed -n "1,/Active UNIX domain sockets/ p" | more'
+###   
+###   #network information
+###   ni.(){
+###   echo "--------------- Network Information ---------------"
+###   /sbin/ifconfig | awk /'inet addr/ {print $2}'
+###   /sbin/ifconfig | awk /'Bcast/ {print $3}'
+###   /sbin/ifconfig | awk /'inet addr/ {print $4}'
+###   /sbin/ifconfig | awk /'HWaddr/ {print $4,$5}'
+###   echo "---------------------------------------------------"
+###   }
+###   
+###   #####
+###   #apt#
+###   #####
+###   
+###   alias update="sudo apt-get update"
+###   alias upgrade="sudo apt-get update&&sudo apt-get dist-upgrade"
+###   alias apt="sudo apt-get install"
+###   alias remove="sudo apt-get autoremove"
+###   alias search="apt-cache search"
+###   
+###   ######
+###   #misc#
+###   ######
+###   
+###   alias .a="nano ~/.bash_alias" #personal shortcut for editing aliases
+###   alias .a2="kwrite ~/.bash_alias&"
+###   alias .x="xset dpms force off" # turns off lcd screen
+###   alias .mpd="synclient TouchpadOff=1"
+###   alias .mpu="synclient TouchpadOff=0"
+###   
+###   #2nd life
+###   2l(){
+###   esd&
+###   ~/SL/SecondLife_i686_1_20_14_92115_RELEASECANDIDATE/secondlife
+###   }
+###   
+###   #email sort from text e.g. webpage source html
+###   address(){
+###   cat $1|grep $2|perl -wne'while(/[\w\.\-]+@[\w\.\-]+\w+/g){print "$&\n"}'| sort -u > address.txt
+###   }
+###   
+###   #parse links from html LINKS is a perl script
+###   #or ?
+###   #remove most HTML tags (accommodates multiple-line tags)
+###   #sed -e :a -e 's/<[^>]*>//g;/</N;//ba'
+###   links(){
+###   links $1|sort -u>>./parsedlinks.txt
+###   }
+###   
+###   #analyze your bash usage
+###   check(){
+###   cut -f1 -d" " .bash_history | sort | uniq -c | sort -nr | head -n 30
+###   }
+###   
+###   # clock - A bash clock that can run in your terminal window.
+###   clock (){
+###   while true;do clear;echo "===========";date +"%r";echo "===========";sleep 1;done
+###   }
+###   
+###   #Welcome Screen#
+###   clear
+###   echo -ne "${GREEN}" "Hello, $USER. today is, "; date
+###   echo -e "${WHITE}"; cal;
+###   echo -ne "${CYAN}";
+###   echo -ne "${BRIGHT_VIOLET}Sysinfo:";uptime ;echo ""
+###   ##
+###   
+###   # Define a word - USAGE: define dog
+###   define (){
+###   lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" |
+###   grep -m 3 -w "*" | sed 's/;/ -/g' | cut -d- -f1 > /tmp/templookup.txt
+###   if [[ -s /tmp/templookup.txt ]] ;then
+###   until ! read response
+###   do
+###   echo "${response}"
+###   done < /tmp/templookup.txt
+###   else
+###   echo "Sorry $USER, I can't find the term
+###   \"${1} \""
+###   fi
+###   \rm -f /tmp/templookup.txt
+###   }
+###   
+###   #py template
+###   py(){
+###   echo -e '#!/usr/bin/python\n# -*- coding: UTF-8 -*-\n#\n#\n'>$1.py
+###   chmod +x $1.py
+###   nano $1.py
+###   }
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   
+###   ################################################## ################################
+###   #to be determined#
+###   # regex for email?
+###   # ^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}$
+###   # regex for httpaddresses?
+###   # /<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>/siU
+###   # /<a\s[^>]*href\s*=\s*(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>/siU
+###   #
+###   #lcfiles - Lowercase all files in the current directory
+###   #lcfiles() {
+###   #read -p "Really lowercase all files? (y/n)"
+###   #[$REPLY=="y"]||exit
+###   #for i in *
+###   #do mv $i $i:l
+###   #echo "done";
+###   #fi
+###   
+###   #alias lup='/etc/rc.d/lighttpd start'
+###   #alias lup.='/etc/rc.d/lighttpd restart'
+###   #alias t3="tree"
+###   #PS1='[\d \u@\h:\w]'
+###   #PS1='[\u@\h \W]\$ '
+###   #PS1="\[\033[1;30m\][\[\033[1;34m\]\u\[\033[1;30m\]@\[\033[0;35m\]\h\[\033[1;30m\]]\[\033[0;37m\]\W \[\033[1;30m\]\$\[\033[0m\]"
+###   #cool colors for manpages
+###   #alias man="TERMINFO=~/.terminfo TERM=mostlike LESS=C PAGER=less man"
+###   #alias sl="/home/wind/SL/SL/secondlife"
+###   
+###   # Compress the cd, ls -l series of commands.
+###   #alias lc="cl"
+###   #function cl () {
+###   # if [ $# = 0 ]; then
+###   # cd && ll
+###   # else
+###   # cd "$*" && ll
+###   # fi
+###   #}
+###   
+###   #readln prompt default
+###   #
+###   #function readln () {
+###   # if [ "$DEFAULT" = "-d" ]; then
+###   # echo "$1"
+###   # ans=$2
+###   # else
+###   # echo -n "$1"
+###   # IFS='@' read ans </dev/tty || exit 1
+###   # [ -z "$ans" ] && ans=$2
+###   # fi
+###   #}
+###   
+###   
+###   #http://seanp2k.com/?p=13
+###   #It’s for running scp with preset variables, you could maybe make a few of
+###   #these for different servers you use scp to send files to, again a big
+###   #time-saver.
+###   # function sshcp {
+###   # #ssh cp function by seanp2k
+###   # FNAME=$1
+###   # #the name of the file or files you want to copy
+###   # PORTNUM=”22″
+###   # #the port number for ssh, usually 22
+###   # HOSTNAM=”192.168.1.1″
+###   # #the host name or IP you are trying to ssh into
+###   # if [ $2 ]
+###   # then
+###   # RFNAME=”:$2″
+###   # else
+###   # RFNAME=”:”
+###   # fi
+###   # #if you specify a second argument, i.e. sshcp foo.tar blah.tar,
+###   # #it will take foo.tar locally and copy it to remote file bar.tar
+###   # #otherwise, just use the input filename
+###   # USRNAME=”root”
+###   # #you should never allow root login via ssh, so change this username
+###   #
+###   # scp -P “$PORTNUM” “$FNAME” “$USRNAME@$HOSTNAM$RFNAME”
+###   #
+###   # }
+###   
+###   #http://seanp2k.com/?p=13
+###   #searches through the text of all the files in your current directory. #Very useful for, say, debugging a PHP script you didn’t write and can’t #trackdown where that damn MySQL connect string actually is.
+###   #function grip {
+###   #grep -ir “$1″ “$PWD”
+###   #}
+###   
+###   ##top10 again *only produces one line still needs work
+###   #t10(){
+###   #du -ks $1|sort -n -r|head -n 10
+###   #}
+###   
+###   
+###   #found but not yet tested
+###   #
+###   #################
+###   ### FUNCTIONS ###
+###   #################
+###   #
+###   #function ff { find . -name $@ -print; }
+###   #
+###   
+###   #function osr { shutdown -r now; }
+###   #function osh { shutdown -h now; }
+###   
+###   #function mfloppy { mount /dev/fd0 /mnt/floppy; }
+###   #function umfloppy { umount /mnt/floppy; }
+###   
+###   #function mdvd { mount -t iso9660 -o ro /dev/dvd /mnt/dvd; }
+###   #function umdvd { umount /mnt/dvd; }
+###   
+###   #function mcdrom { mount -t iso9660 -o ro /dev/cdrom /mnt/cdrom; }
+###   #function umcdrom { umount /mnt/cdrom; }
+###   
+###   #function psa { ps aux $@; }
+###   #function psu { ps ux $@; }
+###   
+###   #function dub { du -sclb $@; }
+###   #function duk { du -sclk $@; }
+###   #function dum { du -sclm $@; }
+###   
+###   #function dfk { df -PTak $@; }
+###   #function dfm { df -PTam $@; }
+###   
+###   #function dfi { df -PTai $@; }
+###   
+###   #copy and go to dir
+###   #cpg (){
+###   # if [ -d "$2" ];then
+###   # cp $1 $2 && cd $2
+###   # else
+###   # cp $1 $2
+###   # fi
+###   #}
+###   
+###   #move and go to dir
+###   #mvg (){
+###   # if [ -d "$2" ];then
+###   # mv $1 $2 && cd $2
+###   # else
+###   # mv $1 $2
+###   # fi
+
+
+# Below have been superseded by 'trans' (Translate-Shell), but leaving them here as good techniques for web crawling
+# webget() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   '"${2:-noun}"'$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# webdef() { if [ -z $2 ]; then header=40; else header=$2; fi; lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }  # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# websyn() { if [ -z $2 ]; then header=40; else header=$2; fi; lynx -dump "http://www.google.com/search?hl=en&q=synonym%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
+# webdefapi() { lynx -dump "https://api.dictionaryapi.dev/api/v2/entries/en/${1}" | jq '.[] | .meanings[] | select(.partOfSpeech=="noun") | .definitions | .[].definition'; }
+
+# If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is almost definitely redundant since I now use git tokens natively on WSL)
+    # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
+    # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
+
+
+
+####################
+#
+# Randomly select from array 
+# 
+# 
+# # Following syntax is correct, but VS Code thinks it is wrong due to the complex braces https://stackoverflow.com/questions/28544522/function-to-get-a-random-element-of-an-array-bash
+# # randArrayElement(){ arr=("${!1}"); echo ${arr["$[RANDOM % ${#arr[@]}]"]}; }   # Select a random item from an array
+# 
+# # Following is my attempt to select randomly, then reduce the size of the array, then keep doing that until array is empty
+# files=(/usr/share/cowsay/*.cow)
+# for file in "${files[@]}"; do echo "$file"; done   # This just shows the items in order
+# 
+# files_length=${#files[@]}   # Length of the array 
+# for (( i=0; i<$files_length; ++i)); do
+#     index=$[RANDOM % ${#files[@]}]   # Select a random index
+#     item=${files["$index"]}
+#     files=("${files[@]/$item}");     # Delete the item from the array (leaving a blank space at that index)
+#     new_files=()                 # temp array to help with resizing
+#     for j in "${!files[@]}"; do
+#         new_item=${files["$j"]}
+#         [[ $new_item != $item ]] && new_files+=($new_item)
+#     done
+#     echo "New Length = ${#new_files[@]}"
+#     files=("${new_files[@]}")
+#     echo "$i $index $item"
+# done
+# 
+# for file in "${files[@]}"; do
+#     echo "$file"
+# done
+# cx() { arr=("${!1}"); index=$[RANDOM % ${#arr[@]}]; item=${arr["$index"]}; echo $item; }
+# 
+# cx() {
+#     randArrayItem() { arr=("${!1}"); index=$[RANDOM % ${#arr[@]}]; item=${arr["$index"]}; echo $item; }
+#     echo "$(randArrayItem "files[@]")"
+#     files=("${arr[@]/$item}"); 
+# }
+
+# files=(/usr/share/cowsay/*.cow)
+# files_length=${#files[@]}   # Length of the array
+# 
+# for (( i=0; i<$files_length; ++i)); do
+#     while found
+#     index=$(( ( RANDOM % $files_length )  + 1 ))
+#     if [[ ! " ${array[*]} " =~ " ${value} " ]]; then
+#     
+# 
+# 
+# for (( i=0; i<$files_length; ++i)); do
+#     index=$[RANDOM % ${#files[@]}]   # Select a random index
+#     item=${files["$index"]}
+#     files=("${files[@]/$item}");     # Delete the item from the array (leaving a blank space at that index)
+#     new_files=()                 # temp array to help with resizing
+#     for j in "${!files[@]}"; do
+#         new_item=${files["$j"]}
+#         [[ $new_item != $item ]] && new_files+=($new_item)
+#     done
+#     echo "New Length = ${#new_files[@]}"
+#     files=("${new_files[@]}")
+#     echo "$i $index $item"
+# done
+# 
+# d1=(/usr/share/cowsay/*.cow)
+# d2=(/usr/share/ponysay/ponies/*.pony)
+# files=("${d1[@]}" "${d2[@]}")
+# 
+# while IFS= read -d $'\0' -r file; do
+#     echo "$file"
+# done < <(printf '%s\0' "${files[@]}" | shuf -z)
+
+
+# http://fungi.yuggoth.org/weather/  weather utility console ... but using lynx could be better if can find a way
+
+
+
+##### Nice / simple prompt
+#export black="\[\033[0;38;5;0m\]"
+#export red="\[\033[0;38;5;1m\]"
+#export orange="\[\033[0;38;5;130m\]"
+#export green="\[\033[0;38;5;2m\]"
+#export yellow="\[\033[0;38;5;3m\]"
+#export blue="\[\033[0;38;5;4m\]"
+#export bblue="\[\033[0;38;5;12m\]"
+#export magenta="\[\033[0;38;5;55m\]"
+#export cyan="\[\033[0;38;5;6m\]"
+#export white="\[\033[0;38;5;7m\]"
+#export coldblue="\[\033[0;38;5;33m\]"
+#export smoothblue="\[\033[0;38;5;111m\]"
+#export iceblue="\[\033[0;38;5;45m\]"
+#export turqoise="\[\033[0;38;5;50m\]"
+#export smoothgreen="\[\033[0;38;5;42m\]"
+#export defaultcolor="\[\e[m\]"
+#PS1="$bblue\[┌─\]($orange\$newPWD$bblue)\[─\${fill}─\]($orange\u@\h \$(date \"+%a, %d %b %y\")$bblue)\[─┐\]\n$bblue\[└─\](\$newRET)(\#)($orange\$(date \"+%H:%M\")$bblue)->$defaultcolor "
+
+### ##### Secure-delete substitution
+### 
+### alias srm='sudo srm -f -s -z -v'
+### alias srm-m='sudo srm -f -m -z -v'
+### alias smem-secure='sudo sdmem -v'
+### alias smem-f='sudo sdmem -f -l -l -v'
+### alias smem='sudo sdmem -l -l -v'
+### alias sfill-f='sudo sfill -f -l -l -v -z'
+### alias sfill='sudo sfill -l -l -v -z'
+### alias sfill-usedspace='sudo sfill -i -l -l -v'
+### alias sfill-freespace='sudo sfill -I -l -l -v'
+### alias sswap='sudo sswap -f -l -l -v -z'
+### alias sswap-sda5='sudo sswap -f -l -l -v -z /dev/sda5'
+### alias swapoff='sudo swapoff /dev/sda5'
+### alias swapon='sudo swapon /dev/sda5'
+### 
+### 
+### 
+### ##### Shred substitution
+### 
+### alias shred-sda='sudo shred -v -z -n 0 /dev/sda'
+### alias shred-sdb='sudo shred -v -z -n 0 /dev/sdb'
+### alias shred-sdc='sudo shred -v -z -n 0 /dev/sdc'
+### alias shred-sdd='sudo shred -v -z -n 0 /dev/sdd'
+### alias shred-sde='sudo shred -v -z -n 0 /dev/sde'
+### alias shred-sdf='sudo shred -v -z -n 0 /dev/sdf'
+### alias shred-sdg='sudo shred -v -z -n 0 /dev/sdg'
+### alias shred-sda-r='sudo shred -v -z -n 1 /dev/sda'
+### alias shred-sdb-r='sudo shred -v -z -n 1 /dev/sdb'
+### alias shred-sdc-r='sudo shred -v -z -n 1 /dev/sdc'
+### alias shred-sdd-r='sudo shred -v -z -n 1 /dev/sdd'
+### alias shred-sde-r='sudo shred -v -z -n 1 /dev/sde'
+### alias shred-sdf-r='sudo shred -v -z -n 1 /dev/sdf'
+### alias shred-sdg-r='sudo shred -v -z -n 1 /dev/sdg'
+### 
+### 
+### 
+### ##### DD substitution
+### 
+### alias backup-sda='sudo dd if=/dev/hda of=/dev/sda bs=64k conv=notrunc,noerror' # to backup the existing drive to a USB drive
+### alias restore-sda='sudo dd if=/dev/sda of=/dev/hda bs=64k conv=notrunc,noerror' # to restore from the USB drive to the existing drive
+### alias partitioncopy='sudo dd if=/dev/sda1 of=/dev/sda2 bs=4096 conv=notrunc,noerror' # to duplicate one hard disk partition to another hard disk partition
+### alias cdiso='sudo dd if=/dev/hda of=cd.iso bs=2048 conv=sync,notrunc' # to make an iso image of a CD
+### alias diskcopy='sudo dd if=/dev/dvd of=/dev/cdrecorder'
+### alias cdcopy='sudo dd if=/dev/cdrom of=cd.iso' # for cdrom
+### alias scsicopy='sudo dd if=/dev/scd0 of=cd.iso' # if cdrom is scsi
+### alias dvdcopy='sudo dd if=/dev/dvd of=dvd.iso' # for dvd
+### alias floppycopy='sudo dd if=/dev/fd0 of=floppy.image' # to duplicate a floppy disk to hard drive image file
+### alias dd-sda='sudo dd if=/dev/zero of=/dev/sda conv=notrunc' # to wipe hard drive with zero
+### alias dd-sdb='sudo dd if=/dev/zero of=/dev/sdb conv=notrunc' # to wipe hard drive with zero
+### alias dd-sdc='sudo dd if=/dev/zero of=/dev/sdc conv=notrunc' # to wipe hard drive with zero
+### alias dd-sdd='sudo dd if=/dev/zero of=/dev/sdd conv=notrunc' # to wipe hard drive with zero
+### alias dd-sde='sudo dd if=/dev/zero of=/dev/sde conv=notrunc' # to wipe hard drive with zero
+### alias dd-sdf='sudo dd if=/dev/zero of=/dev/sdf conv=notrunc' # to wipe hard drive with zero
+### alias dd-sdg='sudo dd if=/dev/zero of=/dev/sdg conv=notrunc' # to wipe hard drive with zero
+### alias dd-sda-r='sudo dd if=/dev/urandom of=/dev/sda bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sdb-r='sudo dd if=/dev/urandom of=/dev/sdb bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sdc-r='sudo dd if=/dev/urandom of=/dev/sdc bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sdd-r='sudo dd if=/dev/urandom of=/dev/sdd bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sde-r='sudo dd if=/dev/urandom of=/dev/sde bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sdf-r='sudo dd if=/dev/urandom of=/dev/sdf bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sdg-r='sudo dd if=/dev/urandom of=/dev/sdg bs=102400' # to wipe hard drive with random data option (1)
+### alias dd-sda-full='sudo dd if=/dev/urandom of=/dev/sda bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sdb-full='sudo dd if=/dev/urandom of=/dev/sdb bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sdc-full='sudo dd if=/dev/urandom of=/dev/sdc bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sdd-full='sudo dd if=/dev/urandom of=/dev/sdd bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sde-full='sudo dd if=/dev/urandom of=/dev/sde bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sdf-full='sudo dd if=/dev/urandom of=/dev/sdf bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+### alias dd-sdg-full='sudo dd if=/dev/urandom of=/dev/sdg bs=8b conv=notrunc,noerror' # to wipe hard drive with random data option (2)
+
+
+
+# function mediainfo() {    # ii id3v2 mp3gain metaflac
+#     EXT=`echo "${1##*.}" | sed 's/\(.*\)/\L\1/'`
+#     if [ "$EXT" == "mp3" ]; then
+#         id3v2 -l "$1"
+#         echo
+#         mp3gain -s c "$1"
+#     elif [ "$EXT" == "flac" ]; then
+#         metaflac --list --block-type=STREAMINFO,VORBIS_COMMENT "$1"
+#     else
+#         echo "ERROR: Not a supported file type."
+#     fi
+# }
+# 
+# # Convert videos to AVI files
+# function conv2avi() {
+# 	# copyright 2007 - 2010 Christopher Bratusek
+# 	if [[ $(which mencoder-mt) != "" ]]; then
+# 	mencoder-mt "$1" -lavdopts threads=8 \
+# 	  -ovc xvid -xvidencopts fixed_quant=4 -of avi \
+# 	  -oac mp3lame -lameopts vbr=3 \
+# 	  -o "$1".avi
+# 	else
+# 	mencoder "$1" -lavdopts \
+# 	  -ovc xvid -xvidencopts fixed_quant=4 -of avi \
+# 	  -oac mp3lame -lameopts vbr=3 \
+# 	  -o "$1".avi
+# 	fi
+# }
+
+### # Optimize PNG files
+### function pngoptim()
+### {
+###        NAME_="pngoptim"
+###        HTML_="optimize png files"
+###     PURPOSE_="reduce the size of a PNG file if possible"
+###    SYNOPSIS_="$NAME_ [-hl] <file> [file...]"
+###    REQUIRES_="standard GNU commands, pngcrush"
+###     VERSION_="1.0"
+###        DATE_="2004-06-29; last update: 2004-12-30"
+###      AUTHOR_="Dawid Michalczyk <dm@eonworks.com>"
+###         URL_="www.comp.eonworks.com"
+###    CATEGORY_="gfx"
+###    PLATFORM_="Linux"
+###       SHELL_="bash"
+###  DISTRIBUTE_="yes"
+### # This program is distributed under the terms of the GNU General Public License
+### usage() {
+### echo >&2 "$NAME_ $VERSION_ - $PURPOSE_
+### Usage: $SYNOPSIS_
+### Requires: $REQUIRES_
+### Options:
+###      -h, usage and options (this help)
+###      -l, see this script"
+### exit 1
+### }
+### # tmp file set up
+### tmp_1=/tmp/tmp.${RANDOM}$$
+### # signal trapping and tmp file removal
+### trap 'rm -f $tmp_1 >/dev/null 2>&1' 0
+### trap "exit 1" 1 2 3 15
+### # var init
+### old_total=0
+### new_total=0
+### # arg handling and main execution
+### case "$1" in
+###     -h) usage ;;
+###     -l) more $0; exit 1 ;;
+###      *.*) # main execution
+###         # check if required command is in $PATH variable
+###         which pngcrush &> /dev/null
+###         [[ $? != 0 ]] && { echo >&2 required \"pngcrush\" command is not in your PATH; exit 1; }
+###         for a in "$@";do
+###             if [ -f $a ] && [[ ${a##*.} == [pP][nN][gG] ]]; then
+###                 old_size=$(ls -l $a | { read b c d e f g; echo $f ;} )
+###                 echo -n "${NAME_}: $a $old_size -> "
+###                 pngcrush -q $a $tmp_1
+###                 rm -f -- $a
+###                 mv -- $tmp_1 $a
+###                 new_size=$(ls -l $a | { read b c d e f g; echo $f ;} )
+###                 echo $new_size bytes
+###                 (( old_total += old_size ))
+###                 (( new_total += new_size ))
+###             else
+###                 echo ${NAME_}: file $a either does not exist or is not a png file
+###             fi
+###         done ;;
+###     *) echo ${NAME_}: skipping $1 ; continue ;;
+### esac
+### percentage=$(echo "scale = 2; ($new_total*100)/$old_total" | bc)
+### reduction=$(echo $(( old_total - new_total )) \
+### | sed '{ s/$/@/; : loop; s/\(...\)@/@.\1/; t loop; s/@//; s/^\.//; }')
+### echo "${NAME_}: total size reduction: $reduction bytes (total size reduced to ${percentage}%)"
+### }

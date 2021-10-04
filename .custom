@@ -21,8 +21,9 @@ shopt -s histappend
 shopt -s checkwinsize
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
-alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since we now have history, need a way to replicate original history
-alias hs='history | grep -A 1 -B 1'    # Search history, show matches plus 1 line 'A'bove and 1 line 'B'elow each match (to get context for why the command was run)
+alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since default history has date-time, need a way to replicate original history.
+alias hh0="history | awk '{\$1=\$2=\$3=\"\"; print \$0}'"   # This variant is just the commands and nothing else
+alias hs='history | grep'; hs1='history | grep -A 1 -B 1'; hs1='history | grep -A 2 -B 2'    # Search history, optionally with x lines 'A'bove and 1 line 'B'elow each match (to get context)
 alias h="history|grep"
 alias f="find . |grep"
 alias p="ps aux |grep"

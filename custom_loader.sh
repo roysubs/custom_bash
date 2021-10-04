@@ -169,7 +169,7 @@ if type dnf &> /dev/null 2>&1; then
         echo ""
         echo "$DISTRO : EPEL Repository is already installed"
     else
-        exe dnf install epel-release
+        sudo dnf install epel-release
     fi
     if [[ $(dnf repolist | grep powertools) ]]; then
         echo "$DISTRO : PowerTools Repository is already installed"
@@ -288,11 +288,11 @@ if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -P /tmp
 fi
 # [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
 [[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
-check_and_install ncdu ncdu
+[[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
 check_and_install tree tree
 check_and_install dos2unix dos2unix
 check_and_install mount mount
-check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
+[[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
 [[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
 # check_and_install macchina macchina    # System information
 check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)

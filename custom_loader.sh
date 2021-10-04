@@ -468,7 +468,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # various ways to get name without extension https://stackoverflow.com/questions/12152626/how-can-i-remove-the-extension-of-a-filename-in-a-shell-script
     echo -e "$DL\n$ver_and_filename\n$ver\n$filename\n$extension\n$filename_no_extension"
 
-    [ ! -f /tmp/$filename ] && exe wget -P /tmp/ $DL  # 
+    [ ! -f /tmp/$filename ] && exe wget -nc --tries=3 -T30 --restrict-file-names=nocontrol -O -P /tmp/ $DL  # 
 
     # Try to use 'alien' to create a .rpm from a .deb:   alien --to-rpm <name>.deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
     # I can get this to work when running alien on Ubuntu, but it alien fails with errors when running on CentOS.
@@ -3966,3 +3966,6 @@ fi
 
 ### Online Bash Debugger (useful to put a function snippet in and check outside of main script)
 ### https://www.onlinegdb.com/online_bash_shell
+
+    # alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'
+    # alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'

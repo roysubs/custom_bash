@@ -363,7 +363,7 @@ getmystuff() {
     # Presents items from 'mylist' that are not already installed and offers to install them
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
     mylist=(); isinrepo=(); isinstalled=(); caninstall=(); endloop=0; toinstall=""
-    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py)
+    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
 
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt
     type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt
@@ -380,7 +380,7 @@ getmystuff() {
         printf -v PS3 '\n%s ' 'Input number of package to install: '
         select x in ${caninstall[@]}; do
             toinstall+=" $x "
-            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//'| awk '{for (i=1;i<=NF;i++) if (!a[$i]++) printf("%s%s",$i,FS)}{printf("\n")}')
+            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
             if [ $x == "Install-and-Exit" ]; then endloop=1; fi
             break
         done
@@ -485,9 +485,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # 1. There is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd.
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
-    alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'   # To get around no systemd, this will properly terminate the running WSL instance
-    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
-    alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'
+    alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'   # To get around no systemd, this will properly terminate the running WSL instance
     alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
     alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"   # notepad++ C:\Temp\Test.txt , 
     alias n++='notepad++'                                              # n C:\Temp\Test.txt

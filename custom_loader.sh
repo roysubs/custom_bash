@@ -500,6 +500,20 @@ fi
 
 ####################
 #
+print_header "Install exa (replacement for ls)"
+#
+####################
+# WARNING!!! Could break system!
+# sudo wget -P /tmp/ "http://ftp.nl.debian.org/debian/pool/main/g/glibc/libc6-udeb_2.32-4_amd64.udeb"
+# sudo dpkg --install /tmp/libc6-udeb_2.32-4_amd64.udeb
+# sudo wget -P /tmp/ "http://ftp.nl.debian.org/debian/pool/main/g/gcc-11/libgcc-s1_11.2.0-8_amd64.deb"
+# sudo dpkg --install /tmp/libgcc-s1_11.2.0-8_amd64.deb
+# sudo wget -P /tmp/ "http://ftp.nl.debian.org/debian/pool/main/r/rust-exa/exa_0.10.1-1_amd64.deb"
+# sudo dpkg
+
+
+####################
+#
 print_header "WSL Utilities"
 #
 ####################
@@ -1331,7 +1345,7 @@ exx "\\\$n  Holds the arguments passed in while calling the script or arguments 
 exx "\\\$0  The filename of the currently running script."
 exx "\\<command> Run the original command, ignoring all aliases. e.g. \\ls"
 exx ""
-exx "–   e.g.  cd –	     Last Working Directory"
+exx "-   e.g.  cd -      Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
 exx ""
@@ -1648,9 +1662,9 @@ exx "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e'
 exx "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
 exx "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
 exx "Can combine commands, so 10j jump 10 lines down, 3w jump 3 words forward, 2} jump 2 paragraphs forward."
-exx "/Power/	Go to the first line containing the string 'Power'."
-exx "ddp	    Swap the current line with the next one."
-exx "g;	    Bring back cursor to the previous position."
+exx "/Power/   Go to the first line containing the string 'Power'."
+exx "ddp       Swap the current line with the next one."
+exx "g;        Bring back cursor to the previous position."
 exx ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
 exx ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
 exx ""
@@ -2166,7 +2180,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "#!/bin/bash" > $HELPFILE
     exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Sublime X Windows)\${NC}"
+    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Sublime on WSL)\${NC}"
     exx ""
     exx "# This is to demonstrate running a full GUI app within WSL:"
     exx "sudo apt update"
@@ -2198,12 +2212,12 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "HELPNOTES=\""
     exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
     exx ""
-    exx "***** To enable sound (PulseAudio) on WSL2:"
+    exx "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
     exx "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
     exx "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
     exx "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
-    exx "Copy the 'bin' folder from there to C:\bin and rename to C:\pulse (this contains the pulseaudio.exe)"
-    exx "Create C:\pulse\config.pa and add the following to that file:"
+    exx "Copy the 'bin' folder from there to C:\\ bin and rename to C:\\pulse (this contains the pulseaudio.exe)"
+    exx "Create C:\\ pulse\\ config.pa and add the following to that file:"
     exx "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
     exx "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
     exx "load-module module-waveout sink_name=output source_name=input record=0"
@@ -2215,15 +2229,15 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "export PULSE_SERVER=\\\"tcp:\$HOST_IP\\\""
     exx "#export DISPLAY=\\\"\$HOST_IP:0.0\\\""
     exx "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
-    exx "Copy nssm.exe to C:\pulse\nssm.exe, then run:"
-    exx "C:\pulse\nssm.exe install PulseAudio"
-    exx "Application path:  C:\pulse\pulseaudio.exe"
-    exx "Startup directory: C:\pulse"
-    exx "Arguments:         -F C:\pulse\config.pa --exit-idle-time=-1"
+    exx "Copy nssm.exe to C:\\pulse\\ nssm.exe, then run:"
+    exx "C:\\pulse\\ nssm.exe install PulseAudio"
+    exx "Application path:  C:\\pulse\\pulseaudio.exe"
+    exx "Startup directory: C:\\pulse"
+    exx "Arguments:         -F C:\pulse\\ config.pa --exit-idle-time=-1"
     exx "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
     exx "On the Details tab, enter PulseAudio in the Display name field"
     exx "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
-    exx "If you want to remove this service at some point:   C:\pulse\nssm.exe remove PulseAudio"
+    exx "If you want to remove this service at some point:   C:\pulse\ nssm.exe remove PulseAudio"
     exx "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""

@@ -71,7 +71,6 @@ alias sudo='sudo '                      # Allows alias expansion even when using
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 alias xx='exit'                         # Quit immediately
 alias v='vim'                           # Quick vim access
-:h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 alias b='byobu'                         # Quick byobu access
 alias t='tmux'                          # Quick tmux access
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
@@ -290,10 +289,12 @@ du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du
 du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
+:h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 type cowsay &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
-type cowsay &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"
+type cowsay &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"   # -b Borg, -d dead, -g greedy, -p paranoia, -s stoned, -t tired, -w wired mode, -y brings youthful
+type cowsay &> /dev/null && cowmix() { if [ -d /usr/share/cowsay/cows/ ]; then files=(/usr/share/cowsay/cows/*.cow); else files=(/usr/share/cowsay/*.cow); fi; while IFS= read -d $'\0' -r file; do fortune | cowsay -f "$file" -b round; echo $file; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
 type ponysay &> /dev/null && ponyrandom() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*; else files=/usr/share/ponysay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type ponysay &> /dev/null && ponyall() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*.pony; else files=/usr/share/ponysay/*.pony; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | ponysay -f $f; sleep 2; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type ponysay &> /dev/null && alias fpony="fortune | ponysay -f $(ponyrandom)"
@@ -466,14 +467,14 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # &  %26        >  %3E     }  %7D     %  %25     =  %3D     |  %7C          
     # `  %60        [  %5B     “  %22     @  %40     ?  %3F     ~  %7E          
     urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/[ ][ ]*/\+/g'); }
-    gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; $ddg="https://duckduckgo.com/?q=${phrase}"; echo $ddg; }
+    gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; ddg="https://duckduckgo.com/?q=${phrase}"; echo "$ddg"; }
     # Can do a lot with 'gg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
     # However, some useful speific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
-    tt() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+$phrase"; trans -b "$@"; chrome $url; }   # tt conflicts with package 'treetop', but not something I would need
-    ttnl() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; [ type trans ] && trans -t nl -b "$@"; chrome $url; }
-    xxx() { chrome https://translate.google.com/?hl=nl&sl=nl&tl=en&text=wat%20uur%20is%20het&op=translate; }
-    tten() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; [ type trans ] && trans -t en -b "$@"; chrome $url; }
-    dic() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=dictionary+$phrase"; [ type trans ] && trans -d "$@"; chrome $url; }
+    tt() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+$phrase"; type trans >/dev/null 2>&1 && trans -b "$@"; chrome $url; }   # tt conflicts with package 'treetop', but not something I would need
+    ttnl() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t nl -b "$@"; chrome $url; }
+    # xxx() { chrome https://translate.google.com/?hl=nl&sl=nl&tl=en&text=wat%20uur%20is%20het&op=translate; }
+    tten() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t en -b "$@"; chrome $url; }
+    dic() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=dictionary+$phrase"; type trans >/dev/null 2>&1 && trans -d "$@"; chrome $url; }
     syn() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=synonym+$phrase"; echo $url; chrome $url; }
     yy() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.youtube.com/results?search_query=$phrase"; echo $url; chrome $url; } 
     ym() { if [[ -z "$1" ]]; then echo "Enter a search string!"; else mpv "$(youtube-dl --default-search 'ytsearch1:' \"$1\" --get-url | tail -1)"; fi }
@@ -481,13 +482,13 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # weather() { lynx -dump http://www.google.com/search?q=weather+$1+$2+$3 | grep -E "($1|°)" | grep -v '\[' | head -3; }
     # weather7() { for (( i=0; i<7; ++i)); do day=$(date --date="+$i day" +"%a"); weather $1 $2 $i; done; }
     # lynx -dump https://www.thomascook.com/holidays/weather/amsterdam/forecast/ | awk '/1\./{y=1;next}y' | sed '/View weather for/,$d'
-    # Following are some handy shortucts, '1' stands for 'one-liners', useful to find answers and some general reading/inspiration to look at other sites.
-    awk1() { chrome https://duckduckgo.com/?q=awk+one+liners; chrome https://catonmat.net/awk-one-liners-explained-part-one; chrome http://softpanorama.org/Tools/Awk/awk_one_liners.shtml; chrome https://www.shebanglinux.com/best-awk-one-liners/; }
-    grep1() { chrome https://duckduckgo.com/?q=grep+one+liners; chrome https://www.richud.com/wiki/Grep_one_liners; chrome https://lagooko.blogspot.com/2015/12/grep-handy-one-liner.html; chrome https://adminoneliner.blogspot.com/2015/12/grep-command-one-liners.html; }
-    sed1() { chrome https://duckduckgo.com/?q=sed+one+liners; chrome https://edoras.sdsu.edu/doc/sed-oneliners.html; chrome http://www.unixguide.net/unix/sedoneliner.shtml; chrome https://catonmat.net/sed-one-liners-explained-part-one; }
-    python1() { chrome https://duckduckgo.com/?q=python+one-liners&atb=v251-1&ia=web; chrome https://pythonbooks.org/free-books/; chrome https://automatetheboringstuff.com/; chrome https://www.geeksforgeeks.org/powerful-one-liner-python-codes/; chrome https://blog.finxter.com/10-python-one-liners/; }
-    # perl1() {}
-    # bash1() {}
+    # '1' stands for 'one-liners', useful as an entry point to looking up info, also note 'gg grep delete all lines after match' free form searches from terminal
+    alias awk1='chrome https://duckduckgo.com/?q=awk+one+liners; chrome https://catonmat.net/awk-one-liners-explained-part-one; chrome http://softpanorama.org/Tools/Awk/awk_one_liners.shtml; chrome https://www.shebanglinux.com/best-awk-one-liners/'
+    alias grep1='chrome https://duckduckgo.com/?q=grep+one+liners; chrome https://www.richud.com/wiki/Grep_one_liners; chrome https://lagooko.blogspot.com/2015/12/grep-handy-one-liner.html; chrome https://adminoneliner.blogspot.com/2015/12/grep-command-one-liners.html'
+    alias sed1='chrome https://duckduckgo.com/?q=sed+one+liners; chrome https://edoras.sdsu.edu/doc/sed-oneliners.html; chrome http://www.unixguide.net/unix/sedoneliner.shtml; chrome https://catonmat.net/sed-one-liners-explained-part-one'
+    alias python1='chrome https://duckduckgo.com/?q=python+one-liners; chrome https://pythonbooks.org/free-books/; chrome https://automatetheboringstuff.com/; chrome https://www.geeksforgeeks.org/powerful-one-liner-python-codes/; chrome https://blog.finxter.com/10-python-one-liners/'
+    alias perl1='chrome https://duckduckgo.com/?q=perl+one+liners; chrome https://devtut.github.io/perl/perl-one-liners.html#execute-some-perl-code-from-command-line; chrome http://www.softpanorama.org/Scripting/Perlorama/perl_one_liners.shtml; chrome https://www.socher.org/perloneliners; chrome https://gist.github.com/joyrexus/7328094; chrome https://perl1liner.sourceforge.io/;'
+    alias bash1='chrome https://duckduckgo.com/?q=bash+one+liners; chrome https://onceupon.github.io/Bash-Oneliner/; chrome http://www.bashoneliners.com/; chrome https://catonmat.net/bash-one-liners-explained-part-one'
     alias mygit='chrome https://github.com/roysubs/custom_bash; chrome https://github.com/roysubs/Custom-Tools; chrome https://github.com/roysubs/Basics-AHK'
     alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
     alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'
@@ -511,7 +512,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # [ -f /mnt/c/tools/vscode/bin/code ] && alias code='/mnt/c/tools/vscode/bin/code'   # Default Portable Edition location with Chocolatey package
     # [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Program Files/Microsoft\ VS\ Code/bin/code"   # Default System install location
     # [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
-    # alias c='code'   # Also alias 'c' to point at VS Code
+    alias c='code'   # Also alias 'c' to point at VS Code
 
     # Demonstrate using Windows clip.exe within WSL to get a string into the clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
     alias get-ip='hostname -I | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable

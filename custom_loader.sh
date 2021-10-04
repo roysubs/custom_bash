@@ -256,8 +256,8 @@ print_header "Check and install small/essential packages"
 ####################
 
 # Initially try to grab everything (quicker), then test the packages
-[[ "$MANAGER" = "apt" ]] && sudo apt install dpkg git vim nnn curl wget perl python39 python3-pip dfc pydf crontabs ncdu tree dos2unix mount neofetch byobu zip unzip
-[[ "$MANAGER" = "dnf" ]] && sudo dnf install dpkg git vim nnn curl wget perl python39 python3-pip dfc pydf crontabs ncdu tree dos2unix mount neofetch byobu zip unzip
+[[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
+[[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip dpkg git vim nnn curl wget perl dfc crontabs ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
@@ -284,13 +284,14 @@ if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -P /tmp
         RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
     fi
 fi
-check_and_install crontab crontabs   # cron is not installed by default on CentOS
+# [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
+[[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
 check_and_install ncdu ncdu
 check_and_install tree tree
 check_and_install dos2unix dos2unix
 check_and_install mount mount
 check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-[[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS(!)
+[[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
 # check_and_install macchina macchina    # System information
 check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 check_and_install zip zip
@@ -313,7 +314,37 @@ echo ""
 
 ####################
 #
-print_header "Other manual installers"
+print_header "Download extended fonts for 'figlet'"
+#
+####################
+# Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
+# http://www.jave.de/figlet/fonts.html
+# http://www.figlet.org/examples.html
+# Note that some of these fonts cannot show parts of the time output
+# exe sudo bash -c '
+# wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
+# unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
+# mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+# rmdir /usr/share/figlet/fonts'
+echo "# Download and setup figlet extended fonts"
+# [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+# [ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
+# [ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+# [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
+if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one font file to decide
+    sudo mkdir -p /usr/share/figlet/fonts
+    [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+    [ -f /tmp/figletfonts40.zip ]   && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip  # unzip to destination -d, with overwrite -o
+    [ -d /usr/share/figlet/fonts ]  && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
+    [ -d /usr/share/figlet/fonts ]  && exe sudo rmdir /usr/share/figlet/fonts
+    [ -f /tmp/figletfonts40.zip ]   && exe sudo rm /tmp/figletfonts40.zip                            # cleanup
+fi
+
+
+
+####################
+#
+print_header "PowerShell (pwsh) Shell for Linux"
 #
 ####################
 echo "Setup the PowerShell shell on Linux (start the shell with 'pwsh')"
@@ -383,33 +414,7 @@ echo ""
 # [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
 # which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
-####################
-#
-print_header "Download extended fonts for 'figlet'"
-#
-####################
-# Download and setup extended figlet fonts to /usr/share/figlet (requires elevation)
-# http://www.jave.de/figlet/fonts.html
-# http://www.figlet.org/examples.html
-# Note that some of these fonts cannot show parts of the time output
-# exe sudo bash -c '
-# wget -P /usr/share/figlet/ "http://www.jave.de/figlet/figletfonts40.zip"
-# unzip -d /usr/share/figlet/ /usr/share/figlet/figletfonts40.zip   # unzip to -d destination
-# mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-# rmdir /usr/share/figlet/fonts'
-echo "# Download and setup figlet extended fonts"
-# [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
-# [ ! -f /usr/share/figlet/univers.flf ] && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip   # unzip to destination -d, with overwrite -o
-# [ -d /usr/share/figlet/fonts ] && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-# [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
-if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one font file to decide
-    sudo mkdir -p /usr/share/figlet/fonts
-    [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
-    [ -f /tmp/figletfonts40.zip ]   && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip  # unzip to destination -d, with overwrite -o
-    [ -d /usr/share/figlet/fonts ]  && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
-    [ -d /usr/share/figlet/fonts ]  && exe sudo rmdir /usr/share/figlet/fonts
-    [ -f /tmp/figletfonts40.zip ]   && exe sudo rm /tmp/figletfonts40.zip                            # cleanup
-fi
+
 
 if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ####################
@@ -417,6 +422,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     print_header "Download 'bat' (syntax highlighted replacement for 'cat') manually to a known working version"
     #
     ####################
+
     # Following task is to get the latest package from a non-repo site, then optionally convert it (with alien) to a compatible
     # format, and then install it. Some useful methods here that can be used elsewhere:
     # - Finding the latest download link on a site
@@ -1532,17 +1538,19 @@ exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
+
+
 ####################
 #
-echo "Console Games (call with 'help-games-console')"
+echo "Console Games (call with 'help-games-terminal')"
 #
 ####################
-HELPFILE=$hh/help-games-console.sh
+HELPFILE=$hh/help-games-terminal.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Console Games)\${NC}"
+exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Terminal Games)\${NC}"
 exx ""
 exx "Just a list of various console games:"
 exx ""
@@ -1602,10 +1610,13 @@ exx "sudo cp alienwave /usr/games"
 exx "alienwave # Start game"
 exx ""
 exx "2048-cli, move puzzles to make tiles that will create the number 2048."
-exx "sudo apt-get install libncurses5-dev"
-exx "sudo apt-get install libsdl2-dev libsdl2-ttf-dev"
-exx "sudo apt-get install 2048-cli"
-exx "2048-cli"
+exx "# sudo apt-get install libncurses5-dev"
+exx "# sudo apt-get install libsdl2-dev libsdl2-ttf-dev"
+exx "# sudo apt-get install 2048-cli"
+exx "# 2048"
+exx "wget https://raw.githubusercontent.com/mevdschee/2048.c/master/2048.c"
+exx "gcc -o 2048 2048.c"
+exx "./2048"
 exx ""
 exx "My man, Terminal Pac-man game (arcade)."
 exx "Robot Finds KittenIt is another easy-to-play, free, fascinating Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as “less a game and more a way of life.”"
@@ -2205,43 +2216,85 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "WSL Audio Setup (show with 'help-wsl-audio')"
     #
     ####################
+    # When using printf, remember that "%" has to be escaped as "%%" or "\045"
+    # BYOBUNOTES="
+    # Learning terminal multiplexers makes Linux easier to work with.
+    # "
+    # printf "$BYOBUNOTES\n"
+
     HELPFILE=$hh/help-wsl-audio.sh
-    exx() { echo "$1" >> $HELPFILE; }
+    zzz() { echo "$1" >> $HELPFILE; }   # echo without '-e'
     echo "#!/bin/bash" > $HELPFILE
-    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
-    exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
-    exx ""
-    exx "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
-    exx "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
-    exx "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
-    exx "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
-    exx "Copy the 'bin' folder from there to C:\\ bin and rename to C:\\pulse (this contains the pulseaudio.exe)"
-    exx "Create C:\\ pulse\\ config.pa and add the following to that file:"
-    exx "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
-    exx "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
-    exx "load-module module-waveout sink_name=output source_name=input record=0"
-    exx "This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2."
-    exx "On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):"
-    exx "sudo apt install libpulse0"
-    exx "Add the following to ~/.bashrc:"
-    exx "export HOST_IP=\\\"\$(ip route |awk '/^default/{print \\\$3}')\\\""
-    exx "export PULSE_SERVER=\\\"tcp:\$HOST_IP\\\""
-    exx "#export DISPLAY=\\\"\$HOST_IP:0.0\\\""
-    exx "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
-    exx "Copy nssm.exe to C:\\pulse\\ nssm.exe, then run:"
-    exx "C:\\pulse\\ nssm.exe install PulseAudio"
-    exx "Application path:  C:\\pulse\\pulseaudio.exe"
-    exx "Startup directory: C:\\pulse"
-    exx "Arguments:         -F C:\pulse\\ config.pa --exit-idle-time=-1"
-    exx "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
-    exx "On the Details tab, enter PulseAudio in the Display name field"
-    exx "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
-    exx "If you want to remove this service at some point:   C:\pulse\ nssm.exe remove PulseAudio"
-    exx "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
-    exx "\""   # require final line with a single " to end the multi-line text variable
-    exx "echo -e \"\$HELPNOTES\\n\""
+    zzz "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    zzz "HELPNOTES=\""
+    zzz "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
+    zzz ""
+    zzz "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
+    zzz "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
+    zzz "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
+    zzz "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
+    zzz "Copy the 'bin' folder from there to C:\\bin and rename to C:\pulse (this contains the pulseaudio.exe)"
+    zzz "Create C:\pulse\config.pa and add the following to that file:"
+    zzz "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    zzz "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    zzz "load-module module-waveout sink_name=output source_name=input record=0"
+    zzz "This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2."
+    zzz "On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):"
+    zzz "sudo apt install libpulse0"
+    zzz "Add the following to ~/.bashrc:"
+    zzz "export HOST_IP=\"\$(ip route |awk '/^default/{print \$3}')\""
+    zzz "export PULSE_SERVER=\"tcp:\$HOST_IP\""
+    zzz "#export DISPLAY=\"\$HOST_IP:0.0\""
+    zzz "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
+    zzz "Copy nssm.exe to C:\pulse\ nssm.exe, then run:"
+    zzz "C:\pulse\nssm.exe install PulseAudio"
+    zzz "Application path:  C:\pulse\pulseaudio.exe"
+    zzz "Startup directory: C:\pulse"
+    zzz "Arguments:         -F C:\pulse\ config.pa --exit-idle-time=-1"
+    zzz "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
+    zzz "On the Details tab, enter PulseAudio in the Display name field"
+    zzz "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
+    zzz "If you want to remove this service at some point:   C:\pulse\ nssm.exe remove PulseAudio"
+    zzz "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
+    zzz "\""   # require final line with a single " to end the multi-line text variable
+    zzz "printf \"\$HELPNOTES\n\""
     chmod 755 $HELPFILE
+
+    # exx "HELPNOTES=\""
+    # exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
+    # exx ""
+    # exx "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
+    # exx "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
+    # exx "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
+    # exx "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
+    # exx "Copy the 'bin' folder from there to C:\\ bin and rename to C:\\pulse (this contains the pulseaudio.exe)"
+    # exx "Create C:\\ pulse\\ config.pa and add the following to that file:"
+    # exx "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    # exx "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
+    # exx "load-module module-waveout sink_name=output source_name=input record=0"
+    # exx "This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2."
+    # exx "On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):"
+    # exx "sudo apt install libpulse0"
+    # exx "Add the following to ~/.bashrc:"
+    # exx "export HOST_IP=\\\"\$(ip route |awk '/^default/{print \\\$3}')\\\""
+    # exx "export PULSE_SERVER=\\\"tcp:\$HOST_IP\\\""
+    # exx "#export DISPLAY=\\\"\$HOST_IP:0.0\\\""
+    # exx "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
+    # exx "Copy nssm.exe to C:\\pulse\\ nssm.exe, then run:"
+    # exx "C:\\pulse\\ nssm.exe install PulseAudio"
+    # exx "Application path:  C:\\pulse\\pulseaudio.exe"
+    # exx "Startup directory: C:\\pulse"
+    # exx "Arguments:         -F C:\pulse\\ config.pa --exit-idle-time=-1"
+    # exx "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
+    # exx "On the Details tab, enter PulseAudio in the Display name field"
+    # exx "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
+    # exx "If you want to remove this service at some point:   C:\pulse\ nssm.exe remove PulseAudio"
+    # exx "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
+    # exx "\""   # require final line with a single " to end the multi-line text variable
+    # exx "echo -e \"\$HELPNOTES\\n\""
+
+
+
 
     ####################
     #
@@ -2354,9 +2407,9 @@ print_header "List Installed Repositories"
 if [ "$MANAGER" = "apt" ]; then
     echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
     echo ""
-    sudo grep -rhE ^deb /etc/apt/sources.list*
+    sudo \grep -rhE ^deb /etc/apt/sources.list*
     echo "=====>  sudo apt-cache policy | grep http"
-    sudo apt-cache policy | grep http
+    sudo apt-cache policy | \grep http
     echo ""
 fi
 if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then

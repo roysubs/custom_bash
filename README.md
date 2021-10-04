@@ -95,7 +95,7 @@ Now, right-click `CentOS.exe` again, and run as Administrator, and this time it 
 Note: You will be `root` after this and need to create a user and run as that:  
 \# `useradd <user>`, then `passwd <user>`, if you can want a simple password, CentOS will complain, ignore that.  
 \# `usermod -a -G wheel <user>` # CentOS/Fedora use the `wheel` group (would be `usermod -a -G sudo <user>` on Debian/Ubuntu as uses `sudo` group)  
-You must do the above before closing the `root` console or you will have no `sudo`
+You must do the above before closing the `root` console or you will have no `sudo`.  
 \# `.\CentOS8-stream.exe config --default-user <user>` to default to the new user.  
 To uninstall CentOS: `.\CentOS.exe clean` (from PowerShell).  
 If accidentally delete the CentOS folder, when unzipping it again, also should clean it again: `.\CentOS.exe clean`.

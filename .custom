@@ -128,7 +128,7 @@ alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
-alias gpull='git pull'; alias gitpull='git pull'; alias gitpush='g-push'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
+alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # get all visible repositories for a given git account $1
 
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
@@ -374,7 +374,7 @@ hh="$hhtmp/help-cron.sh";        [[ -f $hh ]] && alias help-cron="$hh"
 hh="$hhtmp/help-grep.sh";        [[ -f $hh ]] && alias help-grep="$hh"
 hh="$hhtmp/help-help.sh";        [[ -f $hh ]] && alias help-help="$hh"
 hh="$hhtmp/help-apps.sh";        [[ -f $hh ]] && alias help-apps="$hh"
-hh="$hhtmp/help-games-term.sh";  [[ -f $hh ]] && alias help-games-term="$hh"
+hh="$hhtmp/help-games-terminal.sh"; [[ -f $hh ]] && alias help-games-terminal="$hh"
 hh="$hhtmp/help-wsl.sh";         [[ -f $hh ]] && alias help-wsl="$hh"
 hh="$hhtmp/help-wsl-sublime.sh"; [[ -f $hh ]] && alias help-wsl-sublime="$hh"
 hh="$hhtmp/help-wsl-audio.sh";   [[ -f $hh ]] && alias help-wsl-audio="$hh"

@@ -186,6 +186,57 @@ alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && 
 alias dupdate='sudo apt update && sudo apt upgrade'
 alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 
+packtool() {
+    # Presents 'mylist' that are not already installed and offers to install them
+    # If '-auto' is included in the input, will install without prompts. e.g. packtoll -auto vlc emacs 
+    # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
+    isinrepo=(); isinstalled=(); caninstall=() toinstall=""; packauto=0; endloop=0;
+    arguments="$@"
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')
+    mylist=("$arguments")   # mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
+    # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
+    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
+    # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    echo ""
+    [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
+    [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
+    
+    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+    if [ $packauto = 1 ]; then
+        if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
+        else echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        fi
+        return
+    fi
+    while [ $endloop = 0 ]; do
+        caninstall=(Install-and-Exit)
+        caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+        echo ${caninstall[@]}
+        if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
+        COLUMNS=12
+        [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
+        echo -e "\n\nSelect a package number to add to the install list.\nTo install the selected packages and exit the tool, select '1'.\n"
+        printf -v PS3 '\n%s ' 'Enter number of package to install: '
+        select x in ${caninstall[@]}; do
+            toinstall+=" $x "
+            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
+            if [ $x == "Install-and-Exit" ]; then endloop=1; fi
+            break
+        done
+    done
+    if [[ $toinstall = *[!\ ]* ]]; then    # https://unix.stackexchange.com/a/147109/441685
+        echo -e "\n\n\nAbout to run:   sudo $manager install $toinstall\n\n"
+        read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
+        sudo $manager install -y $toinstall
+    else
+        echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+    fi
+}
+# Would like to do comma separated list "1,4,2,11,7", this might be possible, but would have to break, then take input, then go back into new loop (very clunky)
+# In this case would be just as well completely rewriting 'select' and making my own tool
 updistro() {
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
@@ -359,38 +410,6 @@ alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (l
 alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
 alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
-getmystuff() {
-    # Presents items from 'mylist' that are not already installed and offers to install them
-    # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
-    mylist=(); isinrepo=(); isinstalled=(); caninstall=(); endloop=0; toinstall=""
-    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
-
-    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
-    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
-    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
-    # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
-    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
-    # echo -e "These are already installed: ${isinstalled[@]}\n\n"   # $(for x in ${isinstalled[@]}
-
-    while [ $endloop = 0 ]; do
-        caninstall=(Install-and-Exit)
-        caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
-        COLUMNS=12
-        echo -e "\n\n\nCurrently selected packages:     $toinstall\n\n\nSelect a package number to add to the install list.\nTo install the selected packages and exit the tool, select '1'.\n"
-        printf -v PS3 '\n%s ' 'Input number of package to install: '
-        select x in ${caninstall[@]}; do
-            toinstall+=" $x "
-            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
-            if [ $x == "Install-and-Exit" ]; then endloop=1; fi
-            break
-        done
-    done
-    echo -e "\n\n\nAbout to run:     sudo $manager install -y $toinstall\n\n"
-    read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
-    sudo $manager install -y $toinstall
-}
-# Would like to do comma separated list "1,4,2,11,7", this might be possible, but would have to break, then take input, then go back into new loop (very clunky)
-# In this case would be just as well completely rewriting 'select' and making my own tool
 # defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
 me="~/.customme"; [[ -f $me ]] && source $me   # The above are samples; if "~/.custom' if it is present

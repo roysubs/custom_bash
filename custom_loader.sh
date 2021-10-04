@@ -255,59 +255,126 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-# Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
-[[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
-[[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
-
-
-[[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
-check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
-check_and_install git git
-check_and_install vim vim
-check_and_install curl curl
-check_and_install wget wget
-check_and_install perl perl
-[[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
-[[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
-# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
-# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
-# if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
-check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
-# check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
-[[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
-# if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
-#         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
-#     fi
-# fi
-[[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
-if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
-        RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+packtool() {
+    # Presents 'mylist' that are not already installed and offers to install them
+    # If '-auto' is included in the input, will install without prompts. e.g. packtoll -auto vlc emacs 
+    # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
+    isinrepo=(); isinstalled=(); caninstall=() toinstall=""; packauto=0; endloop=0;
+    arguments="$@"
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')
+    mylist=("$arguments")   # mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
+    # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
+    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
+    # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    echo ""
+    [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
+    [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
+    
+    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+    if [ $packauto = 1 ]; then
+        if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
+        else echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        fi
+        return
     fi
+    while [ $endloop = 0 ]; do
+        caninstall=(Install-and-Exit)
+        caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+        echo ${caninstall[@]}
+        if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
+        COLUMNS=12
+        [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
+        echo -e "\n\nSelect a package number to add to the install list.\nTo install the selected packages and exit the tool, select '1'.\n"
+        printf -v PS3 '\n%s ' 'Enter number of package to install: '
+        select x in ${caninstall[@]}; do
+            toinstall+=" $x "
+            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
+            if [ $x == "Install-and-Exit" ]; then endloop=1; fi
+            break
+        done
+    done
+    if [[ $toinstall = *[!\ ]* ]]; then    # https://unix.stackexchange.com/a/147109/441685
+        echo -e "\n\n\nAbout to run:   sudo $manager install $toinstall\n\n"
+        read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
+        sudo $manager install -y $toinstall
+    else
+        echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+    fi
+}
+
+
+updateDate="$(stat -c %Y '/tmp/all-repo.txt')"   # %Y  time of last data modification, in seconds since Epoch
+nowDate="$(date +'%s')"                          # %s  seconds since 1970-01-01 00:00:00 UTC
+lastUpdate=$((nowDate - updateDate))             # simple arithmetic with $(( ))
+updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, setting to 24 hours in seconds
+updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
+if [[ "${lastUpdate}" -gt "${updateInterval}" ]]
+then
+    packages=( dpkg alien curl wget python3.9 python3-pip perl \
+               git vim zip unzip mount byobu \
+               nnn dfc cron dos2unix \
+               neofetch pydf inxi ncdu tree )
+    packtool -auto ${packages[@]}
 fi
-# [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
-[[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
-[[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
-check_and_install tree tree
-check_and_install dos2unix dos2unix
-check_and_install mount mount
-[[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-[[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
-# check_and_install macchina macchina    # System information
-check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
-check_and_install zip zip
-check_and_install unzip unzip
-[[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
-# check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
-check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
-[[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
-[[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
-# which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
-# which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
-check_and_install fortune fortune-mod    # Note that the Ubuntu apt says "selecting fortune-mod instead of fortune" if you try 'apt install fortune'
-check_and_install cowsay cowsay
-check_and_install figlet figlet
-# Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
-# which figlet &> /dev/null || exe sudo snap install figlet -y
+
+
+
+###   
+###   # Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
+###   [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
+###   [[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
+###   
+###   [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
+###   check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
+###   check_and_install git git
+###   check_and_install vim vim
+###   check_and_install curl curl
+###   check_and_install wget wget
+###   check_and_install perl perl
+###   [[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
+###   check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
+###   # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
+###   [[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
+###   # if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
+###   #         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+###   #     fi
+###   # fi
+###   [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
+###   if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+###           RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+###       fi
+###   fi
+###   # [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
+###   [[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
+###   check_and_install tree tree
+###   check_and_install dos2unix dos2unix
+###   check_and_install mount mount
+###   [[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
+###   [[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
+###   # check_and_install macchina macchina    # System information
+###   check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
+###   check_and_install zip zip
+###   check_and_install unzip unzip
+###   [[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+###   # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
+###   check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
+###   [[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
+###   # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
+###   # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
+###   check_and_install fortune fortune-mod    # Note that the Ubuntu apt says "selecting fortune-mod instead of fortune" if you try 'apt install fortune'
+###   check_and_install cowsay cowsay
+###   check_and_install figlet figlet
+###   # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
+###   # which figlet &> /dev/null || exe sudo snap install figlet -y
 echo ""
 echo ""
 echo ""

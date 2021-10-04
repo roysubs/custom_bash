@@ -257,7 +257,10 @@ print_header "Check and install small/essential packages"
 
 # Initially try to grab everything (quicker), then test the packages
 [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
-[[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip dpkg git vim nnn curl wget perl dfc crontabs ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
+[[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
+
+# *getsomethings* ... ii python3.9 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree
+
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
@@ -266,9 +269,8 @@ check_and_install vim vim
 check_and_install curl curl
 check_and_install wget wget
 check_and_install perl perl
-# [[ "$MANAGER" = "apt" ]] && check_and_install python python39
-# [[ "$MANAGER" = "dnf" ]] && check_and_install /usr/bin/python3.9 python39
-check_and_install /usr/bin/python3.9 python39
+[[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
+[[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
 # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
@@ -1587,10 +1589,18 @@ exx "./configure --with-setgid=games --with-libpath=/usr/local/games/lib/angband
 exx "make"
 exx "make install"
 exx ""
+exx "CoTerminal Apps (under active development in 2021, non-graphical puzzles and games with sound for Linux/OSX/Win, SpaceInvaders, Pacman, and Frogger, plus 10 puzzles. https://github.com/fastrgv?tab=repositories"
+exx "cd /tmp"
+exx "git clone https://github.com/fastrgv/CoTerminalApps"
+exx "wget https://github.com/fastrgv/CoTerminalApps/releases/download/v2.3.4/co29sep21.7z"
+exx ""
+exx "./gnuterm.sh"
+exx ""
 exx "sudo apt install bsdgames"
 exx "adventure, arithmetic, atc (Air Traffic Control), backgammon, battlestar, bcd, boggle, caesar, canfield, countmail, cribbage, dab, go-fish, gomoku, hack, hangman, hunt, mille, monop, morse, number, pig, phantasia, pom, ppt, primes, quiz, random, rain, robots, rot13, sail, snake, tetris, trek, wargames, worm, worms, wump, wtf"
 exx ""
-exx "sudo apt install bsdgames-nonfree  # Contains only the 'rogue' game"
+exx "adventure                     # Installed by default on Ubuntu, no package on CentOS"
+exx "sudo apt install gnuchess     # GNU Chess, weird, just an engine"
 exx "sudo apt install pacman4console  # Terminal version of Pac-man"
 exx "sudo apt install greed        # Combination of Pac-man and Tron, move around a grid of numbers to erase as much as possible."
 exx "sudo apt install moon-buggy   # moon-buggy, console graphical game, driving on the moon"
@@ -1602,12 +1612,41 @@ exx "sudo apt install sudoku       # Sudoku"
 exx "sudo apt install bastet       # Tetris clone"
 exx "ssh sshtron.zachlatta.com     # Multiplayer Online Tron Game, requires other players to connect to score"
 exx ""
-exx "Alienwave (Space Invader)"
-exx "sudo apt-get install libncurses5-dev libncursesw5-dev"
+exx "Alienwave (a good Galaga variant, you only have one life)"
+exx "cd /tmp"
+exx "wget http://www.alessandropira.org/alienwave/alienwave-0.4.0.tar.gz"
+exx "tar xvzf alienwave-0.4.0.tar.gz"
+exx "cd alienwave   # note that the tar inside the gaz defines the folder name, so alienwave and not alienwave-0.4.0"
+exx "sudo apt install libncurses5-dev libncursesw5-dev -y"
 exx "sudo make"
 exx "sudo make install"
 exx "sudo cp alienwave /usr/games"
 exx "alienwave # Start game"
+exx ""
+exx "You Only Live Once ("
+exx "cd /tmp"
+exx "wget http://www.zincland.com/7drl/liveonce/liveonce005.tar.gz"
+exx "cd linux   # weird, but the extracted directory is called 'linux'"
+exx "./liveonce"
+exx ""
+exx "Cgames (cmines, cblocks, csokoban)"
+exx "cd /tmp"
+exx "git clone https://github.com/BR903/cgames.git"
+exx "cd cgames"
+exx "sudo ./configure --disable-mouse"
+exx "sudo make"
+exx "sudo make install"
+exx ""
+exx "Vitetris (start with 'tetris', Tetris clone, best one available for terminal)"
+exx "cd /tmp"
+exx "wget http://www.victornils.net/tetris/vitetris-0.57.tar.gz"
+exx "tar xvzf vitetris-0.57.tar.gz"
+exx "cd vitetris-0.57/"
+exx "sudo ./configure"
+exx "sudo make install"
+exx "make install-hiscores"
+exx "sudo make install-hiscores"
+exx "tetris"
 exx ""
 exx "2048-cli, move puzzles to make tiles that will create the number 2048."
 exx "# sudo apt-get install libncurses5-dev"
@@ -1618,9 +1657,38 @@ exx "wget https://raw.githubusercontent.com/mevdschee/2048.c/master/2048.c"
 exx "gcc -o 2048 2048.c"
 exx "./2048"
 exx ""
-exx "My man, Terminal Pac-man game (arcade)."
-exx "Robot Finds KittenIt is another easy-to-play, free, fascinating Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as “less a game and more a way of life.”"
-exx "secret_adventure   # secret_adventure, to play this game, you must install Emacs text editor on your system."
+exx "Nettoe (tic-tac-toe variant, playable over the internet"
+exx "cd /tmp"
+exx "git clone https://github.com/RobertBerger/nettoe.git"
+exx "cd nettoe"
+exx "sudo ./configure"
+exx "sudo make"
+exx "sudo make install"
+exx "nettoe"
+exx ""
+exx "ASCII-Rain (not a game, just terminal displaying rain :))"
+exx "cd /tmp"
+exx "git clone https://github.com/nkleemann/ascii-rain.git "
+exx "cd ascii-rain"
+exx "sudo apt install libncurses-dev ncurses-dev -y"
+exx "gcc rain.c -o rain -lncurses"
+exx "./rain"
+exx ""
+exx "My man, Terminal Pac-man game (arcade). https://myman.sourceforge.io/ https://sourceforge.net/projects/myman/"
+exx "https://sourceforge.net/projects/myman/files/myman/myman-0.7.0/"
+exx "cd /tmp"
+exx "wget https://sourceforge.net/projects/myman/files/myman/myman-0.7.0/myman-0.7.0.tar.gz/download"
+exx "sudo ./configure"
+exx "sudo make"
+exx "sudo make install"
+exx ""
+exx "Robot Finds Kitten http://robotfindskitten.org/ Another easy-to-play Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as 'less a game and more a way of life.'"
+exx ""
+exx "Emacs Games (dunnet 'secret adventure', tetris, )"
+exx "sudo $MANAGER install emacs"
+exx "Tetris: emacs -nw   # Then 'M-x tetris' (done by holding the Meta key, typically alt by default) and x then typing tetris and pressing enter. -nw flag for no-window to force terminal and not GUI."
+exx "Doctor: emacs -nw at the terminal and then entering M-x doctor. Talk to a Rogerian psychotherapist who will help you with your problems. It is based on ELIZA, the AI program created at MIT in the 1960s."
+exx "Dunnet: emacs -nw at the terminal and then entering M-x dunnet. Similar to Adventure, but with a twist."
 exx "emacs -batch -l dunnet"
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
@@ -2216,48 +2284,48 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     echo "WSL Audio Setup (show with 'help-wsl-audio')"
     #
     ####################
-    # When using printf, remember that "%" has to be escaped as "%%" or "\045"
-    # BYOBUNOTES="
-    # Learning terminal multiplexers makes Linux easier to work with.
-    # "
-    # printf "$BYOBUNOTES\n"
-
+    # When using printf, remember that "%" has to be escaped as "%%" or "\045", but
+    # this is much easier than 'echo -e' where almost everything has to be escaped.
+    # % => %%, inside '', $ is literal, " => \\", ' is impossible, () => \(\)
+    # For awk lines, put inside "", then ' is literal, ()) are literal, " => \\\\\" (5x \)
+    # Inside "", $() => \\$, but variables are handled differently, $3 => \\\\\$3 (5x \)
+    # \b => \\\\\\b (6x \) to prevent \b being intpreted as a backspace
     HELPFILE=$hh/help-wsl-audio.sh
-    zzz() { echo "$1" >> $HELPFILE; }   # echo without '-e'
-    echo "#!/bin/bash" > $HELPFILE
-    zzz "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
-    zzz "HELPNOTES=\""
-    zzz "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
-    zzz ""
-    zzz "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
-    zzz "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
-    zzz "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
-    zzz "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
-    zzz "Copy the 'bin' folder from there to C:\\bin and rename to C:\pulse (this contains the pulseaudio.exe)"
-    zzz "Create C:\pulse\config.pa and add the following to that file:"
-    zzz "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
-    zzz "load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12"
-    zzz "load-module module-waveout sink_name=output source_name=input record=0"
-    zzz "This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2."
-    zzz "On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):"
-    zzz "sudo apt install libpulse0"
-    zzz "Add the following to ~/.bashrc:"
-    zzz "export HOST_IP=\"\$(ip route |awk '/^default/{print \$3}')\""
-    zzz "export PULSE_SERVER=\"tcp:\$HOST_IP\""
-    zzz "#export DISPLAY=\"\$HOST_IP:0.0\""
-    zzz "Get NSSM (non-sucking service manager) from https://nssm.cc/download"
-    zzz "Copy nssm.exe to C:\pulse\ nssm.exe, then run:"
-    zzz "C:\pulse\nssm.exe install PulseAudio"
-    zzz "Application path:  C:\pulse\pulseaudio.exe"
-    zzz "Startup directory: C:\pulse"
-    zzz "Arguments:         -F C:\pulse\ config.pa --exit-idle-time=-1"
-    zzz "Service name should be automatically filled when the NSSM dialog opens: PulseAudio"
-    zzz "On the Details tab, enter PulseAudio in the Display name field"
-    zzz "In the Arguments field we're using -F, which tells PulseAudio to run the specified script on startup, while --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity."
-    zzz "If you want to remove this service at some point:   C:\pulse\ nssm.exe remove PulseAudio"
-    zzz "Since we've installed PulseAudio as a service on Windows 10, once started, it will automatically start when you login to your Windows desktop, so there's no need to start it manually again."
-    zzz "\""   # require final line with a single " to end the multi-line text variable
-    zzz "printf \"\$HELPNOTES\n\""
+    zzz() { printf "$1\n" >> $HELPFILE; }   # echo without '-e'
+    printf "#!/bin/bash\n" > $HELPFILE
+    zzz "BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+    zzz 'HELPNOTES="'
+    zzz '${BCYAN}$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)${NC}'
+    zzz ''
+    zzz '${BYELLOW}***** To enable sound (PulseAudio) on WSL2:${NC}'
+    zzz 'https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html'
+    zzz 'Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/'
+    zzz 'Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)'
+    zzz 'Copy the \\"bin\\" folder from there to C:\\\\\\bin and rename to C:\pulse (this contains the pulseaudio.exe)'
+    zzz 'Create C:\pulse\config.pa and add the following to that file:'
+    zzz 'load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12'
+    zzz 'load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12'
+    zzz 'load-module module-waveout sink_name=output source_name=input record=0'
+    zzz 'This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2.'
+    zzz 'On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):'
+    zzz 'sudo apt install libpulse0'
+    zzz 'Add the following to ~/.bashrc:'
+    zzz "export HOST_IP=\\\\\"\\\$(ip route |awk '/^default/{print \\\\\$3}')\\\\\""
+    zzz 'export PULSE_SERVER=\\"tcp:\$HOST_IP\\"'
+    zzz '#export DISPLAY=\\"\$HOST_IP:0.0\\"'
+    zzz 'Get NSSM (non-sucking service manager) from https://nssm.cc/download'
+    zzz 'Copy nssm.exe to C:\pulse\nssm.exe, then run:'
+    zzz 'C:\pulse\nssm.exe install PulseAudio'
+    zzz 'Application path:  C:\pulse\pulseaudio.exe'
+    zzz 'Startup directory: C:\pulse'
+    zzz 'Arguments:         -F C:\pulse\config.pa --exit-idle-time=-1'
+    zzz 'Service name should be automatically filled when the NSSM dialog opens: PulseAudio'
+    zzz 'On the Details tab, enter PulseAudio in the Display name field'
+    zzz 'The Arguments field uses -F, to tells PulseAudio to run the specified script on startup; --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity.'
+    zzz 'If you want to remove this service at some point:   C:\pulse\nssm.exe remove PulseAudio'
+    zzz 'PulseAudio is installed as a service (in Windows), so once started, it will start at every login, so need to start manually again.'
+    zzz '"'   # require final line with a single " to end the multi-line text variable
+    zzz 'printf "$HELPNOTES\n"'
     chmod 755 $HELPFILE
 
     # exx "HELPNOTES=\""
@@ -2431,7 +2499,7 @@ echo ""
 echo ""
 [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 echo "Note the above configuration details for any useful additional manual actions."
-echo "'updistro' to run through all update/upgrade actions (def 'updistro' to check)."
+echo "'updistro' to run through all update/upgrade actions (use 'def updistro' to see commands)."
 echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"
 echo ""
 # Only show the following lines if WSL is detected

@@ -280,7 +280,7 @@ check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 #     fi
 # fi
 [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
-if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
         RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
     fi
 fi
@@ -333,7 +333,7 @@ echo "# Download and setup figlet extended fonts"
 # [ -d /usr/share/figlet/fonts ] && exe sudo rmdir /usr/share/figlet/fonts
 if [ ! -f /usr/share/figlet/univers.flf ]; then   # Use existence of this one font file to decide
     sudo mkdir -p /usr/share/figlet/fonts
-    [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
+    [ ! -f /tmp/figletfonts40.zip ] && exe sudo wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ "http://www.jave.de/figlet/figletfonts40.zip"
     [ -f /tmp/figletfonts40.zip ]   && exe sudo unzip -od /usr/share/figlet/ /tmp/figletfonts40.zip  # unzip to destination -d, with overwrite -o
     [ -d /usr/share/figlet/fonts ]  && exe sudo mv -f /usr/share/figlet/fonts/* /usr/share/figlet/   # move all fonts back into the main folder (force)
     [ -d /usr/share/figlet/fonts ]  && exe sudo rmdir /usr/share/figlet/fonts
@@ -468,7 +468,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # various ways to get name without extension https://stackoverflow.com/questions/12152626/how-can-i-remove-the-extension-of-a-filename-in-a-shell-script
     echo -e "$DL\n$ver_and_filename\n$ver\n$filename\n$extension\n$filename_no_extension"
 
-    [ ! -f /tmp/$filename ] && exe wget -nc --tries=3 -T30 --restrict-file-names=nocontrol -O -P /tmp/ $DL  # 
+    [ ! -f /tmp/$filename ] && exe wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ $DL  # Timeout after 20 seconds
 
     # Try to use 'alien' to create a .rpm from a .deb:   alien --to-rpm <name>.deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
     # I can get this to work when running alien on Ubuntu, but it alien fails with errors when running on CentOS.

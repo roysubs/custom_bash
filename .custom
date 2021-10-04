@@ -365,11 +365,11 @@ getmystuff() {
     mylist=(); isinrepo=(); isinstalled=(); caninstall=(); endloop=0; toinstall=""
     mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
 
-    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt
-    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt
-    for x in ${mylist[@]}; do grep "^$x/" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
+    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
     # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
-    for x in ${mylist[@]}; do grep "^$x/" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
     # echo -e "These are already installed: ${isinstalled[@]}\n\n"   # $(for x in ${isinstalled[@]}
 
     while [ $endloop = 0 ]; do

@@ -255,11 +255,9 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-# Initially try to grab everything (quicker), then test the packages
+# Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
 [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
 [[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
-
-# *getsomethings* ... ii python3.9 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree
 
 
 [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
@@ -1588,6 +1586,15 @@ exx "***** If you do a system install (making Angband available for all users on
 exx "./configure --with-setgid=games --with-libpath=/usr/local/games/lib/angband --bindir=/usr/local/games"
 exx "make"
 exx "make install"
+exx ""
+exx "sudo $MANAGER console-games   # A collection of important console games"
+exx "aajm, an, angband, asciijump, bastet, bombardier, bsdgames,cavezofphear,"
+exx "colossal-cave-adventure, crawl, curseofwar, empire, freesweep, gearhead,"
+exx "gnugo, gnuminishogi, greed, matanza, moria, nethack-console, netris, nettoe,"
+exx "ninvaders, nsnake, nudoku, ogamesim, omega-rpg, open-adventure, pacman4console,"
+exx "petris, robotfindskitten, slashem, sudoku, tetrinet-client, tint, tintin++,"
+exx "zivot"
+exx "sudo $MANAGER animals   # A ridiculous game, guessing animals, waste of time..."
 exx ""
 exx "CoTerminal Apps (under active development in 2021, non-graphical puzzles and games with sound for Linux/OSX/Win, SpaceInvaders, Pacman, and Frogger, plus 10 puzzles. https://github.com/fastrgv?tab=repositories"
 exx "cd /tmp"
@@ -3956,3 +3963,6 @@ fi
 ### | sed '{ s/$/@/; : loop; s/\(...\)@/@.\1/; t loop; s/@//; s/^\.//; }')
 ### echo "${NAME_}: total size reduction: $reduction bytes (total size reduced to ${percentage}%)"
 ### }
+
+### Online Bash Debugger (useful to put a function snippet in and check outside of main script)
+### https://www.onlinegdb.com/online_bash_shell

@@ -17,17 +17,17 @@
 ####################
 # Exports and Aliases:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
-shopt -s histappend
-shopt -s checkwinsize
+shopt -s checkwinsize   # At every prompt check if the window size has changed
+shopt -s histappend; PROMPT_COMMAND='history -a'   # Append commands to the bash history (~/.bash_history) instead of overwriting it, and do this every time a prompt is shown instead of after closing the session.
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
 alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since default history has date-time, need a way to replicate original history.
-alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'
-alias hh0="history | awk '{\$1=\$2=\$3=\"\"; print \$0}' | sed 's/^[ \t]*//;s/[ \t]*$//'"    # This variant is just the commands and nothing else
-alias hh1='hh0 | tail -10'; alias hh2='hh0 | tail -20'; alias hh3='hh0 | tail -30'; alias hh4='hh0 | tail -40'; alias hh5='hh0 | tail -50'
-alias hs='history | grep'; hs1='history | grep -A 1 -B 1'; hs1='history | grep -A 2 -B 2'    # Search history, optionally with x lines 'A'bove and 1 line 'B'elow each match (to get context)
-alias h="history|grep"
-alias f="find . |grep"
-alias p="ps aux |grep"
+alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'; alias h6='history | tail -60'
+alias h#="history | awk '{\$1=\$2=\$3=\"\"; print \$0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'"     # This variant inserts a '#' before each command, useful for porting to documentation
+alias h#1='h# | tail -10'; alias h#2='h# | tail -20'; alias h#3='h# | tail -30'; alias h#4='h# | tail -40'; alias h#5='h# | tail -50'; alias h#6='h# | tail -60'
+alias hx="h# | sed 's/^#\ //'"          # This variant has just the commands, be cause of copying and running the commands, but this is also useful
+alias hx1='hx | tail -10'; alias hx2='hx | tail -20'; alias hx3='hx | tail -30'; alias hx4='hx | tail -40'; alias hx5='hx | tail -50'; alias hx6='hx | tail -60'
+alias hs='history | grep'; hs1='history | grep -A 1 -B 1'; hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
+
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
 # Alter PS1 (prompt). With this, non-root users display in green, but root will display in red, # \[\033[00m\]@ (white), [\033[01;33m\] \h (cyan hostname), [\033[01;36m\] \w (yellow directory)
@@ -142,8 +142,9 @@ if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alia
 if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; alias uu='sudo apt remove'; alias ishow='apt show'; isize() { apt-cache --no-all-versions show $1 | grep '^Size: '; }; fi  # apt
 if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; alias ishow='yum info'; isize() { yum info $1 | grep '^Size'; }; fi   # yum
 if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep '^Size'; }; fi   # dnf
-if type ii > /dev/null 2>&1; then alias inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
-if type rr > /dev/null 2>&1; then alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
+if type ii > /dev/null 2>&1; then alias pki='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
+if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
+
 # Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
 # Be very careful to avoid standard commands like 'du' (would have been 'dnf update' so cannot use this)
 # ai, ar, as, ah, aptup  |  di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  i(install), r(emove), s(search), h(istory), aptuu, dnfuu => update + upgrade + dist-update
@@ -164,6 +165,31 @@ if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sud
 if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
+if type apt >/dev/null 2>&1; then
+    alias install='sudo aptitude install';              alias remove='sudo aptitude remove';
+    alias purge='sudo aptitude purge';                  alias hold='sudo aptitude hold';
+    alias unhold='sudo aptitude unhold';                alias markauto='sudo aptitude markauto';
+    alias unmarkauto='sudo aptitude unmarkauto';        alias forbid-version='sudo aptitude forbid-version';
+    alias update='sudo aptitude update';                alias upgrade='sudo aptitude safe-upgrade';
+    alias full-upgrade='sudo aptitude full-upgrade';    alias build-dep='sudo aptitude build-dep';
+    alias forget-new='sudo aptitude forget-new';        alias search='sudo aptitude search';
+    alias show='sudo aptitude show';                    alias clean='sudo aptitude clean';
+    alias autoclean='sudo aptitude autoclean';          alias changelog='sudo aptitude changelog';
+    alias download='sudo aptitude download';            alias reinstall='sudo aptitude reinstall';
+    alias why='sudo aptitude why';                      alias why-not='sudo aptitude why-not';
+    alias aptadd='sudo apt-cache add';                  alias linux-image='sudo aptitude search linux-image' # linux-image kernel update check;
+    alias aptgencaches='sudo apt-cache gencaches';      alias aptshowpkg='sudo apt-cache showpkg';
+    alias aptshowsrc='sudo apt-cache showsrc';          alias aptstats='sudo apt-cache stats';
+    alias aptdump='sudo apt-cache dump';                alias aptdumpavail='sudo apt-cache dumpavail';
+    alias aptunmet='sudo apt-cache unmet';              alias aptsearch='sudo apt-cache search';
+    alias aptshow='sudo apt-cache show';                alias aptdepends='sudo apt-cache depends';
+    alias aptrdepends='sudo apt-cache rdepends';        alias aptpkgnames='sudo apt-cache pkgnames';
+    alias aptdotty='sudo apt-cache dotty';              alias aptxvcg='sudo apt-cache xvcg';
+    alias aptpolicy='sudo apt-cache policy';            alias apth='apt-history';
+    alias apthi='apt-history install';                  alias apthu='apt-history upgrade';
+    alias apthr='apt-history remove';                   alias apthback='apt-history rollback'
+fi
+
 # Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
@@ -177,6 +203,11 @@ alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn' 
 # python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
 # Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias p.='python3'; alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
+alias espeak-wav-file='espeak -s 150 -w voice.wav -f'; alias espeak-wav='espeak -s 150 -w voice.wav'; alias espeak-us='espeak -v en-us -s 150'; alias espeak-file='espeak -s 150 -f'
+# Web tools for Terminal outout, must be online
+alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
+alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
+alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
 
 ####################
 # Functions:
@@ -187,34 +218,35 @@ alias dupdate='sudo apt update && sudo apt upgrade'
 alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 
 packtool() {
-    # Presents 'mylist' that are not already installed and offers to install them
-    # If '-auto' is included in the input, will install without prompts. e.g. packtoll -auto vlc emacs 
+    # Input a list of packages and this will determine what is available and what is already installed, then install the difference
+    # If '-auto' switch is used, will install without prompts. e.g. packtoll -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
-    isinrepo=(); isinstalled=(); caninstall=() toinstall=""; packauto=0; endloop=0;
-    arguments="$@"
-    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')
-    mylist=("$arguments")   # mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
+    arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
+    mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
     type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
     # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    notinrepo+=(`echo ${mylist[@]} ${isinrepo[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays, jave have to consider the right arrays to use here # different answer here: https://stackoverflow.com/a/2315459/524587
     echo ""
     [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
     [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
-    
-    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+    [[ ${notinrepo[@]} != "" ]]   && echo "These packages do not exist in the repository:         ${notinrepo[@]}"     # $(for x in ${isinstalled[@]}
+
+    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays (use "${}" if spaces in array elements) # https://stackoverflow.com/a/28161520/524587
     if [ $packauto = 1 ]; then
         if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
-        else echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        else echo -e "\nNo selected packages can be installed. Exiting ...\n"
         fi
         return
     fi
+    
     while [ $endloop = 0 ]; do
         caninstall=(Install-and-Exit)
         caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
-        echo ${caninstall[@]}
         if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
         COLUMNS=12
         [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
@@ -232,41 +264,43 @@ packtool() {
         read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
         sudo $manager install -y $toinstall
     else
-        echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        echo -e "\nNo selected packages can be installed. Exiting ...\n"
     fi
 }
-# Would like to do comma separated list "1,4,2,11,7", this might be possible, but would have to break, then take input, then go back into new loop (very clunky)
-# In this case would be just as well completely rewriting 'select' and making my own tool
+
 updistro() {
     type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
     type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
     type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+    function separator() { echo -e "\n>>>>>>>>\n"; }
+    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
+
     printf "\nCheck updates:"
-    echo -e "\n\n====>>>>    A variant of '$DISTRO' was found."
-    echo -e "====>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
-    if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-    if [ "$MANAGER" == "apt" ]; then sudo apt dist-upgrade -y; fi
-    if [ "$MANAGER" == "apt" ]; then sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
-    if [ "$MANAGER" == "apt" ]; then type apt-file &> /dev/null && sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
+    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
+    echo -e     ">>>>>>>>    we will use the '$MANAGER' package manager for setup tasks."
+    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
+    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
+    if [ "$MANAGER" == "apt" ]; then type apt-file &> /dev/null && separator && displayandrun sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
     if [ "$MANAGER" == "apk" ]; then
-        apk update
-        apk upgrade
+        separator; displayandrun apk update; separator; displayandrun apk upgrade
     else
-        sudo $MANAGER update
-        sudo $MANAGER upgrade
-        sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
-        sudo $MANAGER autoremove
+        separator; displayandrun sudo $MANAGER update
+        separator; displayandrun sudo $MANAGER upgrade
+        separator; displayandrun sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+        separator; displayandrun sudo $MANAGER autoremove
     fi
-    if [ "$MANAGER" == "apt" ]; then sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ -f /var/run/reboot-required ]; then
         echo "A reboot is required (/var/run/reboot-required is present)." >&2
         echo "Re-run this script after reboot to check." >&2
         return
     fi
 }
-extract () { # extract files. Ignore files with improper extensions.
+
+extract () {   # Extract any archive type into folders
     local x
     ee() { echo "$@"; $1 "$2"; }   # echo and execute
     for x in "$@"; do
@@ -283,8 +317,12 @@ untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '
 mktar() { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }
 mktgz() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
 mktbz() { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }
+maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }   # Creates an archive (*.tar.gz) from given directory.
+makezip() { zip -r "${1%%/}.zip" "$1" ; }              # Create a ZIP archive of a file or folder.
+backup_bash_dotfiles() { ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; cd ~; tar -czvf $ARCHIVE .bash_profile .bashrc .bash_functions .bash_aliases .bash_prompt 2> /dev/null; echo "All backed up in $ARCHIVE"; }
+
 pswatch() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using ps and watch
-remindme() { sleep $1 && zenity --info --text "$2"; }
+psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
 mykill()   # provide $1 process name and prompt to kill any matches within myps output
@@ -303,7 +341,7 @@ mykill()   # provide $1 process name and prompt to kill any matches within myps 
         fi
     done
 }
-ask()          # See 'killps' for example of use.
+ask()       # See 'killps' for example of use.
 {
     echo -n "$@" '[y/n] ' ; read ans
     case "$ans" in
@@ -312,12 +350,9 @@ ask()          # See 'killps' for example of use.
     esac
 }
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
-s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # do sudo, or sudo the previous command if no argument given
-ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return files with pattern in the filename
+s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # sudo, *or* sudo the previous command if no argument is given (e.g. handy when do 'vim /etc/bashrc')
+ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
-maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }   # Creates an archive (*.tar.gz) from given directory.
-makezip() { zip -r "${1%%/}.zip" "$1" ; }              # Create a ZIP archive of a file or folder.
-backup_bash_dotfiles() { ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; cd ~; tar -czvf $ARCHIVE .bash_profile .bashrc .bash_functions .bash_aliases .bash_prompt 2> /dev/null; echo "All backed up in $ARCHIVE"; }
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
@@ -325,7 +360,6 @@ square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
 factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
 split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter; array=(); while [[ $s ]]; do array+=( "${s%%"$delimiter"*}" ); s=${s#*"$delimiter"}; done; declare -p array; echo $array; }
-# download-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download latest custom_loader, commented out, just use 'git clone https://github.com/roysubs/custom_bash ~/custom_bash'
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
@@ -333,25 +367,24 @@ sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {
 cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
-psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 du.t() { du -hsc .; }          # 'total' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
 du.tsu() { sudo du -hsc .; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
 du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
 du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
-vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file:\n\n"; select x in ~/.bashrc ~/.bash_profile ~/.bash_login ~/.profile ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
-vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (with sudo):\n\n"; select x in vim\ /etc/profile vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
+vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile ~/.bashrc ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
+vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file with sudo (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in vim\ /etc/profile vim\ /etc/bash.bashrc vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
 :h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 type cowsay &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type cowsay &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"   # -b Borg, -d dead, -g greedy, -p paranoia, -s stoned, -t tired, -w wired mode, -y brings youthful
-type cowsay &> /dev/null && cowmix() { if [ -d /usr/share/cowsay/cows/ ]; then files=(/usr/share/cowsay/cows/*.cow); else files=(/usr/share/cowsay/*.cow); fi; while IFS= read -d $'\0' -r file; do fortune | cowsay -f "$file" -b round; echo $file; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
+type cowsay &> /dev/null && cowmix() { if [ -d /usr/share/cowsay/cows/ ]; then files=(/usr/share/cowsay/cows/*.cow); else files=(/usr/share/cowsay/*.cow); fi; while IFS= read -d $'\0' -r file; do fortune | cowsay -f "$file"; echo -e "$file\n"; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
 type ponysay &> /dev/null && ponyrandom() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*; else files=/usr/share/ponysay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type ponysay &> /dev/null && ponyall() { if [ -d /usr/share/ponysay/ponies/ ]; then files=/usr/share/ponysay/ponies/*.pony; else files=/usr/share/ponysay/*.pony; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | ponysay -f $f; sleep 2; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type ponysay &> /dev/null && alias fpony="fortune | ponysay -f $(ponyrandom)"
-type ponysay &> /dev/null && ponymix() { files=(/usr/share/ponysay/ponies/*.pony); while IFS= read -d $'\0' -r file; do fortune | ponysay -f "$file" -b round; echo $file; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
+type ponysay &> /dev/null && ponymix() { files=(/usr/share/ponysay/ponies/*.pony); while IFS= read -d $'\0' -r file; do fortune | ponysay -f "$file" -b round 2> /dev/null; echo -e "$file\n"; sleep 3; done < <(printf '%s\0' "${files[@]}" | shuf -z); }
 figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
@@ -362,15 +395,8 @@ toiletgayclock() { while true; do echo "$(date '+%D %T' | toilet -f term -F bord
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
 
 ####################
-# Web tools, require to be online for these to work
+# Networks:
 ####################
-alias google='lynx http://google.co.uk'; alias google0='lynx -term=vt100 http://google.co.uk'
-alias bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
-alias theregister='lynx https://theregister.com'; alias theregister0='lynx -term=vt100 https://theregister.com'
-
-#########
-# Networking
-#########
 alias n.install='ii iftop iptstate net-tools lsof nmap'
 alias d.="sudo ifdown eth0"
 alias u.="sudo ifup eth0"
@@ -391,18 +417,11 @@ alias n.9='watch --interval=2 "sudo netstat -utapen"'
 alias n.10='watch --interval=2 "sudo netstat -ano -l -A inet"'
 alias n.11='netstat -an | sed -n "1,/Active UNIX domain sockets/ p" | more'
 alias netl='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
-alias ping='ping -c 10'
+alias ping='ping -c 4'
 alias whois='whois -H'
-ni.(){   # Network information
-    echo "--------------- Network Information ---------------"
-    sudo /sbin/ifconfig | awk /'inet addr/ {print $2}'
-    sudo /sbin/ifconfig | awk /'Bcast/ {print $3}'
-    sudo /sbin/ifconfig | awk /'inet addr/ {print $4}'
-    sudo /sbin/ifconfig | awk /'HWaddr/ {print $4,$5}'
-    echo "---------------------------------------------------"
-}
+
 ####################
-# Personal settings, some examples of useful shortcuts for personalised techniques, these can be in this script or in 
+# Personal Settings.   Some examples of useful shortcuts for personalised techniques, these can be in this script or in 
 ####################
 alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
@@ -415,9 +434,9 @@ alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='c
 me="~/.customme"; [[ -f $me ]] && source $me   # The above are samples; if "~/.custom' if it is present
 
 ####################
-# Detailed help topics, these are created by custom_loader.sh under /tmp/ and create aliases to them here
+# Help Topics.   These are created at /tmp/.custom by custom_loader.sh and then aliased to access easily
 ####################
-hhtmp='/tmp/.custom'   # previously used: # [ -f /tmp/.custom/help-awk.sh ] && alias help-awk='/tmp/.custom/help-awk.sh'
+hhtmp='/tmp/.custom'             # could replace 'help' with '?', like herealias a?='cat ~/.alias.help'; alias f?='cat ~/.function.help'
 hh="$hhtmp/help-awk.sh";         [[ -f $hh ]] && alias help-awk="$hh"    
 hh="$hhtmp/help-bash.sh";        [[ -f $hh ]] && alias help-bash="$hh"
 hh="$hhtmp/help-jobs.sh";        [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
@@ -443,61 +462,12 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
 hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
-alias a?='cat ~/.alias.help'
-alias f?='cat ~/.function.help'
+
 alias dn='OPTIONS=$(\ls -F | grep /$); select s in $OPTIONS; do cd $PWD/$s; break;done'
 alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; break;done'
-alias espeak-wav-file='espeak -s 150 -w voice.wav -f'
-alias espeak-wav='espeak -s 150 -w voice.wav'
-alias espeak-us='espeak -v en-us -s 150'
-alias espeak-file='espeak -s 150 -f'
-alias install='sudo aptitude install'
-alias remove='sudo aptitude remove'
-alias purge='sudo aptitude purge'
-alias hold='sudo aptitude hold'
-alias unhold='sudo aptitude unhold'
-alias markauto='sudo aptitude markauto'
-alias unmarkauto='sudo aptitude unmarkauto'
-alias forbid-version='sudo aptitude forbid-version'
-alias update='sudo aptitude update'
-alias upgrade='sudo aptitude safe-upgrade'
-alias full-upgrade='sudo aptitude full-upgrade'
-alias build-dep='sudo aptitude build-dep'
-alias forget-new='sudo aptitude forget-new'
-alias search='sudo aptitude search'
-alias show='sudo aptitude show'
-alias clean='sudo aptitude clean'
-alias autoclean='sudo aptitude autoclean'
-alias changelog='sudo aptitude changelog'
-alias download='sudo aptitude download'
-alias reinstall='sudo aptitude reinstall'
-alias why='sudo aptitude why'
-alias why-not='sudo aptitude why-not'
-alias linux-image='sudo aptitude search linux-image' # linux-image kernel update check
-alias aptadd='sudo apt-cache add'
-alias aptgencaches='sudo apt-cache gencaches'
-alias aptshowpkg='sudo apt-cache showpkg'
-alias aptshowsrc='sudo apt-cache showsrc'
-alias aptstats='sudo apt-cache stats'
-alias aptdump='sudo apt-cache dump'
-alias aptdumpavail='sudo apt-cache dumpavail'
-alias aptunmet='sudo apt-cache unmet'
-alias aptsearch='sudo apt-cache search'
-alias aptshow='sudo apt-cache show'
-alias aptdepends='sudo apt-cache depends'
-alias aptrdepends='sudo apt-cache rdepends'
-alias aptpkgnames='sudo apt-cache pkgnames'
-alias aptdotty='sudo apt-cache dotty'
-alias aptxvcg='sudo apt-cache xvcg'
-alias aptpolicy='sudo apt-cache policy'
-alias apth='apt-history'
-alias apthi='apt-history install'
-alias apthu='apt-history upgrade'
-alias apthr='apt-history remove'
-alias apthback='apt-history rollback'
 
 ####################
-# WSL: This section will only run if inside WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
+# WSL: These will only activat if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
 ####################
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     # Notes on WSL close/shutdown/reboot:   https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
@@ -594,44 +564,3 @@ fi
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 [ -z "$TMUX" ] && login_banner   # Only display login_banner if this is not a new tmux session
 # [ -z "$TMUX" ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session
-
-
-# PS1="\[\033[1;34m\](\[\033[1;37m\]\w\[\033[1;34m\]) \[\033[1;32m\]*\[\033[1;0m\] "                        # (/tmp/.custom) *
-# PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '   # boss@Asus:/tmp/.custom$
-
-
-temp() {    # 
-    if [ $# -eq 0 ] ; then
-      cat << EOF >&2
-Usage: $0 temperature[F|C|K]
-where the suffix:
-   F	indicates input is in Fahrenheit (default)
-   C	indicates input is in Celsius
-   K	indicates input is in Kelvin
-EOF
-        return
-    fi
-    unit="$(echo $1|sed -e 's/[-[[:digit:]]*//g' | tr '[:lower:]' '[:upper:]' )"
-    temp="$(echo $1|sed -e 's/[^-[[:digit:]]*//g')"
-    case ${unit:=F}
-    in
-        F ) # Fahrenheit to Celsius formula:  Tc = (F -32 ) / 1.8
-        farn="$temp"
-        cels="$(echo "scale=2;($farn - 32) / 1.8" | bc)"
-        kelv="$(echo "scale=2;$cels + 273.15" | bc)"
-        ;;
-        C ) # Celsius to Fahrenheit formula: Tf = (9/5)*Tc+32
-        cels=$temp
-        kelv="$(echo "scale=2;$cels + 273.15" | bc)"
-        farn="$(echo "scale=2;((9/5) * $cels) + 32" | bc)"
-        ;;
-        K ) # Celsius = Kelvin + 273.15, then use Cels -> Fahr formula
-        kelv=$temp
-        cels="$(echo "scale=2; $kelv - 273.15" | bc)"
-        farn="$(echo "scale=2; ((9/5) * $cels) + 32" | bc)"
-    esac
-    echo "Fahrenheit = $farn"
-    echo "Celsius    = $cels"
-    echo "Kelvin     = $kelv"
-}
-

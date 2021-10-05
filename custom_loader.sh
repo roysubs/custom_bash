@@ -157,8 +157,8 @@ check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed"
 
 [[ "$MANAGER" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
 
-echo -e "\n\n====>>>>    A variant of '$DISTRO' was found."
-echo -e     "====>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo -e "\n\n>>>>>>>>    A variant of '$DISTRO' was found."
+echo -e     ">>>>>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
 echo ""
 printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
@@ -256,34 +256,35 @@ print_header "Check and install small/essential packages"
 ####################
 
 packtool() {
-    # Presents 'mylist' that are not already installed and offers to install them
-    # If '-auto' is included in the input, will install without prompts. e.g. packtoll -auto vlc emacs 
+    # Input a list of packages and this will determine what is available and what is already installed, then install the difference
+    # If '-auto' switch is used, will install without prompts. e.g. packtoll -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
-    isinrepo=(); isinstalled=(); caninstall=() toinstall=""; packauto=0; endloop=0;
-    arguments="$@"
-    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')
-    mylist=("$arguments")   # mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
+    arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
+    mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
     type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
     # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    notinrepo+=(`echo ${mylist[@]} ${isinrepo[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays, jave have to consider the right arrays to use here # different answer here: https://stackoverflow.com/a/2315459/524587
     echo ""
     [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
     [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
-    
-    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+    [[ ${notinrepo[@]} != "" ]]   && echo "These packages do not exist in the repository:         ${notinrepo[@]}"     # $(for x in ${isinstalled[@]}
+
+    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays (use "${}" if spaces in array elements) # https://stackoverflow.com/a/28161520/524587
     if [ $packauto = 1 ]; then
         if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
-        else echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        else echo -e "\nNo selected packages can be installed. Exiting ...\n"
         fi
         return
     fi
+    
     while [ $endloop = 0 ]; do
         caninstall=(Install-and-Exit)
         caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
-        echo ${caninstall[@]}
         if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
         COLUMNS=12
         [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
@@ -301,10 +302,9 @@ packtool() {
         read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
         sudo $manager install -y $toinstall
     else
-        echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"
+        echo -e "\nNo selected packages can be installed. Exiting ...\n"
     fi
 }
-
 
 updateDate="$(stat -c %Y '/tmp/all-repo.txt')"   # %Y  time of last data modification, in seconds since Epoch
 nowDate="$(date +'%s')"                          # %s  seconds since 1970-01-01 00:00:00 UTC
@@ -320,61 +320,6 @@ then
     packtool -auto ${packages[@]}
 fi
 
-
-
-###   
-###   # Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
-###   [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
-###   [[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
-###   
-###   [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
-###   check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
-###   check_and_install git git
-###   check_and_install vim vim
-###   check_and_install curl curl
-###   check_and_install wget wget
-###   check_and_install perl perl
-###   [[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
-###   check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
-###   # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
-###   [[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
-###   # if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
-###   #         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
-###   #     fi
-###   # fi
-###   [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
-###   if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
-###           RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
-###       fi
-###   fi
-###   # [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
-###   [[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
-###   check_and_install tree tree
-###   check_and_install dos2unix dos2unix
-###   check_and_install mount mount
-###   [[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-###   [[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
-###   # check_and_install macchina macchina    # System information
-###   check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
-###   check_and_install zip zip
-###   check_and_install unzip unzip
-###   [[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
-###   # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
-###   check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
-###   [[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
-###   # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
-###   # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
-###   check_and_install fortune fortune-mod    # Note that the Ubuntu apt says "selecting fortune-mod instead of fortune" if you try 'apt install fortune'
-###   check_and_install cowsay cowsay
-###   check_and_install figlet figlet
-###   # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
-###   # which figlet &> /dev/null || exe sudo snap install figlet -y
 echo ""
 echo ""
 echo ""
@@ -2402,6 +2347,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz 'printf "$HELPNOTES\n"'
     chmod 755 $HELPFILE
 
+    ### This is the old version using echo -e
     # exx "HELPNOTES=\""
     # exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
     # exx ""
@@ -4034,5 +3980,401 @@ fi
 ### Online Bash Debugger (useful to put a function snippet in and check outside of main script)
 ### https://www.onlinegdb.com/online_bash_shell
 
-    # alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'
-    # alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+# alias shutdown='cmd.exe /c "wsl.exe -t $WSL_DISTRO_NAME"'
+# alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL ..." cmd /c "timeout 5 && title "$WSL_DISTRO_NAME" && wsl.exe -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
+
+# PS1="\[\033[1;34m\](\[\033[1;37m\]\w\[\033[1;34m\]) \[\033[1;32m\]*\[\033[1;0m\] "                        # (/tmp/.custom) *
+# PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '   # boss@Asus:/tmp/.custom$
+
+# remindme() { sleep $1 && zenity --info --text "$2"; }
+
+# download-custom-tools() { curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash; }   # Download latest custom_loader, commented out, just use 'git clone https://github.com/roysubs/custom_bash ~/custom_bash'
+
+# .screenrc
+# GNU Screen is a very handy tool I should have learned earlier about. It lets you have persistent shell sessions, so you can log out on one computer and reconnect to the still running session from an other computer. Recommended if you're "commandlining" a lot in an networked environment. Anyway, here is my .screenrc to have a handy caption bar, listing the available windows.
+# 
+# # Set the default window name to empty string instead of the arbitrary "bash"
+# shelltitle ''
+# 
+# # Set the window caption.
+# # I use caption instead of hardstatus, so it is available per split window too
+# # (hardstatus is only per complete screen).
+# caption always "%{= KW}%-Lw%{= wb}%n %t %{= KW}%+Lw %-=| ${USER}@%H | %M%d %c%{-}"
+# # Some decryption hints:
+# # %{= KW}     background light black (aka dark gray) with foreground light white
+# # %{= wb}     background dark white (ake light gray) with foreground dark blue
+# # %-Lw        all windows before the current window.
+# # %n%f %t     current window number, flags and title.
+# # %+Lw        all windows after the current window.
+# # %-=         pad remaining spaces.
+# # %H          hostname.
+# # %M%d %s     month and day (MmmDD) and current time (HH:MM).
+
+
+# packtool iftop iptstate net-tools lsof nmap
+# packtool xterm gnome-terminal terminator terminology cool-retro-term rxvt-unicode tilda
+# stacer (gui system monitoring), timeshift (gui / terminal sync backup tool), deja du?
+# wyrd (console calendar with notifications), remind
+
+# sudo add-apt-repository ppa:gnome-terminator
+# sudo apt-get update
+# snap install alacritty --classic
+
+# Mouse pointer is tiny in Linux GUI apps. Tried following but it does not work
+# gsettings get org.gnome.desktop.interface cursor-size
+# 24 is the default cursor size, can use 32, 48, 64, 96
+# gsettings set org.gnome.desktop.interface cursor-size [sizeInPixels]
+
+##### ucaresystem-core
+# sudo add-apt-repository ppa:utappia/stable
+# sudo apt-get update
+# sudo apt-get install ucaresystem-core
+# wget https://launchpad.net/~utappia/+archive/ubuntu/stable/+files/ucaresystem-core_4.0+xenial_all.deb
+# sudo dpkg -i ucaresystem-core_4.0+xenial_all.deb
+# sudo apt-get install -f
+# sudo ucaresystem-core
+
+##### TopGrade
+##### Upgrade Atom packages, Update Flatpak packages on Linux, Update snap packages on Linux, Run fwupdmgr to show firmware upgrade.
+##### Upgrade Emacs packages, Run Cargo install-update, Run.brew update && brew upgrade. This should handle both Homebrew and Linuxbrew on Unix,
+##### Run zplug update on Unix, Unix: Run fisherman update, Upgrade tmux plugins with TPM, Upgrade Vim/Neovim packages.
+### Don't use this => git clone https://aur.archlinux.org/yay.git
+### Don't use this => cd yay
+### Don't use this => makepkg -si
+# wget https://github.com/r-darwish/topgrade/releases/tag/v7.1.0/topgrade-v7.1.0-x86_64-unknown-linux-musl.tar.gz
+# tar xvf topgrade-v7.1.0-x86_64-unknown-linux-musl.tar.gz
+
+# export ver="v0.9.0"
+# wget https://github.com/r-darwish/topgrade/releases/download/${ver}/topgrade-${ver}-x86_64-unknown-linux-gnu.tar.gz
+# tar xvf topgrade-${ver}x86_64-unknown-linux-gnu.tar.gz
+# sudo mv topgrade /usr/local/bin/
+# which topgrade
+# topgrade --help
+
+# Running topgrade in a tmux session
+# It is recommended to leave topgrade running in tmux session to avoid accidental human interruption or network timeouts, especially when working on a remote system. For this use:
+
+# $ topgrade -t
+# If you don't have tmux installed, you can get it using your OS package manager:
+# 
+# On Ubuntu:
+# 
+# $ sudo apt-get install tmux
+# On CentOS / Fedora:
+# 
+# $ sudo yum install tmux
+# $ sudo dnf install tmux
+# On Arch Linux, use:
+# 
+# $ sudo pacman -S tmux
+# Customizing topgrade
+# You can place a configuration file at ~/.config/topgrade.toml. Here's an example:
+# 
+# git_repos = [
+#     "~/dev/topgrade",
+# ]
+# 
+# [pre_commands]
+# "Emacs Snapshot" = "rm -rf ~/.emacs.d/elpa.bak && cp -rl ~/.emacs.d/elpa ~/.emacs.d/elpa.bak"
+# 
+# [commands]
+# "Python Environment" = "~/dev/.env/bin/pip install -i https://pypi.python.org/simple -U --upgrade-strategy eager jupyter"
+# In this example:
+# 
+# git_repos - A list of custom Git repositories to pull
+# pre_commands - Commands to execute before starting any action
+# commands - Custom upgrade steps.
+# Read also
+# 
+# How to Exclude Specific Packages from Yum Update
+# How to Upgrade Individual Packages in Ubuntu/CentOS
+# How to Install Packages on Arch Linux
+# Topgrade seems to be a must-have Sysadmin tool for managing updates across a cluster of servers you administer daily. The fact that you can have it run in a tmux session by just using -t flag, keeps updates safer by ensuring they finish gracefully. Give it a try and let us know how you liking it through our comment section.
+
+# uCareSystem Core : A Basic Maintenance Tool For Ubuntu
+# Written by Sk Published: April 26, 2016Last Updated on October 20, 2018 4744 Views
+# 0 comment0 
+# There are numerous tools out there for Ubuntu operating system's maintenance and administration. Today, let me introduce a new tool called "uCareSystem Core", a basic maintenance tool for Ubuntu. This tool is very simple all-in one, system update and maintenance tool that can be used to perform some basic system maintenance tasks. It will automatically refresh your packagelist, download and install updates (if there are any), remove any old kernels, obsolete packages and configuration files to free up disk space, without any need of user interference.
+# 
+# Recommended Download - Free EBook: "Ubuntu Documentation: Ubuntu Server Guide 2014"
+# Here is the list of processes that uCareSystem Core will do for you:
+# 
+# Updates all available packages.
+# Updates your Ubuntu system.
+# upgrade Ubuntu to the next release
+# Downloads and install updates.
+# Checks for the list of old Linux Kernels and uninstalls them. Do not worry, though, as it keeps the current and one previous version and deletes all the previous one.
+# Clears the cache folder (the retrieved packages).
+# Uninstall packages that are obsolete and no longer needed.
+# Uninstall orphaned packages.
+# Deletes package settings that you have previously uninstalled.
+# All of above tasks will be performed automatically without any user intervention.
+# 
+# Install uCareSystem Core
+# We can install uCareSystem Core either using PPA or DEB file.
+# 
+# 1. Install uCareSystem Core using PPA
+# I tested this PPA on Ubuntu 16.04, however It might work on older Ubuntu versions, and Ubuntu derivatives such as Linux Mint.
+# 
+# uCareSystem Core developer have created a PPA to make the installation much easier for beginners.
+# 
+# To add the PPA, run:
+# 
+# $ sudo add-apt-repository ppa:utappia/stable
+# Update the sources list using command:
+# 
+# $ sudo apt-get update
+# Finally, install uCareSystem core using the following command:
+# 
+# $ sudo apt-get install ucaresystem-core
+# 2. Install uCareSystem Core using DEB file
+# Download uCareSystem deb file fro your Ubuntu version from this link.
+# 
+# 
+# 
+# Download the required version that suits your Ubuntu version. Here, I am downloading it for Ubuntu 16.04 LTS.
+# 
+# $ wget https://launchpad.net/~utappia/+archive/ubuntu/stable/+files/ucaresystem-core_4.0+xenial_all.deb
+# After downloading the .deb file install it as follows.
+# 
+# $ sudo dpkg -i ucaresystem-core_4.0+xenial_all.deb
+# $ sudo apt-get install -f
+# Please note that this app will not update automatically if you install it from .deb file. If you want regular updates, always use PPA.
+# 
+# Usage
+# uCareSystem Core usage is simple and straight forward.
+# 
+# Open Terminal, and run the following command to start uCareSystem Core:
+# 
+# $ sudo ucaresystem-core
+# Once it is completed, you will see a message like below.
+# 
+# 
+# 
+# That's it. Now, there is no obsolete packages, old kernels, old configuration files. Your Ubuntu system is now clean and up-to-date.
+# 
+# Upgrade Ubuntu
+# From ucaresystem Core v4.0, the developer has added an option to upgrade Ubuntu to the next release. So now you can upgrade your previous Ubuntu version to next available version easily.
+# 
+# The new version (4.0) comes with two additional parameters:
+# 
+# -u : This parameter will allow you upgrade to the next Ubuntu stable release. You can use it to upgrade both LTS to LTS or non-LTS to next available version.
+# -d : It will allow you to upgrade to next development version.
+# You can run the following command to see the list of available parameters.
+# 
+# $ sudo ucaresystem-core -h
+# 
+# 
+# If you want to upgrade your Ubuntu to next available stable version, for example 17.04 to 17.10, simply run:
+# 
+# $ sudo ucaresystem-core -u
+# Remember you can also use the same command to upgrade any LTS version to next available LTS version. It will perform all basic maintenance tasks first. And then, it will ask whether you want to upgrade Ubuntu to next available version. If there are no new versions, it will only perform the maintenance tasks and nothing else.
+# 
+# If you want to upgrade your Ubuntu to development version, run it with -d parameter:
+# 
+# $ sudo ucaresystem-core -d
+# First, it will perform all maintenance tasks. And, then it check if the development cycle of the next version of Ubuntu is open and will prompt you if you want to continue the upgrade.
+# 
+# Hope it helps. If you find this tutorial useful, please share it on your social, professional networks and support us. More good stuffs to come. Stay tuned.
+# 
+# Cheers!
+# 
+# Source and Reference link:
+# 
+# 
+# 
+# 
+# 
+# Create A .deb File From Source In Ubuntu 16.04
+# Written by Sk Published: April 25, 2016Last Updated on April 25, 2017 3,019 Views
+# 2 comments0 
+# Ubuntu has thousands of .deb files in the official and unofficial repositories. But, all packages will not be available in DEB format. Some times, packages might be available only for RPM based distros, or Arch based distros. In such cases, it's important to know how to create a .deb file from source file. In this brief tutorial, let us see how to create a .deb file from Source file in Ubuntu 16.04 LTS. This guide should work on all DEB based systems such as Debian, Linux Mint, and Elementary OS etc.
+# 
+# Create a .deb file from Source in Ubuntu
+# First, we need to install the required dependencies to compile and create DEB file from source file.
+# 
+# To do so, run:
+# 
+# sudo apt-get install checkinstall build-essential automake autoconf libtool pkg-config libcurl4-openssl-dev intltool libxml2-dev libgtk2.0-dev libnotify-dev libglib2.0-dev libevent-dev
+# We have installed the required dependencies. Let us go ahead and download the source file of a package.
+# 
+# Downloading source tarballs
+# For the purpose of this tutorial, let us create .deb file for Leafpad source file. As you know already, Leafpad is the simple, graphical text editor.
+# 
+# Go to the Leafpad home page and download the tar file.
+# 
+# wget http://tarot.freeshell.org/leafpad/leafpad-0.8.17le2.tar.bz2
+# Then, extract the downloaded tar file as shown below.
+# 
+# tar xvjf leafpad-0.8.17le2.tar.bz2
+# Then, go to the extracted folder, and run the following commands one by one to compile the source code:
+# 
+# cd leafpad-0.8.17le2/
+# ./configure
+# Note: In case ./configure command is not found, skip it and continue with next command.
+# 
+# make
+# Finally, run the following commands to create .deb file from source code.
+# 
+# sudo checkinstall
+# Sample output:
+# 
+# Type Y when asked to create the description for the Deb file.
+# 
+#  checkinstall 1.6.2, Copyright 2009 Felipe Eduardo Sanchez Diaz Duran
+#  This software is released under the GNU GPL.
+#  The package documentation directory ./doc-pak does not exist.
+#  Should I create a default set of package docs? [y]: y
+# 
+# 
+# Next, type the description for the DEB file, and press ENTER double time to continue.
+# 
+#  Preparing package documentation...OK
+# 
+#  Please write a description for the package.
+#  End your description with an empty line or EOF.
+#  >> This Leafpad DEB file has been created from source code
+#  >> EOF
+# 
+# 
+# In the next screen, you will see the details of source file that you are going to create a DEB file from it. The DEB package will be built according to these details.
+# 
+# Review the details, and change them as your wish.
+# 
+#  *****************************************
+#  **** Debian package creation selected ***
+#  *****************************************
+# 
+# This package will be built according to these values:
+# 
+#  0 - Maintainer: [ root@ostechnix ]
+#  1 - Summary: [ This Leafpad DEB file has been created from source code ]
+#  2 - Name: [ leafpad ]
+#  3 - Version: [ 0.8.17 ]
+#  4 - Release: [ 1 ]
+#  5 - License: [ GPL ]
+#  6 - Group: [ checkinstall ]
+#  7 - Architecture: [ amd64 ]
+#  8 - Source location: [ leafpad-0.8.17 ]
+#  9 - Alternate source location: [ ]
+#  10 - Requires: [ ]
+#  11 - Provides: [ leafpad ]
+#  12 - Conflicts: [ ]
+#  13 - Replaces: [ ]
+# 
+# 
+# For example, I want to change the maintainer Email id. To do so, press number "0". Type the maintainer email, and press ENTER key.
+# 
+# 
+# 
+#  Enter a number to change any of them or press ENTER to continue: 0
+#  Enter the maintainer's name and e-mail address:
+#  >> sk@ostechnix.com
+# Finally, press Enter if you ok with details.
+# 
+# The .deb Package has been built successfully, and installed automatically.
+# 
+# **********************************************************************
+# 
+# Done. The new package has been installed and saved to 
+# /home/ostechnix/leafpad-0.8.17/leafpad_0.8.17-1_amd64.deb
+# 
+# You can remove it from your system anytime using:
+# 
+# dpkg -r leafpad
+# 
+# **********************************************************************
+# 
+# 
+# The .deb will be saved in the directory where you extracted the source file.
+# 
+# Let us view the contents of the source directory:
+# 
+# ls
+# Sample output:
+# 
+# ABOUT-NLS config.sub intltool-extract missing
+# aclocal.m4 configure intltool-extract.in mkinstalldirs
+# AUTHORS configure.ac intltool-merge NEWS
+# ChangeLog COPYING intltool-merge.in po
+# compile data intltool-update README
+# config.guess depcomp intltool-update.in src
+# config.h description-pak leafpad_0.8.17-1_amd64.deb stamp-h1
+# config.h.in doc-pak Makefile
+# config.log INSTALL Makefile.am
+# config.status install-sh Makefile.in
+# ostechnix@ostechnix:~/leafpad-0.8.17$
+# As you can see in the above output, the deb file has been successfully created and saved in the source directory itself.
+# 
+# You can also remove the installed deb package as shown below.
+# 
+# sudo dpkg -r leafpad
+# I have tested these guide with Leafpad and 7zip source files. It worked like a charm as I described above.
+# 
+# That's all for now. You know now how to create .deb file from its source file. I will be soon here with another interesting article. Until then, stay tuned with OSTechNix.
+# 
+# If you find this article useful, please share it on your social networks and support us.
+
+
+
+
+
+
+
+
+
+
+
+###   
+###   # Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
+###   [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
+###   [[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
+###   
+###   [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
+###   check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
+###   check_and_install git git
+###   check_and_install vim vim
+###   check_and_install curl curl
+###   check_and_install wget wget
+###   check_and_install perl perl
+###   [[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
+###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
+###   check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
+###   # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
+###   [[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
+###   # if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
+###   #         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+###   #     fi
+###   # fi
+###   [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
+###   if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+###           RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
+###       fi
+###   fi
+###   # [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
+###   [[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
+###   check_and_install tree tree
+###   check_and_install dos2unix dos2unix
+###   check_and_install mount mount
+###   [[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
+###   [[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
+###   # check_and_install macchina macchina    # System information
+###   check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
+###   check_and_install zip zip
+###   check_and_install unzip unzip
+###   [[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+###   # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
+###   check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
+###   [[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
+###   [[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
+###   # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
+###   # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
+###   check_and_install fortune fortune-mod    # Note that the Ubuntu apt says "selecting fortune-mod instead of fortune" if you try 'apt install fortune'
+###   check_and_install cowsay cowsay
+###   check_and_install figlet figlet
+###   # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
+###   # which figlet &> /dev/null || exe sudo snap install figlet -y

@@ -23,6 +23,243 @@
 # Add wins so it looks like this:
 # hosts:  files mdns4_minimal [NOTFOUND=return] wins dns mdns4
 # Install the "winbind" package: sudo apt-get install winbind
+
+
+
+# temp() {    # 
+#     if [ $# -eq 0 ] ; then
+#       cat << EOF >&2
+# Usage: $0 temperature[F|C|K]
+# where the suffix:
+#    F	indicates input is in Fahrenheit (default)
+#    C	indicates input is in Celsius
+#    K	indicates input is in Kelvin
+# EOF
+#         return
+#     fi
+#     unit="$(echo $1|sed -e 's/[-[[:digit:]]*//g' | tr '[:lower:]' '[:upper:]' )"
+#     temp="$(echo $1|sed -e 's/[^-[[:digit:]]*//g')"
+#     case ${unit:=F}
+#     in
+#         F ) # Fahrenheit to Celsius formula:  Tc = (F -32 ) / 1.8
+#         farn="$temp"
+#         cels="$(echo "scale=2;($farn - 32) / 1.8" | bc)"
+#         kelv="$(echo "scale=2;$cels + 273.15" | bc)"
+#         ;;
+#         C ) # Celsius to Fahrenheit formula: Tf = (9/5)*Tc+32
+#         cels=$temp
+#         kelv="$(echo "scale=2;$cels + 273.15" | bc)"
+#         farn="$(echo "scale=2;((9/5) * $cels) + 32" | bc)"
+#         ;;
+#         K ) # Celsius = Kelvin + 273.15, then use Cels -> Fahr formula
+#         kelv=$temp
+#         cels="$(echo "scale=2; $kelv - 273.15" | bc)"
+#         farn="$(echo "scale=2; ((9/5) * $cels) + 32" | bc)"
+#     esac
+#     echo "Fahrenheit = $farn"
+#     echo "Celsius    = $cels"
+#     echo "Kelvin     = $kelv"
+# }
+# 
+
+
+
+
+
+# https://itsfoss.com/best-ubuntu-apps/
+
+ # https://www.cryfs.org Command line crypt tool
+ # Whatsie WhatsApp client
+ # sudo apt install flameshot for image capture
+# sudo apt install peek for gifs
+# blender
+# mailspring for mail
+# Clamtk av
+# Standard notes
+# Web: Firefox
+# Mail: Thunderbird
+# pdf: no good choice, all suck, suffering with Foxit
+# Cloud: Nextcloud, very nice.
+# Music: Audacity, no BS here.
+# Backup: Grsync, very granular
+# Optical: K3B, all others appear abandoned (rubby ripper, sound juicer)
+# Video Editing: Lightworks
+# Video playback: VLC
+# Documents: MS Office on Crossover
+# Drawing: MS Visio on Crossover
+# Password manager: KeepassX
+# Virtual Machine: VMware
+# VPN Client: Private Internet Access
+# Neywork: Samba, shit most of the time.
+# Storage: Gparted
+# Video Chat: none
+# Atril PFD / Evince
+# Music Player: Audacious (Audacity is great for audio manipulation).
+# Master PDF
+# PDF Studio
+# Acronis True Image:
+1. Backup entire Linux install to USB
+2. Create recovery partition on Linux computer
+try https://extensions.gnome.org/extension/779/clipboard-indicator/
+copyq and just disable, or ignore whatever built-in clipboard manager might exist.
+
+Currently using neon, but have also enjoyed copyq with gnome and windows
+
+copyq can be configured with whatever shortcuts you like.
+pcloud offers free storage only 10Gb but month and lifetime plan…
+
+Cherrytree by Giuseppe Penone. It is THE best database/list/notebook/PIM programme out there. It is a database attached to a word processor. It’s small and simple to use. It does what it says and does it well. It’s one of those programmes that replaces a whole mess of other apps/programmes due to its versatility. I use it for all my writing/word processing needs – logbook, inventory, poetry, story/article/letter writing, address book/contacts list, recipe book, to do/task lists, project management, notebook, and much, much more. It will handle *.txt or *.rtf format and saves it’s data in a folder location of your choice. You can even insert links, tables or pictures. It’s cross platform so I can use it on Windows or Linux without skipping a beat. I have yet to find a more useful, versatile programme.
+“MY SMS” to your message app. It sync to your phone so you can send and receive from either and the thread appears on both.
+Windscribe VPN
+Opera mini has a free, very good, VPN which can easily be switched on/off.
+XnviewMP to sort, view, catalog your pictures but also does videos. I’ve been using it for decades before I shifted to Linux. Developper is very responsive and people on the forums as well.
+4K Video Downloader
+Cloud: Megasync is the king [50GB free + best sync client]
+Messaging: Telegram Desktop [FOSS & a lot to offer]
+Coding: Sublime Text 3 [Undoubtly fastest of all still being feature rich]
+Opera (very underrated browser)
+Freemind
+Zim
+Workrave
+Rhinote
+Glabels
+Odio
+pdfshuffler
+– bitwarden: Lastpass but open source, audited, and secure
+– gocryptfs: you can locally encrypt files (client side encryption) that are stored in a cloud service like Dropbox, so even if you get hacked hackers can’t read any of your files
+– veracrypt: an awesome encryption suite
+– GPG/PAM: you can use GPG and a Yubikey/Nitrokey to provide 2nd factor authentication to LUKS, login or simply sign and encrypt documents
+ Restic: blazing fast backup
+– Git: duh
+– keybase: signal + Dropbox with client side encryption and 200 GB free storage + a GPG keyserver + ledger security + Lumen wallet all rolled into one. Most impressive piece of software I’ve seen in a while
+– Signal: the gold standard in privacy
+– wavebox: the most robust communication client out there
+– nordvpn: has a nice CLI Linux client
+– Quodlibet: Music player for audiophiles (bit perfect output). Runs natively in Wayland
+– Flatpak: containerized apps
+– Tor: gold standard in privacy
+– Firefox nightly: now runs natively in Wayland providing security benefits
+– Anaconda: Python + R environment manager
+– remmina: the best RDP app I’ve found
+keepassXP for passwords, Recoll to indexing documents, MEGA as a good cloud option too, Transmission, Kodi, Anki, Gramps, Electrum, Anydesk, Retroarch… all of them I consider them the best of their categories.
+sudo apt purge thunderbird*
+sudo apt install geary
+Pocket to save all sorts of articles.
+Document Viewer is standard in Ubuntu, but I prefer Foxit-reader as is allows also some editing , just enough to fill a pdf form.
+gconf-editor?
+kdenlive, mpv media player and atom after reading this post. than kyou for the suggestions.
+“The Old Reader” , in the web browser for that.
+kodi
+Lutris & DXVK for Gaming without a doubt!
+Nextcloud for your private cloud storage. BoxBackup for encrypted backups.
+MegaSync but you can give Rclone a try.
+Bitwarden is open source password manager. It supports cloud-sync, has desktop and mobile applications along with browser extensions.
+I have used https://pwsafe.org/ for years it is best in my opinion and is available for windows and android as well. It even works with yubikeys if you like. I may eventually adopt that for mobility on my android device.
+Anbox is there but it’s not very usable at the moment. Android emulator
+Nuvola is not a free application: in requires a subscription.
+pCloud is a nice tool, however unlike Dropbox the files are stored ONLY on their server, not mirrored on your computer, so if you find yourself without internet access, you will also not have access to your files.
+I have implemented Syncthing for cloud storage, keeping files on all my computers as well as on a backup system… was a little bit more complicated to set up, but works well. One note, there is not a Linux GUI, but they do have a web gui launched from the terminal, and if you close the browser, the sync continues until you kill the terminal.
+CopyQ is a very useful, cross-platform clipboard manager.
+AutoKey is great for text expansion and automating repetitive tasks.
+wiki Zim
+Its a local personnal wiki to take note, todo list, storage information with Links power.
+httpS works fine too: https :// feeds. feedburner. com / ItsFoss
+GoldenDict. Once you figure out where to get dictionaries, it becomes an excellent tool for looking up definitions and translations.
+
+Scribus is a good desktop publishing tool.
+
+MyPaint is very similar to Krita
+
+TuxGuitar is a good midi player and Guitar music play and score tool
+
+IrfanView is an excellent image display and edit program from Windows that installs easily under WINE in Linux, and runs perfectly.
+
+And, let’s not forget Detox for converting whitespace to underscore in file names, and
+
+Grub Customizer for adjusting the Boot Menu in dual boot systems.
+Megaupload, Franz, Mailspring and Zenkit.
+Use Turboprint
+ Musescore does a wonderful job.
+
+ KeePassX -password manager-cross platform-works for me on Ubuntu 14.04, the latest Xubuntu, and Windows 7.
+Back In Time -backup-once set up runs automaticaly and can save files to any HD, USB stick or whatever. Backups saved as individual files and can be retrieved as such.
+Streema- online free world music-hundreds of choices
+PDF Shuffler- can’t edit pdf’s but you can add or delete pages or combine two pdf files into one. I use it a lot! Very small program.
+Gnote-quick note taker. Write out a note and print it out on paper or print as a pdf and save somewhere or put into a notebook.
+I don’t run any from command line, so I don’t know about that . . .
+
+KeePassXC
+Blender is essential for visualization thinking in 3D and 2D not only for rendering of 3D art.
+Mega, mega.co.nz. You get 50gb free storage, the megasync application for Ubuntu, Mint and others, a Nautilus plug in and an extension for Firefox and Chrome that provides a secure login and faster, safer uploads and downloads.
+Double Commander” as a file manager. Over the many years, I believe I’ve tried all similar available on Linux, and, IMHO, think this one is the best. I use it on all my machines. And, for those who double boot with Windows, thre is a version available.
+
+Zotero to manage and annotate academic literature. Anki is great for flash cards. LastPass to manage passwords. VNCViewer or TeamViewer for remote access to my other devices.
+Can you recommend a good notebook program, an alternative to OneNote?
+
+OBS screen recorder and ST3 editor?
+
+Peek for simple screencasting: https://github.com/phw/peek
+
+reeOffice 2018, which can read and write .docx documents pretty well, if that’s an issue. The free version lacks many features though.
+
+Rambox! It’s a great tool and it’s more FOSS than Franz since it doesn’t ask you to pay nor subscribe (which you can do anyway on a voluntary basis)
+
+Compiz (3D desktop)
+
+PlayOnLinux with Lutris, please.
+What about LMMS, Ardour and maybe Natron?
+
+LMMS several times a week. I’ve not heard of Natron – I’ll have to check it out.
+
+Geany, a value added text editor, for coding, pysolfc loads of idle single player games, openshot a nonlinear video editor, password gorilla for generating and saving passwords, clipgrab to download videos from many different locations, simple screen recorder does what it says on the tin, blender for 3d modeling, openscad for 3d modeling
+
+Cribbage, Dominoes, Spades, Hearts. Klondike Forever, and The Othello on linux.
+
+MPlayer. Does as much or more than VLC does and works out of the box with any file.
+
+Cloud Storage – none that you recommended is FOSS.
+
+Image editors – Krita is net superior to any image editor. I am designing websites for the past 15 years so I can tell you that using Photoshop for 10 years Krita was the only Linux alternative that could do the job Photoshop did. So Krita is far from a paint app.
+
+Photo apps (for gallery) – Shotwell is still the best in my view. The other ones do not work well with over 20k images.
+
+Kdenlive – I am making documentaries for the past 8 years. Comparing Kdenlive with Movie Maker is really crazy :)). Kdenlive is far superior. Have you used it? It is on par with Sony Vegas I would say, a software that I used for many years before migrating to Linux.
+
+Xnconvert – is closed source. If you want an open source solution try Converseen.
+
+LibreOffice – again, believe it or not but I also write books and design them into LO. Books that are hundreds of pages long each. LO is more than capable of editing PDF’s – I edited 600 pages PDF (that had a heavy design) with Draw. And I currently design a 1k page book into Draw.
+
+Skype – closed source. Proprietary. Linux is full of messaging apps so why recommend a proprietary one? Use Riot, Signal, qTox, Jitsi, and so forth.
+
+Remember The Milk – not open source.
+
+Steam – promotes DRM and non-free software. Same goes for PlayOnLinux .
+
+For backup use Deja Dup. Using it for the past 5 years with 0 issues. Creates scheduled encrypted backups.
+
+I really enjoy your website, but I am very sad to see that you don’t respect what FOSS stands for and you promote software that is neither open source or free (as in freedom). Why is that?
+
+sudo apt install lshw
+sudo lshw
+for a deeper look
+sudo apt install hwinfo
+sudo hwinfo
+Finely top
+sudo top but a more overlooked little network command line killer is iftop
+sudo apt install iftop
+sudo iftop
+watch your throughput rx tx levels see how a dns server is fooling your actual net speeds from your isp
+All the best may your FOSS be with u
+
+Didn’t know that LibreOffice Draw could edit PDFs! Thank you for this tip.
+
+gscan2pdf (for scanning, OCR, split and save) and DocFetcher (for search and view). And I save the pdf-Files in a meaningfull Filestructure (2018, 2017, … car, house, family, …) with “speaking” filenames (date-name-title.pdf). So I can search for the file by the file-explorer or by DocFetcher.
+
+DaVinci Resolve for video editing and REAPER for audio editing and music production.
+Reaper is one of the best DAW’s out there. I like it better than Pro Tools. While it is free to try out, the developer, pretty much on an honor system, requires purchase of a license (very cheap for what it is) if you’re going to continue using it beyond the trial period to support his work. It is not free, it’s just not locked down.
+
+
+
 Alt+F2 and type: gksu gedit /etc/nsswitch.conf
 
 Look for this line:

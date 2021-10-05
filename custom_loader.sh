@@ -1,19 +1,12 @@
 #!/bin/bash
 ####################
 #
-# git config --global core.autocrlf input
+# Always run the git config before cloning to fix potential line ending problems, especially on WSL
+# git config --global core.autocrlf input   
 # git clone https://github.com/roysubs/custom_bash
 # 
-# Configure consistent bash environemt
-#    https://github.com/roysubs/custom_bash/
-#    https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh  =>  https://git.io/Jt0fZ  (using git.io)
-#
-# Can download custom_loader.sh before running with:
-#    curl -L https://git.io/Jt0fZ > ~/custom_loader.sh
-# To run unattended (all read -e -p will be ignored, script will run in full):
-#    curl -L https://git.io/Jt0fZ | bash
-# To run attended (prompts like read -e -p will be respected):
-#    curl -L https://git.io/Jt0fZ > custom_loader.sh ; bash custom_loader.sh
+# This script performs some configuration options to make a consistent bash environemt, and then
+# installss .custom into the profile ready to be used in interactive shells.
 #
 ####################
 
@@ -60,6 +53,8 @@
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
+
+
 
 ####################
 #
@@ -137,30 +132,30 @@ print_header "Find package manager and run package/distro updates"
 #
 ####################
 
-MANAGER=
-type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
-type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER=dnf will be default if both dnf and yum are present
-type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
+manager=
+type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
+type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
+type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager=dnf will be default if both dnf and yum are present
+type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
+type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
 
 # apk does not require 'sudo' or a '-y' to install
-if [ "$MANAGER" = "apk" ]; then
-    INSTALL="$MANAGER add"
+if [ "$manager" = "apk" ]; then
+    INSTALL="$manager add"
 else
-    INSTALL="sudo $MANAGER install -y"
+    INSTALL="sudo $manager install -y"
 fi
 
 # Only install each a binary from that package is not already present on the system
 check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed" || exe $INSTALL $2; }
-             # e.g.   type dos2unix &> /dev/null || exe sudo $MANAGER install dos2unix -y
+             # e.g.   type dos2unix &> /dev/null || exe sudo $manager install dos2unix -y
 
-[[ "$MANAGER" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
+[[ "$manager" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
 
 echo -e "\n\n>>>>>>>>    A variant of '$DISTRO' was found."
-echo -e     ">>>>>>>>    Therefore, will use the '$MANAGER' package manager for setup tasks."
+echo -e     ">>>>>>>>    Therefore, will use the '$manager' package manager for setup tasks."
 echo ""
-printf "> sudo $MANAGER update -y\n> sudo $MANAGER upgrade -y\n> sudo $MANAGER dist-upgrade -y\n> sudo $MANAGER install ca-certificates -y\n> sudo $MANAGER autoremove -y\n"
+printf "> sudo $manager update -y\n> sudo $manager upgrade -y\n> sudo $manager dist-upgrade -y\n> sudo $manager install ca-certificates -y\n> sudo $manager autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
 # Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
@@ -184,14 +179,14 @@ fi
 # sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
 # sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
 # yum repolist   # check if epel is installed
-# if type dnf &> /dev/null 2>&1; then exe sudo $MANAGER -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
+# if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
 
 
 
 function getLastUpdate()
 {
-    if [[ $MANAGER == "apt" ]]; then local updateDate="$(stat -c %Y '/var/cache/apt')"; fi   # %Y  time of last data modification, in seconds since Epoch
-    if [[ $MANAGER == "dnf" ]]; then local updateDate="$(stat -c %Y '/var/cache/dnf/expired_repos.json')"; fi   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $manager == "apt" ]]; then local updateDate="$(stat -c %Y '/var/cache/apt')"; fi   # %Y  time of last data modification, in seconds since Epoch
+    if [[ $manager == "dnf" ]]; then local updateDate="$(stat -c %Y '/var/cache/dnf/expired_repos.json')"; fi   # %Y  time of last data modification, in seconds since Epoch
     local nowDate="$(date +'%s')"                    # %s  seconds since 1970-01-01 00:00:00 UTC
     echo $((nowDate - updateDate))                      # simple arithmetic with $(( ))
 }
@@ -210,15 +205,15 @@ function runDistroUpdate()
     if [[ "${lastUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
         print_header "apt updates will run as last update was more than ${updateIntervalReadable} ago"
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt-get update --ignore-missing -y; fi   # Not sure if this is needed
-        exe sudo $MANAGER update -y
-        exe sudo $MANAGER upgrade -y
-        exe sudo $MANAGER install ca-certificates -y
-        exe sudo $MANAGER autoremove -y
+        if [ "$manager" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+        if [ "$manager" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
+        if [ "$manager" == "apt" ]; then exe sudo apt-get update --ignore-missing -y; fi   # Not sure if this is needed
+        exe sudo $manager update -y
+        exe sudo $manager upgrade -y
+        exe sudo $manager install ca-certificates -y
+        exe sudo $manager autoremove -y
         which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-        if [ "$MANAGER" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+        if [ "$manager" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     else
         local lastUpdate="$(date -u -d @"${lastUpdate}" +'%-Hh %-Mm %-Ss')"
         print_header "Skip apt-get update because its last run was ${updateIntervalReadable} ago"
@@ -237,7 +232,7 @@ if [ -f /var/run/reboot-required ]; then
     . .custom   # In case this is first run of custom-loader.sh, source in .custom anyway to make those aliases and functions available
     return   # Script will exit here if a reboot is required
 fi
-if [[ "$MANAGER" == "dnf" ]] || [[ "$MANAGER" == "yum" ]]; then 
+if [[ "$manager" == "dnf" ]] || [[ "$manager" == "yum" ]]; then 
     needsReboot=$(needs-restarting -r &> /dev/null 2>&1; echo $?)   # Supress the output message from needs-restarting (from yum-utils)
     if [[ $needsReboot == 1 ]]; then
         echo "Note: A reboot is required (by checking: needs-restarting -r)."
@@ -381,17 +376,17 @@ echo ""
 # [[ ! -d ~/.config/shortcut ]] && git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
 
 # https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
-# exe sudo $MANAGER install lolcat -y     # pipe text or figlet/cowsay for rainbow
-# exe sudo $MANAGER install toilet -y     # pipe text or figlet/cowsay for coloured output
-# exe sudo $MANAGER install boxes -y      # ascii boxes around text (cowsay variant)
-# exe sudo $MANAGER install lolcat -y     # pipe figlet/cowsay for rainbow
-# exe sudo $MANAGER install nms -y        # no more secrets
-# exe sudo $MANAGER install chafa -y      # chafa
-# exe sudo $MANAGER install cmatrix -y    # cmatrix
-# exe sudo $MANAGER install trash-cli -y  # trash-cli
-# exe sudo $MANAGER install wikit-cli -y  # wikit
-# exe sudo $MANAGER install googler -y    # googler
-# exe sudo $MANAGER install browsh -y     # browsh
+# exe sudo $manager install lolcat -y     # pipe text or figlet/cowsay for rainbow
+# exe sudo $manager install toilet -y     # pipe text or figlet/cowsay for coloured output
+# exe sudo $manager install boxes -y      # ascii boxes around text (cowsay variant)
+# exe sudo $manager install lolcat -y     # pipe figlet/cowsay for rainbow
+# exe sudo $manager install nms -y        # no more secrets
+# exe sudo $manager install chafa -y      # chafa
+# exe sudo $manager install cmatrix -y    # cmatrix
+# exe sudo $manager install trash-cli -y  # trash-cli
+# exe sudo $manager install wikit-cli -y  # wikit
+# exe sudo $manager install googler -y    # googler
+# exe sudo $manager install browsh -y     # browsh
 # toilet -f mono9 -F metal $(date)
 # while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done
 # Fork Bomb (do not ever run)   :   :(){ :|:& }:
@@ -487,7 +482,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     # Need to be able to do it from the CentOS system however to automate the install in this way.
     # In the end, looks like the 'alien' setup is not required as 'bat' will install into CentOS using dpkg(!)
     # But keep this code as might need for other packages to convert them.
-    ### if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then        
+    ### if [ "$manager" == "dnf" ] || [ "$manager" == "yum" ]; then        
     ###     # Don't need to worry about picking the latest version as unchanged since 2016
     ###     ALIENDL=https://sourceforge.net/projects/alien-pkg-convert/files/release/alien_8.95.tar.xz
     ###     ALIENTAR=alien_8.95.tar.xz
@@ -495,9 +490,9 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ###     exe wget -P /tmp/ $ALIENDL
     ###     tar xf $ALIENTAR
     ###     cd /tmp/$ALIENDIR
-    ###     exe sudo $MANAGER install perl -y
-    ###     exe sudo $MANAGER install perl-ExtUtils-Install -y
-    ###     exe sudo $MANAGER install make -y
+    ###     exe sudo $manager install perl -y
+    ###     exe sudo $manager install perl-ExtUtils-Install -y
+    ###     exe sudo $manager install make -y
     ###     sudo perl Makefile.PL
     ###     sudo make
     ###     sudo make install
@@ -927,60 +922,6 @@ echo "   # sudo dpkg-reconfigure locales"
 echo ""
 echo "Run 'locale' to view the current settings before changing."
 
-# Commenting this section out since will be ignored when downloading from github with: curl <script> | bash
-#
-# COLUMNS=12;
-# printf "Select new Locale:\n\n";
-# select x in en_GB.UTF-8 en_US.UTF-8 nl_NL.UTF-8 "Do not change";
-# do
-#     if [ "$x" == "Do not change" ]; then break; fi
-#     exe sudo update-locale LANG=$x;
-#     exe sudo update-locale LANGUAGE=$x;
-#     exe sudo update-locale LC_ALL=$x;
-#     echo ""
-#     echo "New locale environment settings:"
-#     exe locale
-#     break;
-# done
-# echo ""
-# echo "If locale has changed, it will be applied only after a new login session starts."
-# echo ""
-
-# Changing the default locale is a little different on Ubuntu compared to most Linux distros, these are the steps we needed to go through to get it changed:
-# Add the locale to the list of 'supported locales', by editing /var/lib/locales/supported.d/local and add the following line:
-# en_GB ISO-8859-1
-# The above does not work for me on current Ubuntu
-# echo "Note en_GB.UTF-8 vs en_GB.ISO-8859-1, though this might be old/fixed now"
-# echo "https://blog.andrewbeacock.com/2007/01/how-to-change-your-default-locale-on.html"
-# echo "https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server#89983"
-# echo "For Ubuntu, easiest option is to reconfigure locale, select en_GB.UTF-8 (or other):"
-# echo ""
-# echo "# sudo dpkg-reconfigure locales"
-# echo ""
-# echo "The new locale will not be applied until a new shell is started"
-# echo ""
-# read -e -p "Press 'Enter' to continue ..."; "$@"
-# echo "Try regenerating the supported locale list by running:"
-# echo "sudo dpkg-reconfigure locales"
-# echo ""
-# echo "And update/change the current default locale:"
-# echo "sudo update-locale LANG=fr_FR.UTF-8"
-# echo "Update"
-# echo ""
-# echo "Generate the locales for your language (e.g. British English):"
-# echo "   sudo locale-gen fr_FR"
-# echo "   sudo locale-gen fr_FR.UTF-8"
-# echo ""
-# echo "Extra steps to try:"
-# echo ""
-# echo "Try:"
-# echo ""
-# echo "sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR""
-# echo "sudo dpkg-reconfigure locales"
-# echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
-# echo ""
-# echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
-
 
 
 ####################
@@ -1013,13 +954,13 @@ print_header "HELP FILES : Create various help scripts for notes and tips and al
 
 # Try to build a collection of common notes, summaries, tips, tricks to always be accessible from the console.
 # This is a good template for creating help files for various summaries (could also do vim, tmux, etc)
-# Tried using printf for similar, but had a few problems with that and echo works better and more reliably.
-# Note escaping \$ \\, and " is little awkward, as requires \\\" (\\ => \ and \" => ").
 # Note the "" surround $1 in exx() { echo "$1" >> $HELPFILE; } otherwise prefix/trailing spaces will be removed.
 # Using echo -e to display the final help file, as printf requires escaping "%" as "%%" or "\045" etc)
-# In .custom, we can then simply create aliases if the files exist:
-# [ -f /tmp/help-byobu.sh ] && alias help-byobu='/tmp/help-byobu.sh' && alias help-b='/tmp/help-byobu.sh'
+# In .custom, we can then simply create aliases if that file exists.
+# https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo/65819#65819
 # https://www.shellscript.sh/tips/echo/
+# Both printf and echo -e have issues, but printf overall is probably better.
+# Note escaping \$ \\, and " is little awkward, as requires \\\" (\\ => \ and \" => ").
 
 
 
@@ -1055,7 +996,7 @@ exx "Adjust 1920x1080 to your current monitor resolution."
 exx "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
 exx ""
 exx "\${RED}***** Setup Guest Services so that text can be copied/pasted to/from the Hyper-V console\${NC}"
-exx "From Hyper-V Manager dashboard, find the VM, and open Settings."
+exx "From Hyper-V manager dashboard, find the VM, and open Settings."
 exx "Go to Integration Services tab > Make sure Guest services section is checked."
 exx ""
 exx "\${RED}***** Adjust Sleep Settings for the VM\${NC}"
@@ -1486,8 +1427,8 @@ exx "# manly dpkg -i -R"
 exx "manly --help       # help"
 exx ""
 exx "\${RED}***** tldr\${NC}"
-exx "sudo $MANAGER install tldr   # Works on CentOS, but might not on Ubuntu"
-exx "sudo $MANAGER install npm"
+exx "sudo $manager install tldr   # Works on CentOS, but might not on Ubuntu"
+exx "sudo $manager install npm"
 exx "sudo npm install -g tldr     # Alternative"
 exx "tldr find"
 exx "# tldr --list-all  # list all cached entries"
@@ -1499,8 +1440,8 @@ exx "https://docs.kmdr.sh/get-started-with-kmdr-cl"
 exx "sudo npm install kmdr@latest --global"
 exx ""
 exx "\${RED}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
-exx "sudo $MANAGER install tealdeer   # fails for me"
-exx "sudo $MANAGER install cargo      # 270 MB"
+exx "sudo $manager install tealdeer   # fails for me"
+exx "sudo $manager install cargo      # 270 MB"
 exx "cargo install tealdeer      # seems to install ok"
 exx "export PATH=\\\$PATH:/home/\\\$USER/.cargo/bin   # And add to .bashrc to make permanent"
 exx "# tldr --update"
@@ -1513,7 +1454,7 @@ exx "sudo chmod +x /usr/local/bin/tldr"
 exx ""
 exx "\${RED}***** how2 (free form questions, 'stackoverflow for the terminal')\${NC}"
 exx "like man, but you can query it using natural language"
-exx "sudo $MANAGER install npm"
+exx "sudo $manager install npm"
 exx "npm install -g how-2"
 exx "how2 how do I unzip a .gz?"
 exx "\""   # require final line with a single " to close multi-line string
@@ -1592,21 +1533,21 @@ exx "make"
 exx "CC main-gcu.c"
 exx "main-gcu.c:63:22: error: ncurses.h: No such file or directory"
 exx "Which indicates that you need to install the ncurses library. You can fix that by installing the \\\"ncurses-devel\\\" and re-running \\\"./configure\\\"."
-exx "sudo $MANAGER install ncurses-devel"
+exx "sudo $manager install ncurses-devel"
 exx "./configure"
 exx "***** If you do a system install (making Angband available for all users on the system), make sure you add the users to the \\\"games\\\" group. Otherwise, when your users attempt to run Angband, they will get error messages about not being able to write to various files in the /usr/local/games/lib/angband folders."
 exx "./configure --with-setgid=games --with-libpath=/usr/local/games/lib/angband --bindir=/usr/local/games"
 exx "make"
 exx "make install"
 exx ""
-exx "sudo $MANAGER console-games   # A collection of important console games"
+exx "sudo $manager console-games   # A collection of important console games"
 exx "aajm, an, angband, asciijump, bastet, bombardier, bsdgames,cavezofphear,"
 exx "colossal-cave-adventure, crawl, curseofwar, empire, freesweep, gearhead,"
 exx "gnugo, gnuminishogi, greed, matanza, moria, nethack-console, netris, nettoe,"
 exx "ninvaders, nsnake, nudoku, ogamesim, omega-rpg, open-adventure, pacman4console,"
 exx "petris, robotfindskitten, slashem, sudoku, tetrinet-client, tint, tintin++,"
 exx "zivot"
-exx "sudo $MANAGER animals   # A ridiculous game, guessing animals, waste of time..."
+exx "sudo $manager animals   # A ridiculous game, guessing animals, waste of time..."
 exx ""
 exx "CoTerminal Apps (under active development in 2021, non-graphical puzzles and games with sound for Linux/OSX/Win, SpaceInvaders, Pacman, and Frogger, plus 10 puzzles. https://github.com/fastrgv?tab=repositories"
 exx "cd /tmp"
@@ -1704,7 +1645,7 @@ exx ""
 exx "Robot Finds Kitten http://robotfindskitten.org/ Another easy-to-play Linux terminal game. In this game, a robot is supposed to find a kitten by checking around different objects. The robot has to detect items and find out whether it is a kitten or something else. The robot will keep wandering until it finds a kitten. Simon Charless has characterized robot finds kitten as 'less a game and more a way of life.'"
 exx ""
 exx "Emacs Games (dunnet 'secret adventure', tetris, )"
-exx "sudo $MANAGER install emacs"
+exx "sudo $manager install emacs"
 exx "Tetris: emacs -nw   # Then 'M-x tetris' (done by holding the Meta key, typically alt by default) and x then typing tetris and pressing enter. -nw flag for no-window to force terminal and not GUI."
 exx "Doctor: emacs -nw at the terminal and then entering M-x doctor. Talk to a Rogerian psychotherapist who will help you with your problems. It is based on ELIZA, the AI program created at MIT in the 1960s."
 exx "Dunnet: emacs -nw at the terminal and then entering M-x dunnet. Similar to Adventure, but with a twist."
@@ -2207,7 +2148,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Help)\${NC}"
     exx ""
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
-    exx "or CMD console. You can go into fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
+    exx "or CMD console. You can toggle fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
     exx "with 'Alt-Enter'. Registered distros are automatically added to Windows Terminal."
     exx ""
     exx "Right-click on WSL title bar and select Properties, then go to options and enable Ctrl-Shift-C and Ctrl-Shift-V"
@@ -2219,10 +2160,10 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "foreach (\\\$c in \\\$toChange) { Set-ItemProperty -Path \\\"HKCU:\\\AppEvents\\\Schemes\\\Apps\\\.Default\\\\\\\$c\\\.Current\\\" -Name \\\"(Default)\\\" -Value \\\"C:\\WINDOWS\\media\\ding.wav\\\" }"
     exx ""
     exx "\${RED}***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work\${NC}"
-    exx "In this case, to see Task Manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
+    exx "In this case, to see Task manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
     exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
-    exx "With Task Manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
-    exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task Manager here to use it to terminate the hung application."
+    exx "With Task manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
+    exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task manager here to use it to terminate the hung application."
     exx ""
     exx "\${RED}***** Windows Terminal (wt) via PowerShell Tips and Split Panes\${NC}"
     exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
@@ -2492,7 +2433,7 @@ chmod 755 $HELPFILE
 print_header "List Installed Repositories"
 #
 ####################
-if [ "$MANAGER" = "apt" ]; then
+if [ "$manager" = "apt" ]; then
     echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
     echo ""
     sudo \grep -rhE ^deb /etc/apt/sources.list*
@@ -2500,9 +2441,9 @@ if [ "$MANAGER" = "apt" ]; then
     sudo apt-cache policy | \grep http
     echo ""
 fi
-if [ "$MANAGER" = "dnf" ] || [ "$MANAGER" = "yum" ]; then
-    echo "=====>  sudo $MANAGER repolist   (straight print of the repolist from $MANAGER)"
-    sudo $MANAGER repolist
+if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then
+    echo "=====>  sudo $manager repolist   (straight print of the repolist from $manager)"
+    sudo $manager repolist
     echo ""
 fi
 
@@ -2524,10 +2465,10 @@ echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp
 echo ""
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    echo "For WSL consoles: Can go into fullscreen mode with Alt-Enter."
+    echo "For WSL consoles: Can toggle fullscreen mode with Alt-Enter."
     echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste'."
     echo "From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\\\wsl$'."
-    echo "Access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' and same for 'd:', 'e:' etc"
+    echo "Access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' 'd:', 'e:', 'home:', 'pf:', 'sys32:' etc"
 fi
 echo ""
 echo ""
@@ -2540,7 +2481,7 @@ if [ -f /var/run/reboot-required ]; then
     echo "Re-run this script after reboot to finish the install."
     return   # Script will exit here if a reboot is required
 fi
-if [ "$MANAGER" == "dnf" ] || [ "$MANAGER" == "yum" ]; then 
+if [ "$manager" == "dnf" ] || [ "$manager" == "yum" ]; then 
     needsReboot=$(needs-restarting -r &> /dev/null 2>&1; echo $?)   # Supress the output message from needs-restarting (from yum-utils)
     if [[ $needsReboot == 1 ]]; then
         echo "Note: A reboot is required (by checking: needs-restarting -r)."
@@ -4327,54 +4268,274 @@ fi
 
 ###   
 ###   # Initially try to grab everything (quicker), then test the packages, note the gaps in the below to do with the different repositories
-###   [[ "$MANAGER" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
-###   [[ "$MANAGER" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
+###   [[ "$manager" = "apt" ]] && sudo apt install python3.9 python3-pip dpkg git vim nnn curl wget perl dfc cron     ncdu tree dos2unix mount neofetch byobu zip unzip # mc pydf
+###   [[ "$manager" = "dnf" ]] && sudo dnf install python39  python3-pip      git vim     curl wget perl     crontabs      tree dos2unix                      zip unzip # mc pydf dpkg nnn dfc ncdu mount neofetch byobu 
 ###   
-###   [[ "$MANAGER" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
+###   [[ "$manager" = "apt" ]] && check_and_install apt apt-file  # find which package includes a specific file, or to list all files included in a package on remote repositories.
 ###   check_and_install dpkg dpkg     # dpkg='Debian package', the low level package management from Debian ('apt' is a higher level tool)
 ###   check_and_install git git
 ###   check_and_install vim vim
 ###   check_and_install curl curl
 ###   check_and_install wget wget
 ###   check_and_install perl perl
-###   [[ "$MANAGER" = "apt" ]] && check_and_install python3.9 python3.9
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install python3.9 python39
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
-###   # if [ "$MANAGER" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
+###   [[ "$manager" = "apt" ]] && check_and_install python3.9 python3.9
+###   [[ "$manager" = "dnf" ]] && check_and_install python3.9 python39
+###   # if [ "$manager" = "dnf" ]; then sudo yum groupinstall python3-devel         # Will default to installingPython 3.6
+###   # if [ "$manager" = "dnf" ]; then sudo yum groupinstall python39-devel        # Will force Python 3.9
+###   # if [ "$manager" = "dnf" ]; then sudo yum groupinstall 'Development Tools'   # Total download size: 172 M, Installed size: 516 M
 ###   check_and_install pip3 python3-pip   # https://pip.pypa.io/en/stable/user_guide/
 ###   # check_and_install pip2 python2     # Do not install (just for reference): python2 is the package to get pip2
-###   [[ "$MANAGER" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
-###   # if [ "$MANAGER" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
+###   [[ "$manager" = "apt" ]] && check_and_install dfc dfc     # For CentOS below, search for "dfc rpm" then pick the x86_64 version
+###   # if [ "$manager" = "dnf" ]; then if ! type dfc &> /dev/null; then wget -P /tmp/ https://raw.githubusercontent.com/rpmsphere/x86_64/master/d/dfc-3.0.4-4.1.x86_64.rpm
 ###   #         RPM=/tmp/dfc-3.0.4-4.1.x86_64.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
 ###   #     fi
 ###   # fi
-###   [[ "$MANAGER" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
-###   if [[ "$MANAGER" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
+###   [[ "$manager" = "apt" ]] && check_and_install pydf pydf   # For CentOS below, search for "pydf rpm" then pick the x86_64 version
+###   if [[ "$manager" = "dnf" ]]; then if ! type pydf &> /dev/null; then wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ https://download-ib01.fedoraproject.org/pub/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/p/pydf-12-11.fc35.noarch.rpm
 ###           RPM=/tmp/pydf-12-11.fc35.noarch.rpm; type $RPM &> /dev/null && rpm -i $RPM; rm $RPM &> /dev/null
 ###       fi
 ###   fi
-###   # [[ "$MANAGER" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
-###   [[ "$MANAGER" = "apt" ]] && check_and_install ncdu ncdu
+###   # [[ "$manager" = "apt" ]] && check_and_install crontab cron     # Package is called 'cron' for apt, but is installed by default on Ubuntu
+###   [[ "$manager" = "dnf" ]] && check_and_install crontab crontabs   # cron is not installed by default on CentOS
+###   [[ "$manager" = "apt" ]] && check_and_install ncdu ncdu
 ###   check_and_install tree tree
 ###   check_and_install dos2unix dos2unix
 ###   check_and_install mount mount
-###   [[ "$MANAGER" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
-###   [[ "$MANAGER" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
+###   [[ "$manager" = "apt" ]] && check_and_install neofetch neofetch  # screenfetch   # Same as neofetch, but not available on CentOS, so just use neofetch
+###   [[ "$manager" = "apt" ]] && check_and_install inxi inxi          # System information, currently a broken package on CentOS
 ###   # check_and_install macchina macchina    # System information
 ###   check_and_install byobu byobu        # Also installs 'tmux' as a dependency (requires EPEL library on CentOS)
 ###   check_and_install zip zip
 ###   check_and_install unzip unzip
-###   [[ "$MANAGER" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
+###   [[ "$manager" = "apt" ]] && check_and_install lr lr   # lr (list recursively), all files under current location, also: tree . -fail / tree . -dfail
 ###   # check_and_install bat bat      # 'cat' clone with syntax highlighting and git integration, but downloads old version, so install manually
 ###   check_and_install ifconfig net-tools   # Package name is different from the 'ifconfig' tool that is wanted
-###   [[ "$MANAGER" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
-###   [[ "$MANAGER" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
-###   # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install net-tools -y
-###   # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $MANAGER install p7zip-full -y
+###   [[ "$manager" = "apt" ]] && check_and_install 7za p7zip-full  # Package name is different from the '7za' tool that is wanted, Ubuntu also creates '7z' as well as '7za'
+###   [[ "$manager" = "dnf" ]] && check_and_install 7za p7zip       # Package name is different from the '7za' tool that is wanted
+###   # which ifconfig &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $manager install net-tools -y
+###   # which 7z &> /dev/null && printf "\np7zip-full is already installed" || exe sudo $manager install p7zip-full -y
 ###   check_and_install fortune fortune-mod    # Note that the Ubuntu apt says "selecting fortune-mod instead of fortune" if you try 'apt install fortune'
 ###   check_and_install cowsay cowsay
 ###   check_and_install figlet figlet
 ###   # Note that Ubuntu 20.04 could not see this in apt repo until after full update, but built-in snap can see it:
 ###   # which figlet &> /dev/null || exe sudo snap install figlet -y
+
+
+
+
+
+# #!/bin/bash
+# # https://stephenreescarter.net/automatic-backups-for-wsl2/
+# LOGFILE=/home/valorin/winhome/backup/${WSL_DISTRO_NAME}.log
+# 
+# if [ ! -e /home/valorin/winhome/ ]; then
+#     echo "ERROR: ~/winhome/ is broken, cannot backup ${WSL_DISTRO_NAME}" | tee -a $LOGFILE
+#     exit
+# fi
+# 
+# {
+#     echo "=====>"
+#     echo "=====> Starting ${WSL_DISTRO_NAME} Backup"
+#     echo "=====> "`date '+%F %T'`
+#     echo "=====>"
+# 
+#     if [ -d /etc/mysql ]; then
+#         echo
+#         echo "==> Backing up MySQL Databases <=="
+#         echo
+#         sudo service mysql status | grep -q stopped
+#         RUNNING=$?
+#         if [ $RUNNING == "0" ]; then
+#             sudo service mysql start
+#             echo
+#         fi
+# 
+#         DATABASES=`sudo mysql --execute="SHOW DATABASES" | awk '{print $1}' | grep -vP "^Database|performance_schema|mysql|information_schema|sys$" | tr \\\r\\\n ,\ `
+#         for DATABASE in $DATABASES; do
+#             if [ -f /home/valorin/db/mysql-$DATABASE.sql ]; then
+#                 rm /home/valorin/db/mysql-$DATABASE.sql
+#             fi
+#             if [ -f /home/valorin/db/mysql-$DATABASE.sql.gz ]; then
+#                 rm /home/valorin/db/mysql-$DATABASE.sql.gz
+#             fi
+#             echo " * ${DATABASE}";
+#             sudo mysqldump --opt --single-transaction $DATABASE > /home/valorin/db/mysql-$DATABASE.sql
+#         done
+# 
+#         if [ $RUNNING == "0" ]; then
+#             echo
+#             sudo service mysql stop
+#         fi
+# 
+#         chown valorin:valorin -R /home/valorin/db
+#         gzip /home/valorin/db/*.sql
+#     fi
+# 
+#     echo
+#     echo "==> Syncing files <=="
+#     echo
+# 
+#     mkdir -p /home/valorin/winhome/backup/${WSL_DISTRO_NAME}/
+#     time rsync --archive --verbose --delete /home/valorin/ /home/valorin/winhome/backup/${WSL_DISTRO_NAME}/
+# 
+#     echo
+#     echo "=====> "`date '+%F %T'` FINISHED ${WSL_DISTRO_NAME}
+#     echo
+# 
+# } 2>&1 | tee ${LOGFILE}
+
+
+
+# WSL2 Network Issues and Win 10 Fast Start-Up
+# Post date
+# July 1, 2020
+# 6 Commentson WSL2 Network Issues and Win 10 Fast Start-Up
+# 
+# I recently encountered a network issue where my WSL2 (Windows Subsystem for Linux) distro was unable to retrieve DNS and connect to the internet without me changing /etc/resolv.conf. Likewise, Windows was unable to connect to the WSL2 ports via localhost.
+# 
+# To quickly workaround these issues, I set my nameserver to be 1.1.1.1 in /etc/resolv.conf and updated my hosts file in Windows to reflect the WSL2 IP. While this fixed the issue quickly, I had to change both files each time I opened WSL2… which sucked.
+# 
+# After a few hours of frustration and searching, I worked out what was breaking my WSL2: Fast Startup in Windows! Since I know I’ll forget this before it happens again, I thought it’d be best to document the fix here, so I can easily find it again. Hopefully it’ll help you fix your WSL2 network issues too!
+# 
+# WSL2 Network Issues
+# I first noticed the issue when trying to work on my local dev web server. I opened the browser and saw this:
+# 
+# Network issue cannot reach WSL2: ERR_CONNECTION_REFUSED
+# Cannot reach page error: ERR_CONNECTION_REFUSED
+# I fixed this my editing the Windows hosts file, however when trying to pull code changs down via git, I encountered this worrying error:
+# 
+# 
+# ssh: Could not resolve hostname github.com: Temporary failure in name resolution
+# Again, I could work around this, but the fix was temporary.
+# 
+# Disabling Fast Startup
+# I eventually stumbled upon some advice to disable Fast Startup in Windows. It sounded familiar and I thought I had already disabled it before, but I figured I should check anyway. As it turns out, something had reenabled Fast Startup and it was the cause of the WSL2 network issues issues I was experiencing.
+# 
+# The option to disable it is buried under a few screens. Let’s walk through the process.
+# 
+# First, open up settings and go into the System settings:
+# 
+# 
+# Open the System settings in the control panel.
+# Next, go into the Power & Sleep section and click Additional power settings under the Related Settings heading. Note, this option may be at the bottom of the screen, if your window isn’t wide enough to display it on the right.
+# 
+# 
+# Power & Sleep > Additional Power Settings
+# Next, select the Choose what the power buttons do option on the left of the Power Options screen.
+# 
+# 
+# Choose what the power buttons do
+# Finally, we’ve found the option! We just need to jump through the final hoop to stop it being greyed out and allow us to disable Fast Startup.
+# 
+# Select Change settings that are currently unavailable near the top. This will allow you to untick the Turn on fast start-up option under Shut-down settings.
+# 
+# Disable fast start-up to fix WSL2 network issues
+# Disable Turn on fast start-up option.
+# Once you’ve disabled the option, close all the open windows and reboot your computer. WSL2 should start working with the network again!
+# 
+# Summary
+# This is a rather frustrating issue that can be a pain to debug and identify, but is fairly easy to fix when you know what you’re looking for. I hope you find this article helpful.
+# 
+# If you know of other resources that are helpful for debugging WSL2 network issues, please drop them below in the comments!
+
+
+# alfn() {
+#     echo -e "\nAliases / Functions with '$1' in either\ntheir name or contents. Use 'def <name>'\ntoview alias or function contents.\n"
+#     alias | grep $1 | while read -r line; do
+#         delimiter="='"
+#         s=$line$delimiter
+#         array=();
+#         while [[ -n $s ]]; do
+#             array+=("${s%%"$delimiter"*}")
+#             s=${s#*"$delimiter"} 
+#         done
+#         echo ${array[0]} | awk '{print $2}'
+#     done
+#     declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1
+# }
+# 
+# daf() {   # Just match on alias / function names
+#     if [ -z "$1" ]; then echo "Requires a string argument to search for in aliases/functions."; return; fi
+#     alias | sed 's/=/ /g' | awk '{print $2}' | grep $1                # Alias names containing the match string
+#     declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1   # Function names containing the match string
+# }
+# 
+# dafx() {   # Match also on contents of aliases / functions 
+#     if [ -z "$1" ]; then echo "Requires a string argument to search for in aliases/functions."; return; fi
+#     alias | sed 's/^alias / /g' | grep $1                # Alias full definition names containing the match string
+#     for i in `declare -f`; do
+#         | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1   # 
+# }
+# 
+# 
+# alfn() {   # $1 for this function a grep so supports regular expressions
+#     if [ -z "$1" ]; then echo "Requires a string argument to search for in aliases/functions."; return; fi
+#     alias | sed 's/=/ /g' | awk '{print $2}' | grep $1                # Alias names containing the match string
+#     declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1   # 
+# }
+
+### Aborted attempt to automate locale changing
+# Commenting this section out since will be ignored when downloading from github with: curl <script> | bash
+#
+# COLUMNS=12;
+# printf "Select new Locale:\n\n";
+# select x in en_GB.UTF-8 en_US.UTF-8 nl_NL.UTF-8 "Do not change";
+# do
+#     if [ "$x" == "Do not change" ]; then break; fi
+#     exe sudo update-locale LANG=$x;
+#     exe sudo update-locale LANGUAGE=$x;
+#     exe sudo update-locale LC_ALL=$x;
+#     echo ""
+#     echo "New locale environment settings:"
+#     exe locale
+#     break;
+# done
+# echo ""
+# echo "If locale has changed, it will be applied only after a new login session starts."
+# echo ""
+
+# Changing the default locale is a little different on Ubuntu compared to most Linux distros, these are the steps we needed to go through to get it changed:
+# Add the locale to the list of 'supported locales', by editing /var/lib/locales/supported.d/local and add the following line:
+# en_GB ISO-8859-1
+# The above does not work for me on current Ubuntu
+# echo "Note en_GB.UTF-8 vs en_GB.ISO-8859-1, though this might be old/fixed now"
+# echo "https://blog.andrewbeacock.com/2007/01/how-to-change-your-default-locale-on.html"
+# echo "https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server#89983"
+# echo "For Ubuntu, easiest option is to reconfigure locale, select en_GB.UTF-8 (or other):"
+# echo ""
+# echo "# sudo dpkg-reconfigure locales"
+# echo ""
+# echo "The new locale will not be applied until a new shell is started"
+# echo ""
+# read -e -p "Press 'Enter' to continue ..."; "$@"
+# echo "Try regenerating the supported locale list by running:"
+# echo "sudo dpkg-reconfigure locales"
+# echo ""
+# echo "And update/change the current default locale:"
+# echo "sudo update-locale LANG=fr_FR.UTF-8"
+# echo "Update"
+# echo ""
+# echo "Generate the locales for your language (e.g. British English):"
+# echo "   sudo locale-gen fr_FR"
+# echo "   sudo locale-gen fr_FR.UTF-8"
+# echo ""
+# echo "Extra steps to try:"
+# echo ""
+# echo "Try:"
+# echo ""
+# echo "sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR""
+# echo "sudo dpkg-reconfigure locales"
+# echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
+# echo ""
+# echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
+
+
+### Don't really need this anymore
+#    https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh  =>  https://git.io/Jt0fZ  (using git.io)
+#
+# Can download custom_loader.sh before running with:
+#    curl -L https://git.io/Jt0fZ > ~/custom_loader.sh
+# To run unattended (all read -e -p will be ignored, script will run in full):
+#    curl -L https://git.io/Jt0fZ | bash
+# To run attended (prompts like read -e -p will be respected):
+#    curl -L https://git.io/Jt0fZ > custom_loader.sh ; bash custom_loader.sh

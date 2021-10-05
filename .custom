@@ -15,18 +15,25 @@
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
 ####################
-# Exports and Aliases:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
+# Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
-shopt -s checkwinsize   # At every prompt check if the window size has changed
-shopt -s histappend; PROMPT_COMMAND='history -a'   # Append commands to the bash history (~/.bash_history) instead of overwriting it, and do this every time a prompt is shown instead of after closing the session.
+stty -ixon   # The suspend/resume feature (Ctrl-s / z and Ctrl-q) is almost never useful in most modern terminals; this will disable it
+shopt -s histappend;   # Append commands to the bash history (~/.bash_history) instead of overwriting it   # https://www.digitalocean.com/community/tutorials/how-to-use-bash-history-commands-and-expansions-on-a-linux-vps
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"   # -a append immediately, then  -c clear history, then -r read history every time a prompt is shown instead of after closing the session.
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
-alias history0="history | awk '{\$2=\$3=\"\"; print \$0}'"; alias h0='history0'   # Since default history has date-time, need a way to replicate original history.
-alias h1='history | tail -10'; alias h2='history | tail -20'; alias h3='history | tail -30'; alias h4='history | tail -40'; alias h5='history | tail -50'; alias h6='history | tail -60'
-alias h#="history | awk '{\$1=\$2=\$3=\"\"; print \$0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'"     # This variant inserts a '#' before each command, useful for porting to documentation
-alias h#1='h# | tail -10'; alias h#2='h# | tail -20'; alias h#3='h# | tail -30'; alias h#4='h# | tail -40'; alias h#5='h# | tail -50'; alias h#6='h# | tail -60'
-alias hx="h# | sed 's/^#\ //'"          # This variant has just the commands, be cause of copying and running the commands, but this is also useful
-alias hx1='hx | tail -10'; alias hx2='hx | tail -20'; alias hx3='hx | tail -30'; alias hx4='hx | tail -40'; alias hx5='hx | tail -50'; alias hx6='hx | tail -60'
-alias hs='history | grep'; hs1='history | grep -A 1 -B 1'; hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
+# history 7 (last 7 lines), !51 (run command 51 in history), !-3 (run 3rd last command), !! (or !-1) run last command
+# Event Designators: !?grep? (last command with 'grep' somewhere in the body), !ssh (last command starting 'ssh')
+# Word Designatores: ls /etc/, cd !!:1 (:0 is the initial word), !!:1*, !!:1-$, !!:*     'cat /etc/hosst', then type '^hosst^hosts^' will immediately run the fixed command.
+# Modifiers: 'cat /etc/hosts', cd !!:$:h (will cd into /etc/ as :h chops the 'head' off, :t, 'tail' will remove 'cat /etc/', :r to remove trailing extension, :r:r to remove .tar.gz, :p is just to 'print', 'find ~ -name "file1"', try !119:0:p / !119:2*:p
+alias h='history';   # Note: 'h 7' to show last 7 lines
+ho() { history "$@" | awk '{$2=$3=""; print}'; }   # 'history original', can also use constructs like:  alias ho='HISTTIMEFORMAT= history'      for i in $(seq 1 9); do alias "h.${i}"="h. | tail -${i}0"; done   # Replicate original history (i.e. without date/time), and h.1 to h.9 for multiples of 10 lines
+hh() { history "$@" | awk '{$1=$2=$3=""; print $0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'; };    # 'hash history', output preformated for documentation etc   
+hx() { history "$@" | sed 's/^#\ //'; }   # 'history executable', this variant is just the raw and executable (hence 'x') commands; be careful as easy to copy and run these
+alias hs='history | grep'; alias hs1='history | grep -A 1 -B 1'; alias hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
+alias hhs='hh | grep'; alias hhs1='hh | grep -A 1 -B 1'; alias hhs2='hh | grep -A 2 -B 2'    # Search history but in 'hash history' format, with grep search
+alias hxs='hx | grep'; alias hxs1='hx | grep -A 1 -B 1'; alias hxs2='hx | grep -A 2 -B 2'    # Search history but in 'history executable' format, with grep search
+# for i in $(seq 1 9); do alias "hx${i}"="hx | tail -${i}0"; done   # for i in $(seq 1 9); do alias "hh${i}"="hh | tail -${i}0"; done   # 'History Hash', prefix '#' to eaxh command, useful for porting to documentation
+# Following is now redundant but keep as example of alias generation:   for i in $(seq 1 9); do alias "h${i}"="h | tail -${i}0"; done   # Set h=history and h1..h9 for multiples of 10 lines
 
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
@@ -49,25 +56,13 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
+shopt -s checkwinsize   # At every prompt check if the window size has changed
 
-alfn() {
-    echo -e "\nAliases / Functions with '$1' in either\ntheir name or contents. Use 'def <name>'\ntoview alias or function contents.\n"
-    alias | grep $1 | while read -r line; do
-        delimiter="='"
-        s=$line$delimiter
-        array=();
-        while [[ -n $s ]]; do
-            array+=("${s%%"$delimiter"*}")
-            s=${s#*"$delimiter"} 
-        done
-        echo ${array[0]} | awk '{print $2}'
-    done
-    declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1
-}
-alfn() {
-    alias | sed 's/=/ /g' | awk '{print $2}' | grep $1
-    declare -f | grep '()' | grep -v '^_' | grep -v 'lp_' | grep $1
-}
+# Search aliases and functions for any that match $1 in their contents
+al() { if type bat > /dev/null 2>&1; then alias | sed 's/alias //g' | grep $1 | bat -pp -f -l bash; else alias | sed 's/alias //g' | grep $1; fi; }
+fu() { if type bat > /dev/null 2>&1; then PAGER='bat -f -l bash'; else PAGER='less'; fi; declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; }
+# daf 'Display Aliases and Functions'   # def = 'Define', shows specific definition for any alias, function, or exectuable file
+def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
 
 alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
@@ -79,7 +74,7 @@ alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s 
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
-alias cpv='rsync -ah --info=progress2'  # 'cp visual', use just like 'cp' but will show progress during the copy. Alternatively, install 'pv'
+alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
 alias fhere="find . -name "             # Reminder for find syntax
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
@@ -165,7 +160,7 @@ if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sud
 if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
-if type apt >/dev/null 2>&1; then
+if type aptitude >/dev/null 2>&1; then
     alias install='sudo aptitude install';              alias remove='sudo aptitude remove';
     alias purge='sudo aptitude purge';                  alias hold='sudo aptitude hold';
     alias unhold='sudo aptitude unhold';                alias markauto='sudo aptitude markauto';
@@ -188,7 +183,45 @@ if type apt >/dev/null 2>&1; then
     alias aptpolicy='sudo apt-cache policy';            alias apth='apt-history';
     alias apthi='apt-history install';                  alias apthu='apt-history upgrade';
     alias apthr='apt-history remove';                   alias apthback='apt-history rollback'
+fi    
+if type apt >/dev/null 2>&1; then
+    alias aupdate='sudo apt update && sudo apt upgrade'
+    alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
+    alias dupdate='sudo apt update && sudo apt upgrade'
+    alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 fi
+
+updistro() {
+    type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
+    type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
+    type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager should be dnf if both dnf and yum are present
+    type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
+    type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
+    function separator() { echo -e "\n>>>>>>>>\n"; }
+    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
+
+    printf "\nCheck updates:"
+    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
+    echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
+    if [ "$manager" == "apt" ]; then type apt-file &> /dev/null && separator && displayandrun sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
+    if [ "$manager" == "apk" ]; then
+        separator; displayandrun apk update; separator; displayandrun apk upgrade
+    else
+        separator; displayandrun sudo $manager update
+        separator; displayandrun sudo $manager upgrade
+        separator; displayandrun sudo $manager install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+        separator; displayandrun sudo $manager autoremove
+    fi
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ -f /var/run/reboot-required ]; then
+        echo "A reboot is required (/var/run/reboot-required is present)." >&2
+        echo "Re-run this script after reboot to check." >&2
+        return
+    fi
+}
 
 # Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
 [ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
@@ -210,12 +243,8 @@ alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lyn
 alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
 
 ####################
-# Functions:
+# Larger Functions:
 ####################
-alias aupdate='sudo apt update && sudo apt upgrade'
-alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
-alias dupdate='sudo apt update && sudo apt upgrade'
-alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 
 packtool() {
     # Input a list of packages and this will determine what is available and what is already installed, then install the difference
@@ -265,38 +294,6 @@ packtool() {
         sudo $manager install -y $toinstall
     else
         echo -e "\nNo selected packages can be installed. Exiting ...\n"
-    fi
-}
-
-updistro() {
-    type apt    &> /dev/null && MANAGER=apt    && DISTRO="Debian/Ubuntu"
-    type yum    &> /dev/null && MANAGER=yum    && DISTRO="RHEL/Fedora/CentOS"
-    type dnf    &> /dev/null && MANAGER=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $MANAGER should be dnf if both dnf and yum are present
-    type zypper &> /dev/null && MANAGER=zypper && DISTRO="SLES"
-    type apk    &> /dev/null && MANAGER=apk    && DISTRO="Alpine"
-    function separator() { echo -e "\n>>>>>>>>\n"; }
-    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
-
-    printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
-    echo -e     ">>>>>>>>    we will use the '$MANAGER' package manager for setup tasks."
-    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
-    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
-    if [ "$MANAGER" == "apt" ]; then type apt-file &> /dev/null && separator && displayandrun sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
-    if [ "$MANAGER" == "apk" ]; then
-        separator; displayandrun apk update; separator; displayandrun apk upgrade
-    else
-        separator; displayandrun sudo $MANAGER update
-        separator; displayandrun sudo $MANAGER upgrade
-        separator; displayandrun sudo $MANAGER install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
-        separator; displayandrun sudo $MANAGER autoremove
-    fi
-    if [ "$MANAGER" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-    if [ -f /var/run/reboot-required ]; then
-        echo "A reboot is required (/var/run/reboot-required is present)." >&2
-        echo "Re-run this script after reboot to check." >&2
-        return
     fi
 }
 
@@ -512,9 +509,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     alias bash1='chrome https://duckduckgo.com/?q=bash+one+liners; chrome https://onceupon.github.io/Bash-Oneliner/; chrome http://www.bashoneliners.com/; chrome https://catonmat.net/bash-one-liners-explained-part-one'
     alias mygit='chrome https://github.com/roysubs/custom_bash; chrome https://github.com/roysubs/Custom-Tools; chrome https://github.com/roysubs/Basics-AHK'
     alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
-    alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'
+    alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'   # To update: use 'foreach i in arry-of-news-sites, prefix https://archive.ph/ and then open that'
     alias uknews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.spectator.co.uk/; chrome https://archive.ph/https://www.telegraph.co.uk/; chrome https://archive.ph/http://thetimes.co.uk/; chrome https://archive.ph/https://www.scotsman.com/; chrome https://archive.ph/https://www.newscientist.com/'
-    # foreach i in arrnews, prefix https://archive.ph/ and then open that
 
     # Map common Windows locations to navigate to from within WSL. Use ':' on these mappings to identify as WSL mappings to Windows
     # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'

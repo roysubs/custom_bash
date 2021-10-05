@@ -181,7 +181,38 @@ fi
 # yum repolist   # check if epel is installed
 # if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
 
+updistro() {
+    type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
+    type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
+    type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager should be dnf if both dnf and yum are present
+    type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
+    type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
+    function separator() { echo -e "\n>>>>>>>>\n"; }
+    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
 
+    printf "\nCheck updates:"
+    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
+    echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
+    if [ "$manager" == "apt" ]; then type apt-file &> /dev/null && separator && displayandrun sudo apt-file update; fi   # update apt-file cache but only if apt-file is present
+    if [ "$manager" == "apk" ]; then
+        separator; displayandrun apk update; separator; displayandrun apk upgrade
+    else
+        separator; displayandrun sudo $manager update
+        separator; displayandrun sudo $manager upgrade
+        separator; displayandrun sudo $manager install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
+        separator; displayandrun sudo $manager autoremove
+    fi
+    if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+    if [ -f /var/run/reboot-required ]; then
+        echo "A reboot is required (/var/run/reboot-required is present)." >&2
+        echo "Re-run this script after reboot to check." >&2
+        return
+    fi
+    echo ""
+}
 
 function getLastUpdate()
 {
@@ -205,15 +236,9 @@ function runDistroUpdate()
     if [[ "${lastUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
         print_header "apt updates will run as last update was more than ${updateIntervalReadable} ago"
-        if [ "$manager" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
-        if [ "$manager" == "apt" ]; then exe sudo apt dist-upgrade -y; fi
-        if [ "$manager" == "apt" ]; then exe sudo apt-get update --ignore-missing -y; fi   # Not sure if this is needed
-        exe sudo $manager update -y
-        exe sudo $manager upgrade -y
-        exe sudo $manager install ca-certificates -y
-        exe sudo $manager autoremove -y
-        which apt-file &> /dev/null && sudo apt-file update   # update apt-file cache but only if apt-file is installed
-        if [ "$manager" == "apt" ]; then exe sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
+
+        updistro
+
     else
         local lastUpdate="$(date -u -d @"${lastUpdate}" +'%-Hh %-Mm %-Ss')"
         print_header "Skip apt-get update because its last run was ${updateIntervalReadable} ago"
@@ -2509,10 +2534,10 @@ fi
 #   Alternatively, within Notepad++. Edit -> EOL Conversion-> Unix (LF) or Macintosh (CR). Change it to Macintosh (CR) even if you are using Windows OS.
 #   Alternatively, within VS Code. Look for the icon in tray, either "CRLF" or "LF", you can click on and change it.
 #   https://stackoverflow.com/questions/48692741/how-to-make-all-line-endings-eols-in-all-files-in-visual-studio-code-unix-lik
-# 
 # - Also check on the termination of single-line functions with semicolon.
 #   e.g. die () { test -n "$@" && echo "$@"; exit 1 }   The script might complete but the error will be seen.
 #   To make the dumb parser happy:   die () { test -n "$@" && echo "$@"; exit 1; }     (i.e. add the ";" at the end)
+# - Use https://www.shellcheck.net/# to try and debug issues
 #
 # Tip: use trap to debug (if your script is on the large side...)
 # e.g.
@@ -2531,4 +2556,3 @@ fi
 # Default LS_COLORS (on Ubuntu)
 # Original di is 01;34 then is overwritten by 0;94 later
 # rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36::di=0;94
-

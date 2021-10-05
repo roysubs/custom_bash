@@ -25,9 +25,9 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 # Event Designators: !?grep? (last command with 'grep' somewhere in the body), !ssh (last command starting 'ssh')
 # Word Designatores: ls /etc/, cd !!:1 (:0 is the initial word), !!:1*, !!:1-$, !!:*     'cat /etc/hosst', then type '^hosst^hosts^' will immediately run the fixed command.
 # Modifiers: 'cat /etc/hosts', cd !!:$:h (will cd into /etc/ as :h chops the 'head' off, :t, 'tail' will remove 'cat /etc/', :r to remove trailing extension, :r:r to remove .tar.gz, :p is just to 'print', 'find ~ -name "file1"', try !119:0:p / !119:2*:p
-alias h='history';   # Note: 'h 7' to show last 7 lines
+alias h='history'   # Note: 'h 7' to show last 7 lines
 ho() { history "$@" | awk '{$2=$3=""; print}'; }   # 'history original', can also use constructs like:  alias ho='HISTTIMEFORMAT= history'      for i in $(seq 1 9); do alias "h.${i}"="h. | tail -${i}0"; done   # Replicate original history (i.e. without date/time), and h.1 to h.9 for multiples of 10 lines
-hh() { history "$@" | awk '{$1=$2=$3=""; print $0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'; };    # 'hash history', output preformated for documentation etc   
+hh() { history "$@" | awk '{$1=$2=$3=""; print $0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'; }     # 'hash history', output preformated for documentation etc   
 hx() { history "$@" | sed 's/^#\ //'; }   # 'history executable', this variant is just the raw and executable (hence 'x') commands; be careful as easy to copy and run these
 alias hs='history | grep'; alias hs1='history | grep -A 1 -B 1'; alias hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
 alias hhs='hh | grep'; alias hhs1='hh | grep -A 1 -B 1'; alias hhs2='hh | grep -A 2 -B 2'    # Search history but in 'hash history' format, with grep search
@@ -147,15 +147,15 @@ if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='
 #    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
 #    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
 # alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
-if type apk >/dev/null 2>&1; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
-if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
-if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum   # could just assign dng here?
-if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
-if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
-if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
-if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
-if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
-if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
+# if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
+# if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum   # could just assign dng here?
+# if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
+# if type apk >/dev/null 2>&1; then alias apa='apk add'; alias api='aa'; alias apd='apk del'; alias apr='ad'; alias aps='apk info'; alias apl='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
+# if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
+# if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
+# if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
+# if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
+# if type appimage >/dev/null 2>&1; then alias appi='sudo appimage install'; alias appr='sudo appimage remove'; alias apps='appimage search'; alias apph='appimage history'; fi   # appimage
 
 if type aptitude >/dev/null 2>&1; then
     alias tude-install='sudo aptitude install';              alias tude-remove='sudo aptitude remove';
@@ -225,6 +225,7 @@ updistro() {
         echo "Re-run this script after reboot to check." >&2
         return
     fi
+    echo ""
 }
 
 # Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
@@ -355,7 +356,7 @@ s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # 
 ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
-def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; else if type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
+# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
@@ -470,13 +471,13 @@ alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; 
 ####################
 # WSL: These will only activat if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
 ####################
-if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'   # To get around no systemd, this will properly terminate the running WSL instance
+    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
     # Notes on WSL close/shutdown/reboot:   https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
     # 1. There is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd.
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
-    alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'   # To get around no systemd, this will properly terminate the running WSL instance
-    alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
     alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"   # notepad++ C:\Temp\Test.txt , 
     alias n++='notepad++'                                              # n C:\Temp\Test.txt
     alias x='explorer.exe'

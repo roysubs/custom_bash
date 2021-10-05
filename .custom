@@ -32,8 +32,6 @@ hx() { history "$@" | sed 's/^#\ //'; }   # 'history executable', this variant i
 alias hs='history | grep'; alias hs1='history | grep -A 1 -B 1'; alias hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
 alias hhs='hh | grep'; alias hhs1='hh | grep -A 1 -B 1'; alias hhs2='hh | grep -A 2 -B 2'    # Search history but in 'hash history' format, with grep search
 alias hxs='hx | grep'; alias hxs1='hx | grep -A 1 -B 1'; alias hxs2='hx | grep -A 2 -B 2'    # Search history but in 'history executable' format, with grep search
-# for i in $(seq 1 9); do alias "hx${i}"="hx | tail -${i}0"; done   # for i in $(seq 1 9); do alias "hh${i}"="hh | tail -${i}0"; done   # 'History Hash', prefix '#' to eaxh command, useful for porting to documentation
-# Following is now redundant but keep as example of alias generation:   for i in $(seq 1 9); do alias "h${i}"="h | tail -${i}0"; done   # Set h=history and h1..h9 for multiples of 10 lines
 
 export LS_COLORS=$LS_COLORS:'di=0;94'  # Windows setups can find it difficult to display dark blue on black, so change to bright blue "0;94"
 alias blue_console='export LS_COLORS=$LS_COLORS:"di=0;36"'  # If SSH to Linux from PowerShell, console has blue background, so adjust folder colour to dark cyan "0;36"
@@ -58,10 +56,10 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 [ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
 shopt -s checkwinsize   # At every prompt check if the window size has changed
 
-# Search aliases and functions for any that match $1 in their contents
+# Search aliases (al) and functions (fu) for a given search string and display all matches
 al() { if type bat > /dev/null 2>&1; then alias | sed 's/alias //g' | grep $1 | bat -pp -f -l bash; else alias | sed 's/alias //g' | grep $1; fi; }
 fu() { if type bat > /dev/null 2>&1; then PAGER='bat -f -l bash'; else PAGER='less'; fi; declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; }
-# daf 'Display Aliases and Functions'   # def = 'Define', shows specific definition for any alias, function, or exectuable file
+# def = 'Define', display full definition and contents for any alias, function, or exectuable
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
 
 alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
@@ -151,9 +149,8 @@ if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='
 # alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
 if type apk >/dev/null 2>&1; then alias aa='apk add'; alias ai='aa'; alias ad='apk del'; alias ar='ad'; alias as='apk info'; alias al='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
 if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
-if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum
+if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum   # could just assign dng here?
 if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
-# if type dnf >/dev/null 2>&1; then alias yi='sudo dnf install'; alias yr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dnfup='sudo dnf update && sudo dnf upgrade'; fi   # override yum by dnf(?)
 if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
 if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
 if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
@@ -161,18 +158,21 @@ if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias f
 if type appimage >/dev/null 2>&1; then alias api='sudo appimage install'; alias apr='sudo appimage remove'; alias aps='appimage search'; alias aph='appimage history'; fi   # appimage
 
 if type aptitude >/dev/null 2>&1; then
-    alias install='sudo aptitude install';              alias remove='sudo aptitude remove';
-    alias purge='sudo aptitude purge';                  alias hold='sudo aptitude hold';
-    alias unhold='sudo aptitude unhold';                alias markauto='sudo aptitude markauto';
-    alias unmarkauto='sudo aptitude unmarkauto';        alias forbid-version='sudo aptitude forbid-version';
-    alias update='sudo aptitude update';                alias upgrade='sudo aptitude safe-upgrade';
-    alias full-upgrade='sudo aptitude full-upgrade';    alias build-dep='sudo aptitude build-dep';
-    alias forget-new='sudo aptitude forget-new';        alias search='sudo aptitude search';
-    alias show='sudo aptitude show';                    alias clean='sudo aptitude clean';
-    alias autoclean='sudo aptitude autoclean';          alias changelog='sudo aptitude changelog';
-    alias download='sudo aptitude download';            alias reinstall='sudo aptitude reinstall';
-    alias why='sudo aptitude why';                      alias why-not='sudo aptitude why-not';
-    alias aptadd='sudo apt-cache add';                  alias linux-image='sudo aptitude search linux-image' # linux-image kernel update check;
+    alias tude-install='sudo aptitude install';              alias tude-remove='sudo aptitude remove';
+    alias tude-purge='sudo aptitude purge';                  alias tude-hold='sudo aptitude hold';
+    alias tude-unhold='sudo aptitude unhold';                alias tude-markauto='sudo aptitude markauto';
+    alias tude-unmarkauto='sudo aptitude unmarkauto';        alias tude-forbid-version='sudo aptitude forbid-version';
+    alias tude-update='sudo aptitude update';                alias tude-upgrade='sudo aptitude safe-upgrade';
+    alias tude-full-upgrade='sudo aptitude full-upgrade';    alias tude-build-dep='sudo aptitude build-dep';
+    alias tude-forget-new='sudo aptitude forget-new';        alias tude-search='sudo aptitude search';
+    alias tude-show='sudo aptitude show';                    alias tude-clean='sudo aptitude clean';
+    alias tude-autoclean='sudo aptitude autoclean';          alias tude-changelog='sudo aptitude changelog';
+    alias tude-download='sudo aptitude download';            alias tude-reinstall='sudo aptitude reinstall';
+    alias tude-why='sudo aptitude why';                      alias tude-why-not='sudo aptitude why-not';
+    alias tude-linux-image='sudo aptitude search linux-image' # linux-image kernel update check;
+fi
+if type apt-cache >/dev/null 2>&1; then
+    alias aptadd='sudo apt-cache add';                  alias aptpolicy='sudo apt-cache policy';
     alias aptgencaches='sudo apt-cache gencaches';      alias aptshowpkg='sudo apt-cache showpkg';
     alias aptshowsrc='sudo apt-cache showsrc';          alias aptstats='sudo apt-cache stats';
     alias aptdump='sudo apt-cache dump';                alias aptdumpavail='sudo apt-cache dumpavail';
@@ -180,14 +180,18 @@ if type aptitude >/dev/null 2>&1; then
     alias aptshow='sudo apt-cache show';                alias aptdepends='sudo apt-cache depends';
     alias aptrdepends='sudo apt-cache rdepends';        alias aptpkgnames='sudo apt-cache pkgnames';
     alias aptdotty='sudo apt-cache dotty';              alias aptxvcg='sudo apt-cache xvcg';
-    alias aptpolicy='sudo apt-cache policy';            alias apth='apt-history';
-    alias apthi='apt-history install';                  alias apthu='apt-history upgrade';
-    alias apthr='apt-history remove';                   alias apthback='apt-history rollback'
+fi
+if type apt-history >/dev/null 2>&1; then
+    alias apth='apt-history';                           alias apthi='apt-history install';
+    alias apthu='apt-history upgrade';                  alias apthr='apt-history remove';
+    alias apthback='apt-history rollback'
 fi    
 if type apt >/dev/null 2>&1; then
     alias aupdate='sudo apt update && sudo apt upgrade'
-    alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
     alias dupdate='sudo apt update && sudo apt upgrade'
+fi
+if type apt >/dev/null 2>&1 && type deborphan >/dev/null 2>&1; then
+    alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
     alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 fi
 

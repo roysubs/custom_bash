@@ -3741,3 +3741,9 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 # To run attended (prompts like read -e -p will be respected):
 #    curl -L https://git.io/Jt0fZ > custom_loader.sh ; bash custom_loader.sh
 
+
+
+### From another profile
+# alias dn='OPTIONS=$(\ls -F | grep /$); select s in $OPTIONS; do cd $PWD/$s; break;done'
+# alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; break;done'
+

@@ -128,34 +128,24 @@ getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep gi
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
 
-# Make package management tools use generic syntax for most common operations (as apt/yum/dnf/dpkg/apk/zypper/snap/flatpak all get confusing)
+####################
+# Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
+####################
+# Only enable aliases/functions if the package management tool is present, skip everything else
+# ii (install/add), rr/uu (remove/uninstall/del), then use the prefix i for other installer/package-management tasks:
+# ishow/iview (display package details), isize (show package size)
 # - Only create aliases for package manager that are present on the system
 # - ii / inst / setup alias to package install,   rr / remove / del => aliases to package remove / del
-if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
-if type apt &> /dev/null 2>&1; then alias ii='sudo apt install'; alias rr='sudo apt remove'; alias uu='sudo apt remove'; alias ishow='apt show'; isize() { apt-cache --no-all-versions show $1 | grep '^Size: '; }; fi  # apt
+if type apt &> /dev/null 2>&1; then 
+    alias ii='sudo apt install';         alias rr='sudo apt remove';      alias uu='sudo apt remove';
+    alias ishow='apt show';              alias iview='apt show';
+    isize() { apt-cache --no-all-versions show $1 | grep '^Size: '; }
+fi
 if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; alias ishow='yum info'; isize() { yum info $1 | grep '^Size'; }; fi   # yum
 if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep '^Size'; }; fi   # dnf
+if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
 if type ii > /dev/null 2>&1; then alias pki='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
-
-# Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
-# Be very careful to avoid standard commands like 'du' (would have been 'dnf update' so cannot use this)
-# ai, ar, as, ah, aptup  |  di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  i(install), r(emove), s(search), h(istory), aptuu, dnfuu => update + upgrade + dist-update
-# dpi, dpr, dps, dph (dpkg),  sni, snr, sns snh (snap),  fli, flr, fls, flh (flatpak),  api, apr, aps, aph (appimage)
-# ainfo, dinfo, yinfo, ashow, dshow, yshow (package details)  |  afiles, dfiles, yfiles (files in package)
-# ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), that will use the default tool for that OS
-#    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
-#    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
-# alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
-# if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
-# if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum   # could just assign dng here?
-# if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
-# if type apk >/dev/null 2>&1; then alias apa='apk add'; alias api='aa'; alias apd='apk del'; alias apr='ad'; alias aps='apk info'; alias apl='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
-# if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
-# if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
-# if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
-# if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
-# if type appimage >/dev/null 2>&1; then alias appi='sudo appimage install'; alias appr='sudo appimage remove'; alias apps='appimage search'; alias apph='appimage history'; fi   # appimage
 
 if type aptitude >/dev/null 2>&1; then
     alias tude-install='sudo aptitude install';              alias tude-remove='sudo aptitude remove';
@@ -228,35 +218,13 @@ updistro() {
     echo ""
 }
 
-# Try to never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly to help with terminal color options
-[ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
-# When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless.
-alias tree='tree -C'; alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
-[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
-if type pydf >/dev/null 2>&1; then alias df.='pydf'; fi        # 'df.' is an alternative to df, do this for other commands with alternatives
-if type ncdu >/dev/null 2>&1; then alias du.='ncdu'; fi        # same for du. => ncdu
-alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
-# Default 'python' to 'python3' (i.e. 3.6 as of now). Debian/Ubuntu use python2 for underlying system functions, but these aliases only affec this shell instance
-# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
-# Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
-alias p.='python3'; alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
-alias espeak-wav-file='espeak -s 150 -w voice.wav -f'; alias espeak-wav='espeak -s 150 -w voice.wav'; alias espeak-us='espeak -v en-us -s 150'; alias espeak-file='espeak -s 150 -f'
-# Web tools for Terminal outout, must be online
-alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
-alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
-alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
-
-####################
-# Larger Functions:
-####################
-
-packtool() {
-    # Input a list of packages and this will determine what is available and what is already installed, then install the difference
-    # If '-auto' switch is used, will install without prompts. e.g. packtoll -auto vlc emacs
+pt() {   # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
+    # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
+    # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
     arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
     [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
+    [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
@@ -302,6 +270,32 @@ packtool() {
     fi
 }
 
+####################
+# Other : Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
+####################
+# Try never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly for terminal color options
+# Edge condition for using colours in outputs, only saw this once, but 'bat' piped to 'jq' hit a problem, presumably it was reading the colour codes. Something to be aware of.
+[ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+# When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
+alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless
+alias tree='tree -C'; alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
+[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
+if type pydf >/dev/null 2>&1; then alias df.='pydf'; fi        # 'df.' is an alternative to df, do this for other commands with alternatives
+if type ncdu >/dev/null 2>&1; then alias du.='ncdu'; fi        # same for du. => ncdu
+alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
+# Default 'python' to 'python3' (i.e. 3.6 as of now). Debian/Ubuntu use python2 for underlying system functions, but these aliases only affec this shell instance
+# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
+# Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
+alias p='python3'; alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
+alias espeak-wav-file='espeak -s 150 -w voice.wav -f'; alias espeak-wav='espeak -s 150 -w voice.wav'; alias espeak-us='espeak -v en-us -s 150'; alias espeak-file='espeak -s 150 -f'
+# Terminal Web tools, limited usefulness, test elinks, links2, w3m also, ideally would like to return various information to terminal if possible
+alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
+alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
+alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
+
+####################
+# Larger Functions:
+####################
 extract () {   # Extract any archive type into folders
     local x
     ee() { echo "$@"; $1 "$2"; }   # echo and execute
@@ -464,9 +458,6 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
 hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
-
-alias dn='OPTIONS=$(\ls -F | grep /$); select s in $OPTIONS; do cd $PWD/$s; break;done'
-alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; break;done'
 
 ####################
 # WSL: These will only activat if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/

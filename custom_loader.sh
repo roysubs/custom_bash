@@ -275,12 +275,13 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-packtool() {
-    # Input a list of packages and this will determine what is available and what is already installed, then install the difference
-    # If '-auto' switch is used, will install without prompts. e.g. packtoll -auto vlc emacs
+pt() {   # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
+    # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
+    # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
     arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
     [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
+    [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
@@ -337,7 +338,7 @@ then
                git vim zip unzip mount byobu \
                nnn dfc cron dos2unix \
                neofetch pydf inxi ncdu tree )
-    packtool -auto ${packages[@]}
+    pt -auto ${packages[@]}
 fi
 
 echo ""

@@ -3747,3 +3747,24 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 # alias dn='OPTIONS=$(\ls -F | grep /$); select s in $OPTIONS; do cd $PWD/$s; break;done'
 # alias help='OPTIONS=$(\ls ~/.tips -F);select s in $OPTIONS; do less ~/.tips/$s; break;done'
 
+
+
+# Abbreviated syntax as an alternative. ai => sudo 'a'pt 'i'nstall, ys => 'y'um search, etc
+# Be very careful to avoid standard commands like 'du' (would have been 'dnf update' so cannot use this)
+# ai, ar, as, ah, aptup  |  di, dr, ds, dh, dnfup  |  yi, yr, ys, yh, yumup  |  i(install), r(emove), s(search), h(istory), aptuu, dnfuu => update + upgrade + dist-update
+# dpi, dpr, dps, dph (dpkg),  sni, snr, sns snh (snap),  fli, flr, fls, flh (flatpak),  api, apr, aps, aph (appimage)
+# ainfo, dinfo, yinfo, ashow, dshow, yshow (package details)  |  afiles, dfiles, yfiles (files in package)
+# ToDo: Generic functions. pki(install), pkr(remove), pkh(history), pks(search), find OS (/etc/issue), that will use the default tool for that OS
+#    or a function patch() to patch correctly per OS. 'update' + 'upgrade' + 'remove obsolete packages' + 'autoremove', + 'dist-upgrade' etc
+#    or a function 'pk' with arguments i, r, h, s, gi(groupinstall), gl(grouplist), etc uses default tool depending on OS it is on (or specify with another variable d, y, a, z, d, s, f, ai)
+# alias ax='apt show $1 2>/dev/null | egrep --color=never -i "Origin:|Download-Size:|Installed-Size:|Description:|^  *"'
+# if type apt >/dev/null 2>&1; then alias ai='sudo apt install'; alias ar='sudo apt remove'; alias as='apt search'; alias ah='apt history'; alias ashow='apt show'; alias ainfo='apt show'; alias afiles='apt-file list'; alias al='sudo apt list --upgradable'; alias aptuu='sudo apt list --upgradable && sudo apt update && sudo apt upgrade'; fi   # apt
+# if type yum >/dev/null 2>&1; then alias yi='sudo yum install'; alias yr='sudo yum remove'; alias ys='yum search'; alias yh='yum history'; alias yinfo='yum info'; alias yshow='yum info'; alias yfiles='repoquery --list'; alias yumuu='sudo yum update && sudo yum upgrade'; fi   # yum   # could just assign dng here?
+# if type dnf >/dev/null 2>&1; then alias di='sudo dnf install'; alias dr='sudo dnf remove'; alias ds='dnf search'; alias dh='dnf history'; alias dinfo='dnf info'; alias dshow='dnf info'; alias dfiles='repoquery --list'; alias dnfuu='sudo dnf update && sudo dnf upgrade'; fi   # dnf
+# if type apk >/dev/null 2>&1; then alias apa='apk add'; alias api='aa'; alias apd='apk del'; alias apr='ad'; alias aps='apk info'; alias apl='apk list'; alias apkuu='sudo apt update && sudo apt upgrade'; fi   # apt
+# if type zypper >/dev/null 2>&1; then alias zi='sudo zypper install';  alias zr='sudo zypper remove';  alias zs='zypper search';  alias zh='zypper history'; fi  # SLES
+# if type dpkg >/dev/null 2>&1; then alias dpi='sudo dpkg install'; alias dpr='sudo dpkg remove'; alias dps='dpkg search'; alias dph='dpkg history'; fi   # dpkg
+# if type snap >/dev/null 2>&1; then alias sni='sudo snap install'; alias snr='sudo snap remove'; alias sns='snap search'; alias snh='snap history'; fi   # snap
+# if type flatpak >/dev/null 2>&1; then alias fli='sudo flatpak install';  alias flr='sudo flatpak remove';  alias fls='flatpak search';  alias flh='flatpak history'; fi  # flatpak
+# if type appimage >/dev/null 2>&1; then alias appi='sudo appimage install'; alias appr='sudo appimage remove'; alias apps='appimage search'; alias apph='appimage history'; fi   # appimage
+

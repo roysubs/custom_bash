@@ -15,9 +15,20 @@
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
 ####################
+# Key Bindings: A good read here https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/
+####################
+# By default, "Esc, then Ctrl-e" (Ctrl-Alt-l is also added via custom_loader.sh in .inputrc), will expand any alias to its full definition on the terminal. https://superuser.com/questions/247770/how-to-expand-aliases-inline-in-bash
+# Ctrl-l  : Does not clear the screen, but pushes current prompt line to top of screen (so looks like it is clearing screen, but not really, just scroll up to see previous commands). Useful for focus.
+# Suspend/resume (Ctrl-s and Ctrl-q) is very useful when paging lots of info and you don't want to press Ctrl-c (e.g. ls / -R), but can be disabled with this if required (can be confusing when people accidentally press Ctrl-s and think they have crashed the system). It can be disabled with: stty -ixon
+# Ctrl-xx : Toggle between start and end of the line, useful on long lines to flip to start, insert 'sudo', then flip to end and continue typing the command
+# Alt-t to flip words, Ctrl-t to flip characters. If you try to type 'git' but instead type 'gti', press Ctrl-t to flip the last two characters, Alt-t does same but for last 2 words.
+# Ctrl-r  : Enter '(reverse-i-search)`'. After this, either let go of Ctrl and use PgUp/PgDn (see by custom_loader.sh in .inputrc), or use default Ctrl-p (previous), Ctrl-n (next) to navigate history
+
+# Need a pass thru for if 'ii' invoked without arguments
+
+####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
-stty -ixon   # The suspend/resume feature (Ctrl-s / z and Ctrl-q) is almost never useful in most modern terminals; this will disable it
 shopt -s histappend;   # Append commands to the bash history (~/.bash_history) instead of overwriting it   # https://www.digitalocean.com/community/tutorials/how-to-use-bash-history-commands-and-expansions-on-a-linux-vps
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"   # -a append immediately, then  -c clear history, then -r read history every time a prompt is shown instead of after closing the session.
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
@@ -123,7 +134,8 @@ alias gsetname='git config --global user.name $1'; alias gsetemail='git config -
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
 alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
-getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # get all visible repositories for a given git account $1
+alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these
+getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
 
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; fi   # resize all PNG in current folder only if wider than 690px using ImageMagick
@@ -131,23 +143,26 @@ if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
 ####################
-# Only enable aliases/functions if the package management tool is present, skip everything else
-# ii (install/add), rr/uu (remove/uninstall/del), then use the prefix i for other installer/package-management tasks:
-# ishow/iview (display package details), isize (show package size)
-# - Only create aliases for package manager that are present on the system
-# - ii / inst / setup alias to package install,   rr / remove / del => aliases to package remove / del
+# Only enable aliases/functions if the package management tool is present, skip everything else.
+# ii (install/add), rr/uu (remove/uninstall/del), then use the prefix 'i' for other installer/package-management tasks:
+# is (search), accepts regex, so 'is ^zsh' vs 'is zsh' filter packages.     ishow/iview (display package details).
+# isize (show package size), accepts regex, so 'isize zsh' shows *only* the exact package, but 'isize ^zsh' shows all packages starting 'zsh'
 if type apt &> /dev/null 2>&1; then 
-    alias ii='sudo apt install';         alias rr='sudo apt remove';      alias uu='sudo apt remove';
-    alias ishow='apt show';              alias iview='apt show';
-    isize() { apt-cache --no-all-versions show $1 | grep '^Size: '; }
+    alias ii='sudo apt install';   alias rr='sudo apt remove';   alias uu='sudo apt remove';   
+    alias is='sudo apt search';    alias ishow='apt show';       alias iinfo='apt show';       alias iview='apt show'
+    isize() { apt-cache --no-all-versions show $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
 fi
-if type yum &> /dev/null 2>&1; then alias ii='sudo yum install'; alias rr='sudo yum remove'; alias uu='sudo yum remove'; alias ishow='yum info'; isize() { yum info $1 | grep '^Size'; }; fi   # yum
-if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep '^Size'; }; fi   # dnf
+if type yum &> /dev/null 2>&1; then
+    alias ii='sudo yum install';   alias rr='sudo yum remove';   alias uu='sudo yum remove';
+    alias is='sudo apt search';    alias ishow='yum info';       alias iinfo='yum info';  alias iview='yum info';
+    alias ishow='yum info'; isize() { yum info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
+fi
+if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }; fi   # dnf
 if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
 if type ii > /dev/null 2>&1; then alias pki='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
 
-if type aptitude >/dev/null 2>&1; then
+if type aptitude >/dev/null 2>&1; then        # Only create aliases if aptitude is present
     alias tude-install='sudo aptitude install';              alias tude-remove='sudo aptitude remove';
     alias tude-purge='sudo aptitude purge';                  alias tude-hold='sudo aptitude hold';
     alias tude-unhold='sudo aptitude unhold';                alias tude-markauto='sudo aptitude markauto';
@@ -161,7 +176,7 @@ if type aptitude >/dev/null 2>&1; then
     alias tude-why='sudo aptitude why';                      alias tude-why-not='sudo aptitude why-not';
     alias tude-linux-image='sudo aptitude search linux-image' # linux-image kernel update check;
 fi
-if type apt-cache >/dev/null 2>&1; then
+if type apt-cache >/dev/null 2>&1; then       # Only create aliases if apt-cache is present
     alias aptadd='sudo apt-cache add';                  alias aptpolicy='sudo apt-cache policy';
     alias aptgencaches='sudo apt-cache gencaches';      alias aptshowpkg='sudo apt-cache showpkg';
     alias aptshowsrc='sudo apt-cache showsrc';          alias aptstats='sudo apt-cache stats';
@@ -171,12 +186,12 @@ if type apt-cache >/dev/null 2>&1; then
     alias aptrdepends='sudo apt-cache rdepends';        alias aptpkgnames='sudo apt-cache pkgnames';
     alias aptdotty='sudo apt-cache dotty';              alias aptxvcg='sudo apt-cache xvcg';
 fi
-if type apt-history >/dev/null 2>&1; then
+if type apt-history >/dev/null 2>&1; then     # Only create aliases if apt-cache is present
     alias apth='apt-history';                           alias apthi='apt-history install';
     alias apthu='apt-history upgrade';                  alias apthr='apt-history remove';
     alias apthback='apt-history rollback'
 fi    
-if type apt >/dev/null 2>&1; then
+if type apt >/dev/null 2>&1; then             # Only create aliases if apt is present (but see 'updistro' below)
     alias aupdate='sudo apt update && sudo apt upgrade'
     alias dupdate='sudo apt update && sudo apt upgrade'
 fi
@@ -185,7 +200,7 @@ if type apt >/dev/null 2>&1 && type deborphan >/dev/null 2>&1; then
     alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 fi
 
-updistro() {
+updistro() {    # Self-contained function, no arguments, perform all update/upgrade functions for a distro
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager should be dnf if both dnf and yum are present
@@ -218,13 +233,14 @@ updistro() {
     echo ""
 }
 
-pt() {   # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
+pt() {
+    # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
     # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
     # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
     arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
-    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
     [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')     # must do '--auto' before '-auto' or will be left with a '-' fragment
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"

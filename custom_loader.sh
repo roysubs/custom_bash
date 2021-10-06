@@ -784,14 +784,15 @@ if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # The .inputrc is basically the configuration file of readline - the command line editing interface used by Bash, which is actually a GNU project library. It is used to provide text related editing features, customized keybindings etc.
 ADDFILE=~/.inputrc
 function addToFile() { grep -qxF "$1" $ADDFILE || echo $1 | tee --append $ADDFILE; }
-# Do not have extra spaces in lines, as the grep above cannot handle them, so do not align all comments after the command etc
+# Do not have extra spaces in lines (i.e. between ), as the grep above cannot handle them, so do not align all comments after the command etc
 addToFile '$include /etc/inputrc'           # include settings from /etc/inputrc
 addToFile '# Set tab completion for cd to be non-case sensitive'
 addToFile 'set completion-ignore-case On # Set Tab completion to be non-case sensitive'
-addToFile '"\e[5~": history-search-backward # After Ctrl-r, PgUp to go backward'
-addToFile '"\e[6~": history-search-forward # After Ctrl-r, PgDn to go forward'
-addToFile '"\C-p":history-search-backward # After Ctrl-r, Ctrl-p to go backward (previous)'
-addToFile '"\C-n":history-search-forward # After Ctrl-r, Ctrl-n to go forward (next)'
+addToFile '"\e\C-e": alias-expand-line # Expand aliases, with Ctrl-Alt-l, additional to the default "Esc then Ctrl-e"'
+addToFile '"\e[5~": history-search-backward # After Ctrl-r, release Ctrl, then PgUp to go backward'
+addToFile '"\e[6~": history-search-forward # After Ctrl-r, release Ctrl, then PgDn to go forward'
+addToFile '"\C-p": history-search-backward # After Ctrl-r, Ctrl-p to go backward (previous)'
+addToFile '"\C-n": history-search-forward # After Ctrl-r, Ctrl-n to go forward (next)'
 
 # INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
 # grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc

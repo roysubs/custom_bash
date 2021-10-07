@@ -185,7 +185,7 @@ fi
 if type dnf &> /dev/null 2>&1; then
     alias ii='sudo dnf install';     alias ig='sudo dnf group install';   alias rr='sudo dnf remove';  alias uu='sudo dnf remove';
     alias is='dnf search';           alias igl='dnf group list -v';       alias ishow='dnf info'; alias iinfo='dnf info'; alias iview='dnf info';
-    alias iprovides'sudo dnf provides'
+    alias iprovides='sudo dnf provides'
     isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
 fi
 

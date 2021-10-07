@@ -19,10 +19,11 @@
 # Various ways to discover aliases and function; 'al <regex-string>'), 'fu <regex-string>', or 'fa <regex-string>' (search in both aliases and functions).
 # e.g. to see all defined functions and aliases relating to aptitute 'fa aptitude', or knowing that these start 'tude', could do 'fa ^tude'
 # Finally, 'def' to display full definition and contents for asingle alias or function
+# Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
+uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }
 al() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep $1 | $PAGER; fi; }
 fu() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; }
-fa() { fu $1 | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | grep \(\); al $1; }   # Just show the names of functions that contain the search-string
-# Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
+fa() { fu $1 | uncolor | grep \(\); al $1; }   # Just show the names of functions that contain the search-string
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
 
 
@@ -322,7 +323,8 @@ pt() {
 # Try never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly for terminal color options
 # Using color on console is very useful when visually looking through output, but there is an issue that the control codes are sent through the pipe.
 # e.g.   bat x.js -pp | jq   will hit a problem. Fix that using   | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b   to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
-# bat x.js -pp | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | jq
+#        bat x.js -pp | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | jq
+# or     bat x.js -pp | uncolor | jq     # with:   uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }
 type bat >/dev/null 2>&1 && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null   # Don't really need this, just how to remove if bat is uninstalled
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch to maintain colour syntax highlighting
@@ -345,7 +347,7 @@ type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav
 ####################
 # Larger Functions:
 ####################
-extract () {   # Extract any archive type into folders
+extract () {   # Extract any archive type into a folder
     local x
     ee() { echo "$@"; $1 "$2"; }   # echo and execute
     for x in "$@"; do

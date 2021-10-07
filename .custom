@@ -1,30 +1,45 @@
 #!/bin/bash
 ####################
 # git clone https://github.com/roysubs/custom_bash     # Then cd into project and run '. custom_loader.sh' to configure.
-# .custom is always compatible with Ubuntu/Debian, RedHat/Fedora/CentOS, and Alpine.
-# WSL extensions only instll if WSL is detected and include many tools to help with that setup.
+# .custom is always compatible with Ubuntu/Debian, RedHat/Fedora/CentOS, and Alpine. WSL extensions only instll if WSL is detected and include many tools to help with that setup.
 # Maintain a clean, basic shell, i.e. Should not be something to become dependent upon, just techniques that help with complex/long commands, useful tools.
 # Do not clutter up core config files. i.e. Only 2 lines are added to .bashrc to call .custom; just delete those lines to completely remove this prokect.
-# Avoid using aliases/functions that override other packages, unless those packages are redundant (e.g. 'ii' overrides the 'ii' IRC client).
-# Almost every function and alias is standalone; do not build complex relationships (exception: 'ask' function used by 'mykill' as a demonstration)
-# Do not replace built-in commands as would impact expected output in pipeline and scripts. Exceptions: 'cat' and 'more' in the below).
-# Simple abbreviations/mnemonics for most aliases, ai='sudo apt install -y, tn='t'mux 'n'ew -s <session>, myip, etc
-# Many aliases will not be created if the omponent that they rely upon is missing (i.e. standalone, can drop into a server and will work).
-# Why use 'type' over 'which'? https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
+# Use of 'type' over 'which'? https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # Various links to discussions use short notation, e.g. https://stackoverflow.com/q/7812324 is the same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
 ####################
+# Usage:
+####################
+# Avoid using aliases/functions that override other packages, unless those packages are redundant (e.g. 'ii' overrides the 'ii' IRC client).
+# Almost every function and alias is standalone; do not build complex relationships (exception: 'ask' function used by 'mykill' as a demonstration)
+# Do not replace built-in commands as would impact expected output in pipeline and scripts. Exceptions: 'cat' and 'more' in the below).
+# Simple abbreviations/mnemonics for most aliases, ai='sudo apt install -y, tn='t'mux 'n'ew -s <session>, myip, etc
+# Many aliases will not be created if the component that they rely upon is missing (i.e. standalone, can drop into a server and will work).
+# Various ways to discover aliases and function; 'al <regex-string>'), 'fu <regex-string>', or 'fa <regex-string>' (search in both aliases and functions).
+# e.g. to see all defined functions and aliases relating to aptitute 'fa aptitude', or knowing that these start 'tude', could do 'fa ^tude'
+# Finally, 'def' to display full definition and contents for asingle alias or function
+al() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep $1 | $PAGER; fi; }
+fu() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; }
+fa() { fu $1 | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | grep \(\); al $1; }   # Just show the names of functions that contain the search-string
+# Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
+def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
+
+
+####################
 # Key Bindings: A good read here https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/
 ####################
-# By default, "Esc, then Ctrl-e" (Ctrl-Alt-l is also added via custom_loader.sh in .inputrc), will expand any alias to its full definition on the terminal. https://superuser.com/questions/247770/how-to-expand-aliases-inline-in-bash
+# By default, "Esc, then Ctrl-e" (Ctrl-Alt-l is additionally added via custom_loader.sh into .inputrc), will expand any alias to its full definition on the terminal. https://superuser.com/questions/247770/how-to-expand-aliases-inline-in-bash
 # Ctrl-l  : Does not clear the screen, but pushes current prompt line to top of screen (so looks like it is clearing screen, but not really, just scroll up to see previous commands). Useful for focus.
-# Suspend/resume (Ctrl-s and Ctrl-q) is very useful when paging lots of info and you don't want to press Ctrl-c (e.g. ls / -R), but can be disabled with this if required (can be confusing when people accidentally press Ctrl-s and think they have crashed the system). It can be disabled with: stty -ixon
 # Ctrl-xx : Toggle between start and end of the line, useful on long lines to flip to start, insert 'sudo', then flip to end and continue typing the command
 # Alt-t to flip words, Ctrl-t to flip characters. If you try to type 'git' but instead type 'gti', press Ctrl-t to flip the last two characters, Alt-t does same but for last 2 words.
-# Ctrl-r  : Enter '(reverse-i-search)`'. After this, either let go of Ctrl and use PgUp/PgDn (see by custom_loader.sh in .inputrc), or use default Ctrl-p (previous), Ctrl-n (next) to navigate history
+# Suspend/resume (Ctrl-s and Ctrl-q) can be useful when paging lots of info and you don't want to press Ctrl-c to read the output, but can be disabled with this if required (can be confusing when people accidentally press Ctrl-s and think the system has hung). It can be disabled with: stty -ixon / stty ixon to re-enable.
+# Ctrl-r is quite specific; use only in one of two ways. 1. Type part of a command, then Ctrl-r, then Ctrl-p (previous) or Ctrl-n (next/forward), *or* PgUp/PgDn (additional option set by custom_loader.sh in .inputrc)
+#    *or* 2. Press Ctrl-r on an *empty* line, (reverse-i-search)`' will appear, then type part of a command (the `' will populate), after this, only Ctrl-r or Ctrl-? will work (Ctrl-p/n or PgUp/PgDn do not seem to work in this mode).
+#    To disable 
 
-# Need a pass thru for if 'ii' invoked without arguments
+# Could replace blocks of commands by functions, this could allow printing out something when not run as part of a startup.
+# Would be good to 'displayandrun' some aliases (not all, as some are complex) and fix their no-args condition e.g. 'ii' invoked without arguments currently 
 
 ####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
@@ -39,7 +54,7 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 alias h='history'   # Note: 'h 7' to show last 7 lines
 ho() { history "$@" | awk '{$2=$3=""; print}'; }   # 'history original', can also use constructs like:  alias ho='HISTTIMEFORMAT= history'      for i in $(seq 1 9); do alias "h.${i}"="h. | tail -${i}0"; done   # Replicate original history (i.e. without date/time), and h.1 to h.9 for multiples of 10 lines
 hh() { history "$@" | awk '{$1=$2=$3=""; print $0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'; }     # 'hash history', output preformated for documentation etc   
-hx() { history "$@" | sed 's/^#\ //'; }   # 'history executable', this variant is just the raw and executable (hence 'x') commands; be careful as easy to copy and run these
+hx() { hh | sed 's/^#\ //'; }   # 'history executable', this variant is just the raw and executable (hence 'x') commands; be careful as easy to copy and run these
 alias hs='history | grep'; alias hs1='history | grep -A 1 -B 1'; alias hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
 alias hhs='hh | grep'; alias hhs1='hh | grep -A 1 -B 1'; alias hhs2='hh | grep -A 2 -B 2'    # Search history but in 'hash history' format, with grep search
 alias hxs='hx | grep'; alias hxs1='hx | grep -A 1 -B 1'; alias hxs2='hx | grep -A 2 -B 2'    # Search history but in 'history executable' format, with grep search
@@ -67,15 +82,8 @@ NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold Whi
 [ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
 shopt -s checkwinsize   # At every prompt check if the window size has changed
 
-# Search aliases (al) and functions (fu) for a given search string and display all matches
-al() { if type bat > /dev/null 2>&1; then alias | sed 's/alias //g' | grep $1 | bat -pp -f -l bash; else alias | sed 's/alias //g' | grep $1; fi; }
-fu() { if type bat > /dev/null 2>&1; then PAGER='bat -f -l bash'; else PAGER='less'; fi; declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; }
-# def = 'Define', display full definition and contents for any alias, function, or exectuable
-def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
-
 alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
-alias xx='exit'                         # Quit immediately
 alias v='vim'                           # Quick vim access
 alias b='byobu'                         # Quick byobu access
 alias t='tmux'                          # Quick tmux access
@@ -105,11 +113,11 @@ alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on
 # Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
 # Note on color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
 # Note 'lls' ('l'ong format 'l's with stat/security) to show both permission formats (i.e. 'drwxr-xr-x' and '755' in same output, useful to translate permission formats)
-if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi    # Remove existing aliases created in .bashrc / .bash_profile etc
-alias ls='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
-alias l='\ls --color=always --group-directories-first'       # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
-alias la='ls -A'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-alias ll='ls -l'       # long format (-AFh and also -l)    # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
+if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi     # Remove existing aliases created in .bashrc / .bash_profile etc
+alias ls='\ls --color=always --group-directories-first'     # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
+alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
+alias la='ls -A'       # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
+alias ll='ls -l'       # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
 alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format
@@ -120,8 +128,9 @@ alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A
 alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
 alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'  # sort by -t time/date, hhuman readable
 alias sl='ls'          # Common typo
-alias lsec='stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" .* *'; alias lstat='lsec'; # replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
-alias lperm='stat --printf "%A %a %n \n "'   # Show permissions in %A (ls format) and %a (Octal format), requires a file/directory name.
+# replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
+lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
+lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Show permissions in %A (ls format) and %a (Octal format), requires a file/directory name.
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'l'ong 'l's with 's'ecurity
 alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
 alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
@@ -132,7 +141,7 @@ type git &> /dev/null && git config --global color.ui always && git config --glo
 alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gtop='cd `git rev-parse --show-toplevel`'   # Go to top of git project
-gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; fi; }
+gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\n\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; echo -e "\n"; fi; }
 alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
 alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these
 getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
@@ -150,14 +159,46 @@ if type mogrify >/dev/null 2>&1; then alias webify="mogrify -resize 690 *.png"; 
 if type apt &> /dev/null 2>&1; then 
     alias ii='sudo apt install';   alias rr='sudo apt remove';   alias uu='sudo apt remove';   
     alias is='sudo apt search';    alias ishow='apt show';       alias iinfo='apt show';       alias iview='apt show'
+    alias iprovides='sudo apt-file search';   # Requires apt-file, but we define this alias, it will simply throw an error to install it
+    # "With apt-file is more accurate if you use the command's expected path"
     isize() { apt-cache --no-all-versions show $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
 fi
+
+
+# dnf iprovides => 'sudo dnf provides'
+# apt iprovides => 'sudo apt-file search'  # requires installing apt-file
+# Many RPM-based distros feature installation groups, which is convenient to install a batch of related apps
+# sudo dnf group list -v
+# sudo dnf group install design-suite
+# sudo dnf install @design-suite   # @ indicates that this is a group
+# 
+# Upgrading applications
+# apt keeps a cache of information that requires regular updating, so the upgrade subcommand is for application updates:
+# sudo apt upgrade
+# 
+# By contrast, dnf updates metadata every time you use the command, so the update and upgrade subcommands are interchangeable
+# sudo dnf upgrade  /  update  # these are the same
+# 
+# The "apt-get" command pretty much does the same thing as apt, but with simpler user feedback, making it more appropriate for use in scripts and where the user may be using a terminal with minimal capabilities.
+# 
+# $ sudo dnf remove zsh   # Might remove also modified user config files?
+# $ sudo apt remove zsh   # Does not remove modified user config files
+# $ sudo apt purge zsh    # To remove an application and its config files
+# Both apt and dnf (even with purge) don't remove data or configuration files in your home directory. To remove data from your home directory, you must do it manually (it's usually found in ~/.config and ~/.local).
+
 if type yum &> /dev/null 2>&1; then
     alias ii='sudo yum install';   alias rr='sudo yum remove';   alias uu='sudo yum remove';
     alias is='sudo apt search';    alias ishow='yum info';       alias iinfo='yum info';  alias iview='yum info';
     alias ishow='yum info'; isize() { yum info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
 fi
-if type dnf &> /dev/null 2>&1; then alias ii='sudo dnf install'; alias rr='sudo dnf remove'; alias uu='sudo dnf remove'; alias ishow='dnf info'; isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }; fi   # dnf
+# YUM = Yellowdog Updated Modified (front-end tool for RPM), DNF = Dandified YUM, both mostly written in Python
+# YUM had long-standing issues, undocumented API (extra work for developers), poor performance, and bad dependency resolution, fixed in DNF and Python 3 compatible.
+# DNF uses 'libsolv' for dependency resolution, Satisfiability (SAT)-based dependency solver, developed and maintained by SUSE to improve performance.
+if type dnf &> /dev/null 2>&1; then
+    alias ii='sudo dnf install';     alias rr='sudo dnf remove';  alias uu='sudo dnf remove';
+    alias ishow='dnf info';
+    isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
+fi
 if type apk &> /dev/null 2>&1; then alias ii='apk add'; alias rr='apk del'; alias uu='apk del'; fi   # apk, does not require 'sudo' as root in alpine
 if type ii > /dev/null 2>&1; then alias pki='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then alias pkr='ii'; alias remove='rr'; alias del='rr'; fi   # map remove / del to rr, but only if ii already exists
@@ -200,7 +241,7 @@ if type apt >/dev/null 2>&1 && type deborphan >/dev/null 2>&1; then
     alias dclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
 fi
 
-updistro() {    # Self-contained function, no arguments, perform all update/upgrade functions for a distro
+updistro() {    # Self-contained function, no arguments, perform all update/upgrade functions for the current distro
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager should be dnf if both dnf and yum are present
@@ -220,7 +261,7 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
         separator; displayandrun apk update; separator; displayandrun apk upgrade
     else
         separator; displayandrun sudo $manager update
-        separator; displayandrun sudo $manager upgrade
+        separator; displayandrun sudo $manager upgrade      # Note that on dnf, update/upgrade are the same command
         separator; displayandrun sudo $manager install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
         separator; displayandrun sudo $manager autoremove
     fi
@@ -290,24 +331,27 @@ pt() {
 # Other : Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
 ####################
 # Try never overwrite a base command with an alias, should only be done very rarely, currently only doing for cat, less, tree, mainly for terminal color options
-# Edge condition for using colours in outputs, only saw this once, but 'bat' piped to 'jq' hit a problem, presumably it was reading the colour codes. Something to be aware of.
-[ -f /usr/bin/bat ] && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
-# When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch
-alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless
-alias tree='tree -C'; alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
-[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null # how to remove if bat is uninstalled
-if type pydf >/dev/null 2>&1; then alias df.='pydf'; fi        # 'df.' is an alternative to df, do this for other commands with alternatives
-if type ncdu >/dev/null 2>&1; then alias du.='ncdu'; fi        # same for du. => ncdu
+# Using color on console is very useful when visually looking through output, but there is an issue that the control codes are sent through the pipe.
+# e.g.   bat x.js -pp | jq   will hit a problem. Fix that using   | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b   to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
+# bat x.js -pp | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | jq
+type bat >/dev/null 2>&1 && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+[ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null   # Don't really need this, just how to remove if bat is uninstalled
+# When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch to maintain colour syntax highlighting
+type less >/dev/null 2>&1 alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless
+type tree >/dev/null 2>&1 && alias tree='tree -C' && alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
+type pydf >/dev/null 2>&1 && alias df.='pydf'        # 'df.' is an alternative to df, do this for other commands with alternatives
+type ncdu >/dev/null 2>&1 && alias du.='ncdu'        # same for du. => ncdu
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
-# Default 'python' to 'python3' (i.e. 3.6 as of now). Debian/Ubuntu use python2 for underlying system functions, but these aliases only affec this shell instance
-# python points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
-# Note that python3.8 / python3.9 are called like this, and that pip2 does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
-alias p='python3'; alias python='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
-alias espeak-wav-file='espeak -s 150 -w voice.wav -f'; alias espeak-wav='espeak -s 150 -w voice.wav'; alias espeak-us='espeak -v en-us -s 150'; alias espeak-file='espeak -s 150 -f'
+# Most systems have 'python2' and 'python3' defined. Debian/Ubuntu use python2 for underlying system functions
+# 'python' points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
+# In the below, set 'python' to 'python3' by default, but remember that aliases/functions defined here only exist in the currect interative login
+# Note: 'python3.8' / 'python3.9' to start those versions, and 'pip2' does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
+alias python='python3'; alias p='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 # Terminal Web tools, limited usefulness, test elinks, links2, w3m also, ideally would like to return various information to terminal if possible
 alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
 alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
 alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
+type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav -f' && alias espeak-wav='espeak -s 150 -w voice.wav' && alias espeak-us='espeak -v en-us -s 150' && alias espeak-file='espeak -s 150 -f'   # Only created if espeak present
 
 ####################
 # Larger Functions:
@@ -502,7 +546,6 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     # However, some useful speific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
     tt() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+$phrase"; type trans >/dev/null 2>&1 && trans -b "$@"; chrome $url; }   # tt conflicts with package 'treetop', but not something I would need
     ttnl() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t nl -b "$@"; chrome $url; }
-    # xxx() { chrome https://translate.google.com/?hl=nl&sl=nl&tl=en&text=wat%20uur%20is%20het&op=translate; }
     tten() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t en -b "$@"; chrome $url; }
     dic() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=dictionary+$phrase"; type trans >/dev/null 2>&1 && trans -d "$@"; chrome $url; }
     syn() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=synonym+$phrase"; echo $url; chrome $url; }
@@ -572,3 +615,7 @@ fi
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
 [ -z "$TMUX" ] && login_banner   # Only display login_banner if this is not a new tmux session
 # [ -z "$TMUX" ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session
+
+# fu() { declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | bat -pp -f -l bash 2> /dev/null; }
+# fu() { if type bat > /dev/null 2>&1; then PAGER='bat -f -l bash'; else PAGER='less'; fi; declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; }
+

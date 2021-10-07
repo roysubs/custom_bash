@@ -179,7 +179,7 @@ fi
 if type yum &> /dev/null 2>&1; then
     alias ii='sudo yum install';     alias ig='sudo yum group install';   alias rr='sudo yum remove';   alias uu='sudo yum remove';
     alias is='yum search';           alias igl='yum group list -v';       alias ishow='yum info'; alias iinfo='yum info'; alias iview='yum info';
-    alias iprovides'sudo yum provides'
+    alias iprovides='sudo yum provides'
     isize() { yum info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
 fi
 if type dnf &> /dev/null 2>&1; then

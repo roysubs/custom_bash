@@ -2559,3 +2559,5 @@ fi
 #   export SHELLOPTS
 #   set -o igncr
 #   Put into .bashrc or .bash_profile and then do not need to run unix2dos
+# - This error:   -bash: syntax error near unexpected token `('
+#   This happens when you try to define a function that is already aliased. To fix, 'unalias' the existing alias and try again

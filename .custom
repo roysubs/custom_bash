@@ -98,7 +98,7 @@ alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress 
 alias fhere="find . -name "             # Reminder for find syntax
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
-alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file
+alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file, strip unprintable from file:   tr -cd "[:print:]" < {{filename}}
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
 alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
 alias ducks='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # Browse system for heavy usage
@@ -138,12 +138,15 @@ alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  
 alias mx='chmod a+x'   # Make Executable
 # git: g, gst, ga, gcm, gcl, gstash, glog, gcd0 gc, gcg, gcname, gadu, gall, gpull, gpush
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
-alias g='git'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'; alias gcl='git clone'; alias gstash='git stash'; alias glog='git log'
+alias g='git'; alias gconf='git config'; alias gconfl='git config --list'; alias gconfgl='git config --global --list'
 alias gsetname='git config --global user.name $1'; alias gsetemail='git config --global user.email $1'; alias guser='git config --global user.name; git config --global user.email'
+gclone() { git clone $1; cd $(echo $1 | rev | cut -d'/' -f1 | rev | cut -d'.' -f1); ls -al; }; alias gc='gclone'   # cd into the cloned project and ls, could be better to use  | grep -o '[^/]*$'  instead of rev/cut/rev/cut
+gclone1() { git clone $1 --depth=1; cd $(echo $1 | rev | cut -d'/' -f1 | rev | cut -d'.' -f1); ls -al; }; alias gc1='gclone1'   # Almost never uesful to have more than --depth=1, and can save a lot of space
+alias gstash='git stash'; alias glog='git log'; alias gst='git status'; alias gstv='git -p status -vv'; alias gcm='git commit -m'
 alias ga='git add .'; alias gau='git add -u'; alias gall='git add .'; alias gcd0='cd `git rev-parse --show-toplevel`'   # Go to top of git project
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\n\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; echo -e "\n"; fi; }
-alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'; alias gc='git config'; alias gcl='git config --list'; alias gcgl='git config --global --list'
-alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these
+alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'
+alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these as use so much
 getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
 
 ####################
@@ -167,6 +170,7 @@ if type apt &> /dev/null 2>&1; then
     alias is='apt search';         alias ishow='apt show'; alias iinfo='apt show'; alias iview='apt show'
     alias iprovides='sudo apt-file search';      alias purge='sudo apt purge';   # iprovides here requires apt-file, but define this anyway (will result in error if not there, but then it's clear to install it). Note that apt-file is more accurate if you use the command's expected path
     isize() { apt-cache --no-all-versions show $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
+    debgraph() { debtree $1 | dot -Tpng > $1.png; }   # Create dependency graph for a given package
 fi
 
 # YUM 'Yellowdog Updater Modified' (front-end tool for RPM), DNF 'Dandified YUM', both mostly written in Python
@@ -457,8 +461,13 @@ figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; 
 figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$rand\n\n"; figlet -w $(tput cols) -f $rand "$1"; }   # 'sort -R' is random, also note 'shuf'
 fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
+artscene() { curl -s http://artscene.textfiles.com/vt100/$1.vt | pv -q -L 9600; echo -e "\n\n\nAvailable art-files at http://artscene.textfiles.com/vt100/:\n"; lynx -dump http://artscene.textfiles.com/vt100/ | cut -d'.' -f4 | cut -d'/' -f3 | grep -v -e '^ ' -e 'References' -e '^[[:space:]]*$' | tr '\n' ','; }
 toiletgayclock() { while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done; }
+# TOIlet stands for “The Other Implementation's letters”, coined after FIGlet’s “Frank, Ian and Glen’s letters”.
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
+starship-prompt-setup() { sh -c "$(curl -fsSL https://starship.rs/install.sh)"; }   # https://github.com/starship/starship
+angel-PS1-prompt-setup() { wget https://github.com/dolmen/angel-PS1/raw/release/angel-PS1; eval `./angel-PS1`; }
+# https://github.com/chris-marsh/pureline   https://github.com/powerline/powerline   https://github.com/dolmen/angel-PS1
 
 ####################
 # Networks:
@@ -505,6 +514,7 @@ me="~/.customme"; [[ -f $me ]] && source $me   # The above are samples; if "~/.c
 hhtmp='/tmp/.custom'             # could replace 'help' with '?', as this is allowed in bash, 'grep?' etc is a valid alias name
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1); alias "$aliasname"="$helpfile"; done
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h-/'); alias "$aliasname"="$helpfile"; done
+for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h/'); alias "$aliasname"="$helpfile"; done
 help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }   # Just a uawdul demonstration to read a web page
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }

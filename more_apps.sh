@@ -24,6 +24,15 @@
 # hosts:  files mdns4_minimal [NOTFOUND=return] wins dns mdns4
 # Install the "winbind" package: sudo apt-get install winbind
 
+####################
+# ToDo
+####################
+# Would be good to 'displayandrun' some aliases (not all, as some are complex) and fix their no-args condition e.g. 'ii' invoked without arguments currently runs 'sudo apt install' with output
+
+
+
+
+
 
 
 # temp() {    # 
@@ -98,181 +107,181 @@
 # Master PDF
 # PDF Studio
 # Acronis True Image:
-1. Backup entire Linux install to USB
-2. Create recovery partition on Linux computer
-try https://extensions.gnome.org/extension/779/clipboard-indicator/
-copyq and just disable, or ignore whatever built-in clipboard manager might exist.
-
-Currently using neon, but have also enjoyed copyq with gnome and windows
-
-copyq can be configured with whatever shortcuts you like.
-pcloud offers free storage only 10Gb but month and lifetime plan…
-
-Cherrytree by Giuseppe Penone. It is THE best database/list/notebook/PIM programme out there. It is a database attached to a word processor. It’s small and simple to use. It does what it says and does it well. It’s one of those programmes that replaces a whole mess of other apps/programmes due to its versatility. I use it for all my writing/word processing needs – logbook, inventory, poetry, story/article/letter writing, address book/contacts list, recipe book, to do/task lists, project management, notebook, and much, much more. It will handle *.txt or *.rtf format and saves it’s data in a folder location of your choice. You can even insert links, tables or pictures. It’s cross platform so I can use it on Windows or Linux without skipping a beat. I have yet to find a more useful, versatile programme.
-“MY SMS” to your message app. It sync to your phone so you can send and receive from either and the thread appears on both.
-Windscribe VPN
-Opera mini has a free, very good, VPN which can easily be switched on/off.
-XnviewMP to sort, view, catalog your pictures but also does videos. I’ve been using it for decades before I shifted to Linux. Developper is very responsive and people on the forums as well.
-4K Video Downloader
-Cloud: Megasync is the king [50GB free + best sync client]
-Messaging: Telegram Desktop [FOSS & a lot to offer]
-Coding: Sublime Text 3 [Undoubtly fastest of all still being feature rich]
-Opera (very underrated browser)
-Freemind
-Zim
-Workrave
-Rhinote
-Glabels
-Odio
-pdfshuffler
-– bitwarden: Lastpass but open source, audited, and secure
-– gocryptfs: you can locally encrypt files (client side encryption) that are stored in a cloud service like Dropbox, so even if you get hacked hackers can’t read any of your files
-– veracrypt: an awesome encryption suite
-– GPG/PAM: you can use GPG and a Yubikey/Nitrokey to provide 2nd factor authentication to LUKS, login or simply sign and encrypt documents
- Restic: blazing fast backup
-– Git: duh
-– keybase: signal + Dropbox with client side encryption and 200 GB free storage + a GPG keyserver + ledger security + Lumen wallet all rolled into one. Most impressive piece of software I’ve seen in a while
-– Signal: the gold standard in privacy
-– wavebox: the most robust communication client out there
-– nordvpn: has a nice CLI Linux client
-– Quodlibet: Music player for audiophiles (bit perfect output). Runs natively in Wayland
-– Flatpak: containerized apps
-– Tor: gold standard in privacy
-– Firefox nightly: now runs natively in Wayland providing security benefits
-– Anaconda: Python + R environment manager
-– remmina: the best RDP app I’ve found
-keepassXP for passwords, Recoll to indexing documents, MEGA as a good cloud option too, Transmission, Kodi, Anki, Gramps, Electrum, Anydesk, Retroarch… all of them I consider them the best of their categories.
-sudo apt purge thunderbird*
-sudo apt install geary
-Pocket to save all sorts of articles.
-Document Viewer is standard in Ubuntu, but I prefer Foxit-reader as is allows also some editing , just enough to fill a pdf form.
-gconf-editor?
-kdenlive, mpv media player and atom after reading this post. than kyou for the suggestions.
-“The Old Reader” , in the web browser for that.
-kodi
-Lutris & DXVK for Gaming without a doubt!
-Nextcloud for your private cloud storage. BoxBackup for encrypted backups.
-MegaSync but you can give Rclone a try.
-Bitwarden is open source password manager. It supports cloud-sync, has desktop and mobile applications along with browser extensions.
-I have used https://pwsafe.org/ for years it is best in my opinion and is available for windows and android as well. It even works with yubikeys if you like. I may eventually adopt that for mobility on my android device.
-Anbox is there but it’s not very usable at the moment. Android emulator
-Nuvola is not a free application: in requires a subscription.
-pCloud is a nice tool, however unlike Dropbox the files are stored ONLY on their server, not mirrored on your computer, so if you find yourself without internet access, you will also not have access to your files.
-I have implemented Syncthing for cloud storage, keeping files on all my computers as well as on a backup system… was a little bit more complicated to set up, but works well. One note, there is not a Linux GUI, but they do have a web gui launched from the terminal, and if you close the browser, the sync continues until you kill the terminal.
-CopyQ is a very useful, cross-platform clipboard manager.
-AutoKey is great for text expansion and automating repetitive tasks.
-wiki Zim
-Its a local personnal wiki to take note, todo list, storage information with Links power.
-httpS works fine too: https :// feeds. feedburner. com / ItsFoss
-GoldenDict. Once you figure out where to get dictionaries, it becomes an excellent tool for looking up definitions and translations.
-
-Scribus is a good desktop publishing tool.
-
-MyPaint is very similar to Krita
-
-TuxGuitar is a good midi player and Guitar music play and score tool
-
-IrfanView is an excellent image display and edit program from Windows that installs easily under WINE in Linux, and runs perfectly.
-
-And, let’s not forget Detox for converting whitespace to underscore in file names, and
-
-Grub Customizer for adjusting the Boot Menu in dual boot systems.
-Megaupload, Franz, Mailspring and Zenkit.
-Use Turboprint
- Musescore does a wonderful job.
-
- KeePassX -password manager-cross platform-works for me on Ubuntu 14.04, the latest Xubuntu, and Windows 7.
-Back In Time -backup-once set up runs automaticaly and can save files to any HD, USB stick or whatever. Backups saved as individual files and can be retrieved as such.
-Streema- online free world music-hundreds of choices
-PDF Shuffler- can’t edit pdf’s but you can add or delete pages or combine two pdf files into one. I use it a lot! Very small program.
-Gnote-quick note taker. Write out a note and print it out on paper or print as a pdf and save somewhere or put into a notebook.
-I don’t run any from command line, so I don’t know about that . . .
-
-KeePassXC
-Blender is essential for visualization thinking in 3D and 2D not only for rendering of 3D art.
-Mega, mega.co.nz. You get 50gb free storage, the megasync application for Ubuntu, Mint and others, a Nautilus plug in and an extension for Firefox and Chrome that provides a secure login and faster, safer uploads and downloads.
-Double Commander” as a file manager. Over the many years, I believe I’ve tried all similar available on Linux, and, IMHO, think this one is the best. I use it on all my machines. And, for those who double boot with Windows, thre is a version available.
-
-Zotero to manage and annotate academic literature. Anki is great for flash cards. LastPass to manage passwords. VNCViewer or TeamViewer for remote access to my other devices.
-Can you recommend a good notebook program, an alternative to OneNote?
-
-OBS screen recorder and ST3 editor?
-
-Peek for simple screencasting: https://github.com/phw/peek
-
-reeOffice 2018, which can read and write .docx documents pretty well, if that’s an issue. The free version lacks many features though.
-
-Rambox! It’s a great tool and it’s more FOSS than Franz since it doesn’t ask you to pay nor subscribe (which you can do anyway on a voluntary basis)
-
-Compiz (3D desktop)
-
-PlayOnLinux with Lutris, please.
-What about LMMS, Ardour and maybe Natron?
-
-LMMS several times a week. I’ve not heard of Natron – I’ll have to check it out.
-
-Geany, a value added text editor, for coding, pysolfc loads of idle single player games, openshot a nonlinear video editor, password gorilla for generating and saving passwords, clipgrab to download videos from many different locations, simple screen recorder does what it says on the tin, blender for 3d modeling, openscad for 3d modeling
-
-Cribbage, Dominoes, Spades, Hearts. Klondike Forever, and The Othello on linux.
-
-MPlayer. Does as much or more than VLC does and works out of the box with any file.
-
-Cloud Storage – none that you recommended is FOSS.
-
-Image editors – Krita is net superior to any image editor. I am designing websites for the past 15 years so I can tell you that using Photoshop for 10 years Krita was the only Linux alternative that could do the job Photoshop did. So Krita is far from a paint app.
-
-Photo apps (for gallery) – Shotwell is still the best in my view. The other ones do not work well with over 20k images.
-
-Kdenlive – I am making documentaries for the past 8 years. Comparing Kdenlive with Movie Maker is really crazy :)). Kdenlive is far superior. Have you used it? It is on par with Sony Vegas I would say, a software that I used for many years before migrating to Linux.
-
-Xnconvert – is closed source. If you want an open source solution try Converseen.
-
-LibreOffice – again, believe it or not but I also write books and design them into LO. Books that are hundreds of pages long each. LO is more than capable of editing PDF’s – I edited 600 pages PDF (that had a heavy design) with Draw. And I currently design a 1k page book into Draw.
-
-Skype – closed source. Proprietary. Linux is full of messaging apps so why recommend a proprietary one? Use Riot, Signal, qTox, Jitsi, and so forth.
-
-Remember The Milk – not open source.
-
-Steam – promotes DRM and non-free software. Same goes for PlayOnLinux .
-
-For backup use Deja Dup. Using it for the past 5 years with 0 issues. Creates scheduled encrypted backups.
-
-I really enjoy your website, but I am very sad to see that you don’t respect what FOSS stands for and you promote software that is neither open source or free (as in freedom). Why is that?
-
-sudo apt install lshw
-sudo lshw
-for a deeper look
-sudo apt install hwinfo
-sudo hwinfo
-Finely top
-sudo top but a more overlooked little network command line killer is iftop
-sudo apt install iftop
-sudo iftop
-watch your throughput rx tx levels see how a dns server is fooling your actual net speeds from your isp
-All the best may your FOSS be with u
-
-Didn’t know that LibreOffice Draw could edit PDFs! Thank you for this tip.
-
-gscan2pdf (for scanning, OCR, split and save) and DocFetcher (for search and view). And I save the pdf-Files in a meaningfull Filestructure (2018, 2017, … car, house, family, …) with “speaking” filenames (date-name-title.pdf). So I can search for the file by the file-explorer or by DocFetcher.
-
-DaVinci Resolve for video editing and REAPER for audio editing and music production.
-Reaper is one of the best DAW’s out there. I like it better than Pro Tools. While it is free to try out, the developer, pretty much on an honor system, requires purchase of a license (very cheap for what it is) if you’re going to continue using it beyond the trial period to support his work. It is not free, it’s just not locked down.
-
-
-
-Alt+F2 and type: gksu gedit /etc/nsswitch.conf
-
-Look for this line:
-
-hosts:  files mdns4_minimal [NOTFOUND=return] dns mdns4
-
-Add wins so it looks like this:
-
-hosts:  files mdns4_minimal [NOTFOUND=return] wins dns mdns4
-
-Install the "winbind" package: sudo apt-get install winbind
-https://forums.linuxmint.com/viewtopic.php?t=332108
-https://forums.linuxmint.com/viewtopic.php?t=322404 Samba and Mint20
+# 1. Backup entire Linux install to USB
+# 2. Create recovery partition on Linux computer
+# try https://extensions.gnome.org/extension/779/clipboard-indicator/
+# copyq and just disable, or ignore whatever built-in clipboard manager might exist.
+# 
+# Currently using neon, but have also enjoyed copyq with gnome and windows
+# 
+# copyq can be configured with whatever shortcuts you like.
+# pcloud offers free storage only 10Gb but month and lifetime plan…
+# 
+# Cherrytree by Giuseppe Penone. It is THE best database/list/notebook/PIM programme out there. It is a database attached to a word processor. It’s small and simple to use. It does what it says and does it well. It’s one of those programmes that replaces a whole mess of other apps/programmes due to its versatility. I use it for all my writing/word processing needs – logbook, inventory, poetry, story/article/letter writing, address book/contacts list, recipe book, to do/task lists, project management, notebook, and much, much more. It will handle *.txt or *.rtf format and saves it’s data in a folder location of your choice. You can even insert links, tables or pictures. It’s cross platform so I can use it on Windows or Linux without skipping a beat. I have yet to find a more useful, versatile programme.
+# “MY SMS” to your message app. It sync to your phone so you can send and receive from either and the thread appears on both.
+# Windscribe VPN
+# Opera mini has a free, very good, VPN which can easily be switched on/off.
+# XnviewMP to sort, view, catalog your pictures but also does videos. I’ve been using it for decades before I shifted to Linux. Developper is very responsive and people on the forums as well.
+# 4K Video Downloader
+# Cloud: Megasync is the king [50GB free + best sync client]
+# Messaging: Telegram Desktop [FOSS & a lot to offer]
+# Coding: Sublime Text 3 [Undoubtly fastest of all still being feature rich]
+# Opera (very underrated browser)
+# Freemind
+# Zim
+# Workrave
+# Rhinote
+# Glabels
+# Odio
+# pdfshuffler
+# – bitwarden: Lastpass but open source, audited, and secure
+# – gocryptfs: you can locally encrypt files (client side encryption) that are stored in a cloud service like Dropbox, so even if you get hacked hackers can’t read any of your files
+# – veracrypt: an awesome encryption suite
+# – GPG/PAM: you can use GPG and a Yubikey/Nitrokey to provide 2nd factor authentication to LUKS, login or simply sign and encrypt documents
+#  Restic: blazing fast backup
+# – Git: duh
+# – keybase: signal + Dropbox with client side encryption and 200 GB free storage + a GPG keyserver + ledger security + Lumen wallet all rolled into one. Most impressive piece of software I’ve seen in a while
+# – Signal: the gold standard in privacy
+# – wavebox: the most robust communication client out there
+# – nordvpn: has a nice CLI Linux client
+# – Quodlibet: Music player for audiophiles (bit perfect output). Runs natively in Wayland
+# – Flatpak: containerized apps
+# – Tor: gold standard in privacy
+# – Firefox nightly: now runs natively in Wayland providing security benefits
+# – Anaconda: Python + R environment manager
+# – remmina: the best RDP app I’ve found
+# keepassXP for passwords, Recoll to indexing documents, MEGA as a good cloud option too, Transmission, Kodi, Anki, Gramps, Electrum, Anydesk, Retroarch… all of them I consider them the best of their categories.
+# sudo apt purge thunderbird*
+# sudo apt install geary
+# Pocket to save all sorts of articles.
+# Document Viewer is standard in Ubuntu, but I prefer Foxit-reader as is allows also some editing , just enough to fill a pdf form.
+# gconf-editor?
+# kdenlive, mpv media player and atom after reading this post. than kyou for the suggestions.
+# “The Old Reader” , in the web browser for that.
+# kodi
+# Lutris & DXVK for Gaming without a doubt!
+# Nextcloud for your private cloud storage. BoxBackup for encrypted backups.
+# MegaSync but you can give Rclone a try.
+# Bitwarden is open source password manager. It supports cloud-sync, has desktop and mobile applications along with browser extensions.
+# I have used https://pwsafe.org/ for years it is best in my opinion and is available for windows and android as well. It even works with yubikeys if you like. I may eventually adopt that for mobility on my android device.
+# Anbox is there but it’s not very usable at the moment. Android emulator
+# Nuvola is not a free application: in requires a subscription.
+# pCloud is a nice tool, however unlike Dropbox the files are stored ONLY on their server, not mirrored on your computer, so if you find yourself without internet access, you will also not have access to your files.
+# I have implemented Syncthing for cloud storage, keeping files on all my computers as well as on a backup system… was a little bit more complicated to set up, but works well. One note, there is not a Linux GUI, but they do have a web gui launched from the terminal, and if you close the browser, the sync continues until you kill the terminal.
+# CopyQ is a very useful, cross-platform clipboard manager.
+# AutoKey is great for text expansion and automating repetitive tasks.
+# wiki Zim
+# Its a local personnal wiki to take note, todo list, storage information with Links power.
+# httpS works fine too: https :// feeds. feedburner. com / ItsFoss
+# GoldenDict. Once you figure out where to get dictionaries, it becomes an excellent tool for looking up definitions and translations.
+# 
+# Scribus is a good desktop publishing tool.
+# 
+# MyPaint is very similar to Krita
+# 
+# TuxGuitar is a good midi player and Guitar music play and score tool
+# 
+# IrfanView is an excellent image display and edit program from Windows that installs easily under WINE in Linux, and runs perfectly.
+# 
+# And, let’s not forget Detox for converting whitespace to underscore in file names, and
+# 
+# Grub Customizer for adjusting the Boot Menu in dual boot systems.
+# Megaupload, Franz, Mailspring and Zenkit.
+# Use Turboprint
+#  Musescore does a wonderful job.
+# 
+#  KeePassX -password manager-cross platform-works for me on Ubuntu 14.04, the latest Xubuntu, and Windows 7.
+# Back In Time -backup-once set up runs automaticaly and can save files to any HD, USB stick or whatever. Backups saved as individual files and can be retrieved as such.
+# Streema- online free world music-hundreds of choices
+# PDF Shuffler- can’t edit pdf’s but you can add or delete pages or combine two pdf files into one. I use it a lot! Very small program.
+# Gnote-quick note taker. Write out a note and print it out on paper or print as a pdf and save somewhere or put into a notebook.
+# I don’t run any from command line, so I don’t know about that . . .
+# 
+# KeePassXC
+# Blender is essential for visualization thinking in 3D and 2D not only for rendering of 3D art.
+# Mega, mega.co.nz. You get 50gb free storage, the megasync application for Ubuntu, Mint and others, a Nautilus plug in and an extension for Firefox and Chrome that provides a secure login and faster, safer uploads and downloads.
+# Double Commander” as a file manager. Over the many years, I believe I’ve tried all similar available on Linux, and, IMHO, think this one is the best. I use it on all my machines. And, for those who double boot with Windows, thre is a version available.
+# 
+# Zotero to manage and annotate academic literature. Anki is great for flash cards. LastPass to manage passwords. VNCViewer or TeamViewer for remote access to my other devices.
+# Can you recommend a good notebook program, an alternative to OneNote?
+# 
+# OBS screen recorder and ST3 editor?
+# 
+# Peek for simple screencasting: https://github.com/phw/peek
+# 
+# reeOffice 2018, which can read and write .docx documents pretty well, if that’s an issue. The free version lacks many features though.
+# 
+# Rambox! It’s a great tool and it’s more FOSS than Franz since it doesn’t ask you to pay nor subscribe (which you can do anyway on a voluntary basis)
+# 
+# Compiz (3D desktop)
+# 
+# PlayOnLinux with Lutris, please.
+# What about LMMS, Ardour and maybe Natron?
+# 
+# LMMS several times a week. I’ve not heard of Natron – I’ll have to check it out.
+# 
+# Geany, a value added text editor, for coding, pysolfc loads of idle single player games, openshot a nonlinear video editor, password gorilla for generating and saving passwords, clipgrab to download videos from many different locations, simple screen recorder does what it says on the tin, blender for 3d modeling, openscad for 3d modeling
+# 
+# Cribbage, Dominoes, Spades, Hearts. Klondike Forever, and The Othello on linux.
+# 
+# MPlayer. Does as much or more than VLC does and works out of the box with any file.
+# 
+# Cloud Storage – none that you recommended is FOSS.
+# 
+# Image editors – Krita is net superior to any image editor. I am designing websites for the past 15 years so I can tell you that using Photoshop for 10 years Krita was the only Linux alternative that could do the job Photoshop did. So Krita is far from a paint app.
+# 
+# Photo apps (for gallery) – Shotwell is still the best in my view. The other ones do not work well with over 20k images.
+# 
+# Kdenlive – I am making documentaries for the past 8 years. Comparing Kdenlive with Movie Maker is really crazy :)). Kdenlive is far superior. Have you used it? It is on par with Sony Vegas I would say, a software that I used for many years before migrating to Linux.
+# 
+# Xnconvert – is closed source. If you want an open source solution try Converseen.
+# 
+# LibreOffice – again, believe it or not but I also write books and design them into LO. Books that are hundreds of pages long each. LO is more than capable of editing PDF’s – I edited 600 pages PDF (that had a heavy design) with Draw. And I currently design a 1k page book into Draw.
+# 
+# Skype – closed source. Proprietary. Linux is full of messaging apps so why recommend a proprietary one? Use Riot, Signal, qTox, Jitsi, and so forth.
+# 
+# Remember The Milk – not open source.
+# 
+# Steam – promotes DRM and non-free software. Same goes for PlayOnLinux .
+# 
+# For backup use Deja Dup. Using it for the past 5 years with 0 issues. Creates scheduled encrypted backups.
+# 
+# I really enjoy your website, but I am very sad to see that you don’t respect what FOSS stands for and you promote software that is neither open source or free (as in freedom). Why is that?
+# 
+# sudo apt install lshw
+# sudo lshw
+# for a deeper look
+# sudo apt install hwinfo
+# sudo hwinfo
+# Finely top
+# sudo top but a more overlooked little network command line killer is iftop
+# sudo apt install iftop
+# sudo iftop
+# watch your throughput rx tx levels see how a dns server is fooling your actual net speeds from your isp
+# All the best may your FOSS be with u
+# 
+# Didn’t know that LibreOffice Draw could edit PDFs! Thank you for this tip.
+# 
+# gscan2pdf (for scanning, OCR, split and save) and DocFetcher (for search and view). And I save the pdf-Files in a meaningfull Filestructure (2018, 2017, … car, house, family, …) with “speaking” filenames (date-name-title.pdf). So I can search for the file by the file-explorer or by DocFetcher.
+# 
+# DaVinci Resolve for video editing and REAPER for audio editing and music production.
+# Reaper is one of the best DAW’s out there. I like it better than Pro Tools. While it is free to try out, the developer, pretty much on an honor system, requires purchase of a license (very cheap for what it is) if you’re going to continue using it beyond the trial period to support his work. It is not free, it’s just not locked down.
+# 
+# 
+# 
+# Alt+F2 and type: gksu gedit /etc/nsswitch.conf
+# 
+# Look for this line:
+# 
+# hosts:  files mdns4_minimal [NOTFOUND=return] dns mdns4
+# 
+# Add wins so it looks like this:
+# 
+# hosts:  files mdns4_minimal [NOTFOUND=return] wins dns mdns4
+# 
+# Install the "winbind" package: sudo apt-get install winbind
+# https://forums.linuxmint.com/viewtopic.php?t=332108
+# https://forums.linuxmint.com/viewtopic.php?t=322404 Samba and Mint20
 
 
 
@@ -283,9 +292,9 @@ https://forums.linuxmint.com/viewtopic.php?t=322404 Samba and Mint20
 # So, you won’t have the support for snap out-of-the-box. However, sooner or later, you’ll realize that some software is packaged only in Snap format. In such cases, you’ll have to enable snap support on Linux Mint 20.
 # Just because Linux Mint forbids the use of it, you will have to follow the commands below to successfully install snap:
 
-sudo rm /etc/apt/preferences.d/nosnap.pref
-sudo apt update
-sudo apt install snapd
+# sudo rm /etc/apt/preferences.d/nosnap.pref
+# sudo apt update
+# sudo apt install snapd
 
 
 
@@ -296,70 +305,70 @@ sudo apt install snapd
 # https://itsfoss.com/best-ubuntu-apps/
 # https://www.fossmint.com/best-ubuntu-apps/
 
-https://itsfoss.com/things-to-do-after-installing-ubuntu-18-04/
-sudo apt install ubuntu-restricted-extras   # Additional codes for Ubuntu
-sudo apt install mint-meta-codecs           # Additional codecs for Mint
-
-Install Notepad++ with WINE
+# https://itsfoss.com/things-to-do-after-installing-ubuntu-18-04/
+# sudo apt install ubuntu-restricted-extras   # Additional codes for Ubuntu
+# sudo apt install mint-meta-codecs           # Additional codecs for Mint
+# 
+# Install Notepad++ with WINE
 
 
 # System Resource Monitoring
-https://itsfoss.com/linux-system-monitoring-tools/
+# https://itsfoss.com/linux-system-monitoring-tools/
 # Note that for "top", press "z" if you want colour
 
-sudo apt install htop   # Note the vim patches
-sudo apt install atop
-sudo apt install ytop   # similar to glances only written in Rust and supports themes like Monokai
-sudo apt install bpytop
-sudo apt install nmon
-sudo apt install glances
-sudo apt install ksysguard
-sudo apt install gkrellm
-sudo apt search gkrellm   # Tons of plugins for gkrellm
-
-sudo apt install cargo   # # Note that this was 360 MB download (entire Go and Rust I think)
-cargo install -f --git https://github.com/cjbassi/ytop ytop   
-wget https://github.com/cjbassi/ytop/releases/download/0.5.1/ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
-tar zxvf ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
-./ytop
-
-sudo add-apt-repository ppa:bashtop-monitor/bashtop
-sudo apt update
-sudo apt install bashtop
-
-sudo apt install nodejs
-sudo apt install npm
-sudo npm install -g vtop
-sudo npm install -g gtop
+# sudo apt install htop   # Note the vim patches
+# sudo apt install atop
+# sudo apt install ytop   # similar to glances only written in Rust and supports themes like Monokai
+# sudo apt install bpytop
+# sudo apt install nmon
+# sudo apt install glances
+# sudo apt install ksysguard
+# sudo apt install gkrellm
+# sudo apt search gkrellm   # Tons of plugins for gkrellm
+# 
+# sudo apt install cargo   # # Note that this was 360 MB download (entire Go and Rust I think)
+# cargo install -f --git https://github.com/cjbassi/ytop ytop   
+# wget https://github.com/cjbassi/ytop/releases/download/0.5.1/ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
+# tar zxvf ytop-0.5.1-x86_64-unknown-linux-gnu.tar.gz
+# ./ytop
+# 
+# sudo add-apt-repository ppa:bashtop-monitor/bashtop
+# sudo apt update
+# sudo apt install bashtop
+# 
+# sudo apt install nodejs
+# sudo apt install npm
+# sudo npm install -g vtop
+# sudo npm install -g gtop
 
 
 # exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -p "Any key to continue..."; "$@"; }
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
+# exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }
 
 # Apt
-exe which chromium &> /dev/null || sudo apt install chromium -y  # Chromium, alternatively Chrome or Brave
-
-exe which gimp &> /dev/null || sudo apt install gimp -y          # GIMP Image Editor
-exe which kdenlive &> /dev/null || sudo apt install kdenlive -y  # Kdenlive Video Editor
-exe which krita &> /dev/null || sudo apt install krita -y  # Krita
-exe which blender &> /dev/null || sudo apt install blender -y  # Blender
-exe which darktable &> /dev/null || sudo apt install darktable -y  # Dark Table
-
-
-exe which vlc &> /dev/null || sudo apt install vlc -y            # VLC Video Player
-exe which celluloid &> /dev/null || sudo apt install celluloid -y   # Celluloid Video Player
-
-exe which calibre &> /dev/null || sudo apt install calibre -y    # Calibre eBook management tool
-exe which zathura &> /dev/null || sudo apt install zathura -y    # Zathur Document Reader, PDF, ePub, Mobi, etc
-exe which caffeine &> /dev/null || sudo apt install caffeine -y  # Caffeine Keep-Alive Tool
-exe which etcher &> /dev/null || sudo apt install etcher -y      # Etcher ISO Image Writer (like Rufus)
-exe which timeshift &> /dev/null || sudo apt install timeshift -y   # TimeShift Backup / Snapshots with rsync / btrfs
-exe which syncthing &> /dev/null || sudo apt install syncthing -y   # Syncthing, sync across network
-exe which baobab &> /dev/null || sudo apt install baobab -y      # baobab, Disk Usage Analyzer
-sudo add-apt-repository ppa:peek-developers/stable
-exe which peek &> /dev/null || sudo apt install peek             # Screen Recording
-sudo add-apt-repository ppa:kasra-mp/ubuntu-indicator-weather
-sudo apt install indicator-weather
+# exe which chromium &> /dev/null || sudo apt install chromium -y  # Chromium, alternatively Chrome or Brave
+# 
+# exe which gimp &> /dev/null || sudo apt install gimp -y          # GIMP Image Editor
+# exe which kdenlive &> /dev/null || sudo apt install kdenlive -y  # Kdenlive Video Editor
+# exe which krita &> /dev/null || sudo apt install krita -y  # Krita
+# exe which blender &> /dev/null || sudo apt install blender -y  # Blender
+# exe which darktable &> /dev/null || sudo apt install darktable -y  # Dark Table
+# 
+# 
+# exe which vlc &> /dev/null || sudo apt install vlc -y            # VLC Video Player
+# exe which celluloid &> /dev/null || sudo apt install celluloid -y   # Celluloid Video Player
+# 
+# exe which calibre &> /dev/null || sudo apt install calibre -y    # Calibre eBook management tool
+# exe which zathura &> /dev/null || sudo apt install zathura -y    # Zathur Document Reader, PDF, ePub, Mobi, etc
+# exe which caffeine &> /dev/null || sudo apt install caffeine -y  # Caffeine Keep-Alive Tool
+# exe which etcher &> /dev/null || sudo apt install etcher -y      # Etcher ISO Image Writer (like Rufus)
+# exe which timeshift &> /dev/null || sudo apt install timeshift -y   # TimeShift Backup / Snapshots with rsync / btrfs
+# exe which syncthing &> /dev/null || sudo apt install syncthing -y   # Syncthing, sync across network
+# exe which baobab &> /dev/null || sudo apt install baobab -y      # baobab, Disk Usage Analyzer
+# sudo add-apt-repository ppa:peek-developers/stable
+# exe which peek &> /dev/null || sudo apt install peek             # Screen Recording
+# sudo add-apt-repository ppa:kasra-mp/ubuntu-indicator-weather
+# sudo apt install indicator-weather
 # Pinta – Paint alternative in Linux
 # Kazam – Screen recorder tool
 # Gdebi – Lightweight package installer for .deb packages
@@ -374,35 +383,35 @@ sudo apt install indicator-weather
 # so they’re still better than platform-specific packaging systems.
 
 # Snap
-which code &> /dev/null || exe sudo snap install code --classic  # Visual Studio Code
-which libre !!! &> /dev/null || exe sudo snap install libreoffice
-which only-office &> /dev/null || exe sudo snap only-office      # OnlyOffice Free Office Suite
-which telegram-desktop &> /dev/null || exe sudo snap install telegram-desktop   # Telegram Desktop
-which cowbird &> /dev/null || exe sudo snap install cowbird      # Cowbird Twitter Client
-which foliate &> /dev/null || exe sudo snap install foliate      # Foliate ePub Reader
-which tilix &> /dev/null || exe sudo apt install tilix           # Tilix Multi Terminal Emulator, https://gnunn1.github.io/tilix-web/manual/vteconfig/
-which flameshot &> /dev/null || exe sudo apt install flameshot   # Flamehsot Screenshots
-which geary &> /dev/null || exe sudo apt install geary -y        # Geary Email Client
-which shotcut &> /dev/null || exe sudo apt install shotcut -y    # Video Editing
+# which code &> /dev/null || exe sudo snap install code --classic  # Visual Studio Code
+# which libre !!! &> /dev/null || exe sudo snap install libreoffice
+# which only-office &> /dev/null || exe sudo snap only-office      # OnlyOffice Free Office Suite
+# which telegram-desktop &> /dev/null || exe sudo snap install telegram-desktop   # Telegram Desktop
+# which cowbird &> /dev/null || exe sudo snap install cowbird      # Cowbird Twitter Client
+# which foliate &> /dev/null || exe sudo snap install foliate      # Foliate ePub Reader
+# which tilix &> /dev/null || exe sudo apt install tilix           # Tilix Multi Terminal Emulator, https://gnunn1.github.io/tilix-web/manual/vteconfig/
+# which flameshot &> /dev/null || exe sudo apt install flameshot   # Flamehsot Screenshots
+# which geary &> /dev/null || exe sudo apt install geary -y        # Geary Email Client
+# which shotcut &> /dev/null || exe sudo apt install shotcut -y    # Video Editing
 
 # Flatpak
 # sudo add-apt-repository ppa:alexlarsson/flatpak   # Probably not required as Flatpak is usually already available
 # sudo apt update
-which flatpak &> /dev/null || exe sudo apt install flatpak
+# which flatpak &> /dev/null || exe sudo apt install flatpak
 # Useful to also add the Flatpak repository to ensure easy download/install of apps available as Flatpak.
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-which flatpak &> /dev/null || exe sudo flatpak install flathub de.haeckerfelix.Shortwave   # Radio player, https://www.flathub.org/apps/details/de.haeckerfelix.Shortwave
+# flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+# which flatpak &> /dev/null || exe sudo flatpak install flathub de.haeckerfelix.Shortwave   # Radio player, https://www.flathub.org/apps/details/de.haeckerfelix.Shortwave
 
 # exe which lollypop &> /dev/null || Ubuntu Software Store       # Lollypop Music Player
-sudo add-apt-repository ppa:ubuntuhandbook1/apps
+# sudo add-apt-repository ppa:ubuntuhandbook1/apps
 
-which pitivi &> /dev/null || exe flatpak install flathub org.pitivi.Pitivi
-which pitivi &> /dev/null || exe flatpak run org.pitivi.Pitivi//stable
+# which pitivi &> /dev/null || exe flatpak install flathub org.pitivi.Pitivi
+# which pitivi &> /dev/null || exe flatpak run org.pitivi.Pitivi//stable
 
-[ ! -f /tmp/ulauncher_5.7.5_all.deb ] && exe wget -P /tmp/ https://github.com/Ulauncher/Ulauncher/releases/download/5.7.5/ulauncher_5.7.5_all.deb
-exe sudo apt install python3-pyinotify gir1.2-keybinder-3.0 python3-distutils-extra python3-levenshtein python3-websocket python3-xdg
-sudo apt --fix-broken install -y
-exe sudo dpkg -i /tmp/ulauncher_5.7.5_all.deb
+# [ ! -f /tmp/ulauncher_5.7.5_all.deb ] && exe wget -P /tmp/ https://github.com/Ulauncher/Ulauncher/releases/download/5.7.5/ulauncher_5.7.5_all.deb
+# exe sudo apt install python3-pyinotify gir1.2-keybinder-3.0 python3-distutils-extra python3-levenshtein python3-websocket python3-xdg
+# sudo apt --fix-broken install -y
+# exe sudo dpkg -i /tmp/ulauncher_5.7.5_all.deb
 # dpkg: dependency problems prevent configuration of ulauncher:
 #  ulauncher depends on python3-pyinotify; however:
 #   Package python3-pyinotify is not installed.
@@ -417,25 +426,25 @@ exe sudo dpkg -i /tmp/ulauncher_5.7.5_all.deb
 #  ulauncher depends on python3-xdg; however:
 #   Package python3-xdg is not installed.
 
-[ ! -f /tmp/stacer_1.1.0_amd64.deb/download ] && exe wget -P /tmp/ https://sourceforge.net/projects/stacer/files/v1.1.0/stacer_1.1.0_amd64.deb/download
-exe sudo dpkg -i /tmp/ulauncher_5.7.5_all.deb
+# [ ! -f /tmp/stacer_1.1.0_amd64.deb/download ] && exe wget -P /tmp/ https://sourceforge.net/projects/stacer/files/v1.1.0/stacer_1.1.0_amd64.deb/download
+# exe sudo dpkg -i /tmp/ulauncher_5.7.5_all.deb
 # Alternatively, by adding the PPA repository
-sudo add-apt-repository ppa:oguzhaninan/stacer -y
-sudo apt-get update
-sudo apt-get install stacer -y   # CPU, 
+# sudo add-apt-repository ppa:oguzhaninan/stacer -y
+# sudo apt-get update
+# sudo apt-get install stacer -y   # CPU, 
 
-sudo add-apt-repository ppa:teejee2008/ppa
-sudo apt-get update
-sudo apt-get install conky-manager
+# sudo add-apt-repository ppa:teejee2008/ppa
+# sudo apt-get update
+# sudo apt-get install conky-manager
 
-exe which flatpak &> /dev/null || sudo apt install flatpak           # Tilix Multi Terminal Emulator
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-sudo apt install gnome-software-plugin-flatpak -y
-exe which shortwave &> /dev/null || sudo apt install shortwave           # Tilix Multi Terminal Emulator
+# exe which flatpak &> /dev/null || sudo apt install flatpak           # Tilix Multi Terminal Emulator
+# flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+# sudo apt install gnome-software-plugin-flatpak -y
+# exe which shortwave &> /dev/null || sudo apt install shortwave           # Tilix Multi Terminal Emulator
 
-sudo apt-add-repository ppa:lucioc/sayonara
-sudo apt-get update
-sudo apt-get install sayonara
+# sudo apt-add-repository ppa:lucioc/sayonara
+# sudo apt-get update
+# sudo apt-get install sayonara
 # On Fedora, you can find Sayonara in the repositories.
 # sudo dnf install sayonara
 
@@ -445,9 +454,9 @@ sudo apt-get install sayonara
 # Cleanup
 #
 ####################
-exe sudo apt update -y
-exe sudo apt upgrade -y
-exe sudo apt autoremove -y
+# exe sudo apt update -y
+# exe sudo apt upgrade -y
+# exe sudo apt autoremove -y
 
 
 
@@ -457,9 +466,9 @@ exe sudo apt autoremove -y
 # Testing
 #
 ####################
-git clone https://github.com/pacha/vem.git
-cd vem
-sudo make install
+# git clone https://github.com/pacha/vem.git
+# cd vem
+# sudo make install
 
 # https://www.fossmint.com/best-bittorrent-clients-for-linux/
 
@@ -467,15 +476,15 @@ sudo make install
 
 # https://www.microsoftedgeinsider.com/en-us/?form=MO12HB&OCID=MO12HB
 
-copyq
-clipboardfusion
-gufw
-WhatsApp Desktop App
-libreoffice
-openoffice
+# copyq
+# clipboardfusion
+# gufw
+# WhatsApp Desktop App
+# libreoffice
+# openoffice
 
 
-c
+
 ####################
 #
 # Ganes
@@ -484,7 +493,7 @@ c
 # https://archive.org/details/internetarcade   # Play old games in browser
 # https://www.fossmint.com/best-linux-games-of-2018/
 
-exe which steam &> /dev/null || sudo apt install steam -y        # Steam
+# exe which steam &> /dev/null || sudo apt install steam -y        # Steam
 # https://www.fossmint.com/best-steam-games-for-linux/
 
 # Lutris
@@ -3770,3 +3779,26 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 # Default LS_COLORS (on Ubuntu)
 # Original di is 01;34 then is overwritten by 0;94 later
 # rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36::di=0;94
+
+
+### Old help-package layout
+# hh="$hhtmp/help-awk.sh";         [[ -f $hh ]] && alias help-awk="$hh"    
+# hh="$hhtmp/help-bash.sh";        [[ -f $hh ]] && alias help-bash="$hh"
+# hh="$hhtmp/help-jobs.sh";        [[ -f $hh ]] && alias help-jobs="$hh"   && alias help-bg="$hh"  && alias help-background="$hh"
+# hh="$hhtmp/help-byobu.sh";       [[ -f $hh ]] && alias help-byobu="$hh"  && alias help-b="$hh"
+# hh="$hhtmp/help-cron.sh";        [[ -f $hh ]] && alias help-cron="$hh"
+# hh="$hhtmp/help-packages.sh";    [[ -f $hh ]] && alias help-packages="$hh"
+# hh="$hhtmp/help-grep.sh";        [[ -f $hh ]] && alias help-grep="$hh"
+# hh="$hhtmp/help-help.sh";        [[ -f $hh ]] && alias help-help="$hh"
+# hh="$hhtmp/help-apps.sh";        [[ -f $hh ]] && alias help-apps="$hh"
+# hh="$hhtmp/help-games-terminal.sh"; [[ -f $hh ]] && alias help-games-terminal="$hh"
+# hh="$hhtmp/help-wsl.sh";         [[ -f $hh ]] && alias help-wsl="$hh"
+# hh="$hhtmp/help-wsl-sublime.sh"; [[ -f $hh ]] && alias help-wsl-sublime="$hh"
+# hh="$hhtmp/help-wsl-audio.sh";   [[ -f $hh ]] && alias help-wsl-audio="$hh"
+# hh="$hhtmp/help-wsl-x.sh";       [[ -f $hh ]] && alias help-wsl-x="$hh"
+# hh="$hhtmp/help-wsl-sshd.sh";    [[ -f $hh ]] && alias help-wsl-sshd="$hh"
+# hh="$hhtmp/help-hyperv.sh";      [[ -f $hh ]] && alias help-hyperv="$hh" && alias help-vm="$hh"
+# hh="$hhtmp/help-vim.sh";         [[ -f $hh ]] && alias help-vim="$hh"    && alias help-vi="$hh"   && alias help-v="$hh"
+# hh="$hhtmp/help-tmux.sh";        [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
+# hh="$hhtmp/help-tmux-conf.sh";   [[ -f $hh ]] && alias help-tmux-conf="$hh"
+# hh="$hhtmp/help-ps.sh";          [[ -f $hh ]] && alias help-ps="$hh"

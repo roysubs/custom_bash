@@ -181,6 +181,9 @@ fi
 # yum repolist   # check if epel is installed
 # if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
 
+# I could 'source .custom' at the top of this script and then call 'updistro'.
+# Decided not to do this though, as if there is a bug in '.custom', then this script will fail, so just
+# keep a copy of the 'updistro' function in this script also.
 updistro() {
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
@@ -275,13 +278,17 @@ print_header "Check and install small/essential packages"
 #
 ####################
 
-pt() {   # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
+# I could 'source .custom' at the top of this script and then call 'pt'.
+# Decided not to do this though, as if there is a bug in '.custom', then this script will fail, so just
+# keep a copy of the 'pt' function in this script also.
+pt() {
+    # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
     # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
     # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
     # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
     arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
-    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')   # enable switch and remove switch from arguments
     [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')     # must do '--auto' before '-auto' or will be left with a '-' fragment
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
@@ -334,12 +341,32 @@ updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, s
 updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
 if [[ "${lastUpdate}" -gt "${updateInterval}" ]]
 then
-    packages=( dpkg alien curl wget python3.9 python3-pip perl \
+    packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
+               python3.9 python3-pip perl \     # Get latest python/pip and perl if not present on this distro
+               cron curl wget \                 # Basic tools, cron is not installed by default on 
                git vim zip unzip mount byobu \
-               nnn dfc cron dos2unix \
+               nnn dfc dos2unix \          # nnn (more direct / better than mc), dfc (updated fc), cron 
                neofetch pydf inxi ncdu tree )
-    pt -auto ${packages[@]}
+
+    pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
 fi
+
+# command 'utop' from deb utop (2.4.3-1build1)
+# command 'dtop' from deb diod (1.0.24-4)
+# command 'atop' from deb atop (2.4.0-3)
+# command 'nvtop' from deb nvtop (1.0.0-1ubuntu2)
+# command 'itop' from deb itop (0.1-4build1)
+# command 'top' from deb procps (2:3.3.16-1ubuntu2.3)
+# command 'htop' from deb htop (2.2.0-2build1)
+# command 'ctop' from deb ctop (1.0.0-2)
+# command 'qtop' from deb qtop (2.3.4-2build1)
+# command 'ptop' from deb fp-utils-3.0.4 (3.0.4+dfsg-23)
+# command 'ptop' from deb px (1.0.29-1)
+# command 'mytop' from deb mariadb-client-10.3 (1:10.3.31-0ubuntu0.20.04.1)
+# command 'mytop' from deb mytop (1.9.1-4)
+# pt -auto utop diod atop nvtop itop procps htop ctop qtop fp-utils mytop px
+
+# ctop 'container top, management of containers'
 
 echo ""
 echo ""
@@ -504,7 +531,7 @@ if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     [ ! -f /tmp/$filename ] && exe wget -nc --tries=3 -T20 --restrict-file-names=nocontrol -P /tmp/ $DL  # Timeout after 20 seconds
 
     # Try to use 'alien' to create a .rpm from a .deb:   alien --to-rpm <name>.deb   # https://forums.centos.org/viewtopic.php?f=54&t=75913
-    # I can get this to work when running alien on Ubuntu, but it alien fails with errors when running on CentOS.
+    # I can get this to work when running alien on Ubuntu, but alien fails with errors when running on CentOS.
     # Need to be able to do it from the CentOS system however to automate the install in this way.
     # In the end, looks like the 'alien' setup is not required as 'bat' will install into CentOS using dpkg(!)
     # But keep this code as might need for other packages to convert them.
@@ -1011,22 +1038,22 @@ echo "Hyper-V VM Notes if this Linux is running inside a full VM"
 HELPFILE=$hh/help-hyperv.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small HyperV Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small HyperV Help)\${NC}"
 exx ""
-exx "\${RED}***** To correctly change the resolution of the Hyper-V console\${NC}"
+exx "\${BYELLOW}***** To correctly change the resolution of the Hyper-V console\${NC}"
 exx "Step 1: 'dmesg | grep virtual' to check, then 'sudo vi /etc/default/grub'"
 exx "   Change: GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash\\\""
 exx "   To:     GRUB_CMDLINE_LINUX_DEFAULT=\\\"quiet splash video=hyperv_fb:1920x1080\\\""
 exx "Adjust 1920x1080 to your current monitor resolution."
 exx "Step 2: 'sudo reboot', then 'sudo update-grub', then 'sudo reboot' again."
 exx ""
-exx "\${RED}***** Setup Guest Services so that text can be copied/pasted to/from the Hyper-V console\${NC}"
+exx "\${BYELLOW}***** Setup Guest Services so that text can be copied/pasted to/from the Hyper-V console\${NC}"
 exx "From Hyper-V manager dashboard, find the VM, and open Settings."
 exx "Go to Integration Services tab > Make sure Guest services section is checked."
 exx ""
-exx "\${RED}***** Adjust Sleep Settings for the VM\${NC}"
+exx "\${BYELLOW}***** Adjust Sleep Settings for the VM\${NC}"
 exx "systemctl status sleep.target   # Show current sleep settings"
 exx "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
@@ -1053,9 +1080,9 @@ echo "byobu terminal multiplexer (call with help-byobu)"
 HELPFILE=$hh/help-byobu.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small byobu Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small byobu Help)\${NC}"
 exx ""
 exx "byobu is a suite of enhancements for tmux (which it is built on) with convenient shortcuts."
 exx "Terminal multiplexers like tmux allow multiple panes and windows inside a single console."
@@ -1132,9 +1159,9 @@ echo "tmux Help (call with 'help-tmux'):"
 HELPFILE=$hh/help-tmux.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux Help)\${NC}"
 exx ""
 exx "C-b : (to enter command mode), then  :ls, :help, :set mouse on  (or other commands)"
 exx "C-d  (Note: no C-b first!)  (Detach from a session, or C-b d or C-b D for interactive)"
@@ -1145,7 +1172,7 @@ exx "tmux ls (list sessions),  tmux a (attach),   tmux a -t <name> (attach named
 exx "tmux    (start tmux),    tmux new -s <name>,   tmux new -s mysession -n mywindow"
 exx "tmux kill-session –t <name>  (kill a session)   tmux kill-server  (kill tmux server)"
 exx ""
-exx "\${RED}***** Panes (press C-b first):\${NC}"
+exx "\${BYELLOW}***** Panes (press C-b first):\${NC}"
 exx "\\\"  (Split new pane up/down)                  %  (Split new pane left/right)"   # 3x spaces due to "\\\"
 exx "z  (Toggle zoom of current pane)             x  (Kill current pane)"
 exx "{ / }  (Swap current pane with previous pane / next pane)   t  (Show the time in pane)"
@@ -1158,7 +1185,7 @@ exx "o  (Go to next pane in current window)       ;  (Move to the previously act
 exx "C-o  (rotate panes in current window)       M-o  (Rotate panes backwards)"
 exx "M-1 to M-5  (Arrange panes preset layouts: tiled, horizontal, vertical, main-hor, main-ver)"
 exx ""
-exx "\${RED}***** Windows (press C-b first):\${NC}"
+exx "\${BYELLOW}***** Windows (press C-b first):\${NC}"
 exx "c       (Create a new window)         ,  (Rename the current window)"
 exx "0 to 9  (Select windows 0 to 9)       '  (Prompt for window index to select)"
 exx "s / w   (Window preview)              .  (Prompt for an index to move the current window)"
@@ -1166,7 +1193,7 @@ exx "w       (Choose the current window interactively)     &  (Kill the current 
 exx "n / p   (Change to next / previous window)      l  (Change to previously selected window)"
 exx "i       (Quick window info in tray)"
 exx ""
-exx "\${RED}***** Sessions (press C-b first):\${NC}"
+exx "\${BYELLOW}***** Sessions (press C-b first):\${NC}"
 exx "$  (Rename the current session)"
 exx "( / )  (Switch 'attached' client to previous / next session)"
 exx "L  Switch the attached client back to the last session."
@@ -1179,7 +1206,7 @@ exx "Space       Arrange the current window in the next preset layout."
 exx "M-n         Move to the next window with a bell or activity marker."
 exx "M-p         Move to the previous window with a bell or activity marker."
 exx ""
-exx "\${RED}***** Buffers (copy mode) \${NC}"
+exx "\${BYELLOW}***** Buffers (copy mode) \${NC}"
 exx "[  (Enter 'copy mode' to use PgUp/PgDn etc, press 'q' to leave copy mode)"
 exx "]  (View history / Paste the most recent text buffer)"
 exx "#  (List all paste buffers     =  (Choose a buffer to paste, from a list)"
@@ -1202,9 +1229,9 @@ echo "tmux.conf Help (call with 'help-tmux-conf'):"
 HELPFILE=$hh/help-tmux-conf.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux.conf Options)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small tmux.conf Options)\${NC}"
 exx ""
 exx "Some useful options for ~/.tmux.conf"
 exx ""
@@ -1269,9 +1296,9 @@ echo "ps notes (call with 'help-ps')"
 HELPFILE=$hh/help-ps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small ps Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small ps Help)\${NC}"
 exx ""
 exx "To see every process on the system using standard syntax:"
 exx "   ps -e  ,  ps -ef  ,  ps -eF  ,  ps -ely"
@@ -1318,9 +1345,9 @@ echo "Bash shell notes (call with 'help-bash')"
 HELPFILE=$hh/help-bash.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small bash Notes)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small bash Notes)\${NC}"
 exx ""
 exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
@@ -1329,7 +1356,7 @@ exx "Ctrl-x then Ctrl-e is a bash built-in to open vim (\$EDITOR) automatically.
 exx ""
 exx "Test shell scripts with https://www.shellcheck.net/"
 exx ""
-exx "\${RED}***** Bash variables, special invocations, keyboard shortcuts\${NC}"
+exx "\${BYELLOW}***** Bash variables, special invocations, keyboard shortcuts\${NC}"
 exx "\\\$\\\$  Get process id (pid) of the currently running bash script."
 exx "\\\$n  Holds the arguments passed in while calling the script or arguments passed into a function inside the scope of that function. e.g: $1, $2… etc.,"
 exx "\\\$0  The filename of the currently running script."
@@ -1350,7 +1377,7 @@ exx ""
 exx "grep `whoami` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
 exx ""
-exx "\${RED}***** Breaking a hung SSH session\${NC}"
+exx "\${BYELLOW}***** Breaking a hung SSH session\${NC}"
 exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
 exx "Hit 'Enter', and '~', and '.' as a sequence and the broken session will be successfully terminated."
 exx "\""   # require final line with a single " to close multi-line string
@@ -1368,9 +1395,9 @@ echo "Jobs (Background Tasks) (call with 'help-jobs')"
 HELPFILE=$hh/help-jobs.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs, Ctrl-Z, bg)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Jobs, Ctrl-Z, bg)\${NC}"
 exx ""
 exx "Two main ways to create a background task:"
 exx "1. Put '&' at the end of a command to start it in background:  sleep 300 &; bg -l; kill %"
@@ -1404,15 +1431,65 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "Package Tools (Background Tasks) (call with 'help-packages')"
+#
+####################
+# https://stackoverflow.com/questions/1624691/linux-kill-background-task
+HELPFILE=$hh/help-packages.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Packages)\${NC}"
+exx ""
+exx "apt, apt-file, yum, dnf, alien, debtree"
+exx ""
+exx "alien converts a package to another format (primarily useful to run on Debian/Ubuntu and convert to deb to rpm):"
+exx "sudo alien --to-rpm \\\$filename"
+exx "alien converts between Red Hat rpm, Debian deb, Stampede slp, Slackware tgz, and Solaris pkg file formats."
+exx "Then take that package to CentOS and install using dpkg/rpm"
+exx ""
+exx "apt-file search htop   # Show all files in all packages matching 'htop'"
+exx "apt-file show htop     # Show all files contained in package 'htop'"
+exx "htop: /usr/bin/htop"
+exx "htop: /usr/share/applications/htop.desktop"
+exx "htop: /usr/share/doc/htop/AUTHORS"
+exx "htop: /usr/share/doc/htop/README"
+exx "htop: /usr/share/doc/htop/changelog.Debian.gz"
+exx "htop: /usr/share/doc/htop/copyright"
+exx "htop: /usr/share/man/man1/htop.1.gz"
+exx "htop: /usr/share/pixmaps/htop.png"
+exx ""
+exx "debtree htop           # Show a dependency tree for 'htop' and total size of all packages"
+exx "\\\"htopz\\\" -> \\\"libncursesw6\\\" [color=blue,label=\\\"\\\(>= 6\\\)\\\"];"
+exx "\\\"libncursesw6\\\" -> \\\"libtinfo6\\\" [color=blue,label=\\\"(= 6.2-0ubuntu2)\\\"];"
+exx "\\\"libncursesw6\\\" -> \\\"libgpm2\\\";"
+exx "\\\"htop\\\" -> \\\"libtinfo6\\\" [color=blue,label=\\\"(>= 6)\\\"];"
+exx "// total size of all shown packages: 1263616"
+exx "// download size of all shown packages: 314968"
+exx ""
+exx "debtree dpkg > dpkg.dot               # Generate the dependency graph for package dpkg and save the output to a file 'dpkg.dot'."
+exx "dot -Tsvg -o dpkg.svg dpkg.dot        # Use dot to generate an SVG image from the '.dot' file."
+exx "debtree dpkg | dot -Tpng > dpkg.png   # Generate the dependency graph for package dpkg as PNG image and save the resulting output to a file."
+exx "debtree -b dpkg | dot -Tps | kghostview - &     # Generate the build dependency graph for package dpkg in postscript format and view the result using KDE's kghostview(1)"
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+
+####################
+#
 echo "Help Tools (call with 'help-help')"
 #
 ####################
 HELPFILE=$hh/help-help.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Help Tools)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Help Tools)\${NC}"
 exx ""
 exx "https://ostechnix.com/3-good-alternatives-man-pages-every-linux-user-know/"
 exx "***** TLDR++"
@@ -1427,7 +1504,7 @@ exx "Look through man directories (1 to 8) and display the longest man page in e
 exx "It can take a few minutes depending upon the number of man pages. https://ostechnix.com/how-to-find-longest-man-page-in-linux/"
 exx "for i in {1..8}; do f=/usr/share/man/man\\\$i/\\\$(ls -1S /usr/share/man/man\\\$i/ | head -n1); printf \\\"%s: %9d\\\\\\n\\\" \\\"\\\$f\\\" \\\$(man \\\"\\\$f\\\" 2>/dev/null | wc -l); done"
 exx ""
-exx "\${RED}***** man and info (installed by default) and pinfo\${NC}"
+exx "\${BYELLOW}***** man and info (installed by default) and pinfo\${NC}"
 exx "man uname"
 exx "info uname"
 exx ""
@@ -1435,7 +1512,7 @@ exx "sudo yum install pinfo"
 exx "pinfo uname       # cursor keys up/down to select highlight options and right/left to jumpt to those topics"
 exx "# pinfo pinfo"
 exx ""
-exx "\${RED}***** bropages\${NC}"
+exx "\${BYELLOW}***** bropages\${NC}"
 exx "sudo apt install ruby-dev    # apt version"
 exx "sudo dnf install ruby-devel  # dnf version"
 exx "sudo gem install bropages"
@@ -1445,19 +1522,19 @@ exx "# bro thanks 2     # upvote example 2 in previous list"
 exx "# bro ...no  2     # downvote example 2"
 exx "# bro add find     # add an entry for 'find'"
 exx ""
-exx "\${RED}***** cheat\${NC}"
+exx "\${BYELLOW}***** cheat\${NC}"
 exx "sudo pip install cheat   # or sudo snap install cheat, but snap does not work on WSL yet"
 exx "cheat find"
 exx "# cheat --list     # list all entries"
 exx "# cheat -h         # help"
 exx ""
-exx "\${RED}***** manly\${NC}"
+exx "\${BYELLOW}***** manly\${NC}"
 exx "sudo pip install --user manly"
 exx "# manly dpkg"
 exx "# manly dpkg -i -R"
 exx "manly --help       # help"
 exx ""
-exx "\${RED}***** tldr\${NC}"
+exx "\${BYELLOW}***** tldr\${NC}"
 exx "sudo $manager install tldr   # Works on CentOS, but might not on Ubuntu"
 exx "sudo $manager install npm"
 exx "sudo npm install -g tldr     # Alternative"
@@ -1466,11 +1543,11 @@ exx "# tldr --list-all  # list all cached entries"
 exx "# tldr --update    # update cache"
 exx "# tldr -h          # help"
 exx ""
-exx "\${RED}***** kmdr\${NC}"
+exx "\${BYELLOW}***** kmdr\${NC}"
 exx "https://docs.kmdr.sh/get-started-with-kmdr-cl"
 exx "sudo npm install kmdr@latest --global"
 exx ""
-exx "\${RED}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
+exx "\${BYELLOW}***** tldr (tealdeer version: same example files as above tldr, but coloured etc)\${NC}"
 exx "sudo $manager install tealdeer   # fails for me"
 exx "sudo $manager install cargo      # 270 MB"
 exx "cargo install tealdeer      # seems to install ok"
@@ -1483,7 +1560,7 @@ exx "wget https://github.com/dbrgn/tealdeer/releases/download/v1.4.1/tldr-linux-
 exx "sudo cp tldr-linux-x86_64-musl /usr/local/bin/tldr"
 exx "sudo chmod +x /usr/local/bin/tldr"
 exx ""
-exx "\${RED}***** how2 (free form questions, 'stackoverflow for the terminal')\${NC}"
+exx "\${BYELLOW}***** how2 (free form questions, 'stackoverflow for the terminal')\${NC}"
 exx "like man, but you can query it using natural language"
 exx "sudo $manager install npm"
 exx "npm install -g how-2"
@@ -1502,9 +1579,9 @@ echo "Apps (call with 'help-apps')"
 HELPFILE=$hh/help-apps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Apps)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Apps)\${NC}"
 exx ""
 exx "Just a list of various apps"
 exx ""
@@ -1532,9 +1609,9 @@ echo "Console Games (call with 'help-games-terminal')"
 HELPFILE=$hh/help-games-terminal.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Terminal Games)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Terminal Games)\${NC}"
 exx ""
 exx "Just a list of various console games:"
 exx ""
@@ -1709,15 +1786,15 @@ echo "Vim Notes (call with 'help-vim')"
 HELPFILE=$hh/help-vim.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small vim Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small vim Help)\${NC}"
 exx ""
 exx ":Tutor<Enter>  30 min tutorial built into Vim."
 exx "The clipboard or bash buffer can be accessed with Ctrl-Shift-v, use this to paste into Vim without using mouse right-click."
 exx ":set mouse=a   # Mouse support ('a' for all modes, use   :h 'mouse'   to get help)."
 exx ""
-exx "\${RED}***** MODES   :h vim-modes-intro\${NC}"
+exx "\${BYELLOW}***** MODES   :h vim-modes-intro\${NC}"
 exx "7 modes (normal, visual, insert, command-line, select, ex, terminal-job). The 3 main modes are normal, insert, and visual."
 exx "i insert mode, Shift-I insert at start of line, a insert after currect char, Shift-A insert after line.   ':h A'"
 exx "o / O create new line below / above and then insert, r / R replace char / overwrite mode, c / C change char / line."
@@ -1727,7 +1804,7 @@ exx "Could also use r to replace, or d to delete a selected visual region."
 exx "Also note '>' to indent a selected visual region, or '<' to predent (unindent) the region."
 exx ": to go into command mode, and Esc to get back to normal mode."
 exx ""
-exx "\${RED}***** MOTIONS\${NC}   :h motions"
+exx "\${BYELLOW}***** MOTIONS\${NC}   :h motions"
 exx "h/l left/right, j/k up/down, 'w' forward by word, 'b' backward by word, 'e' forward by end of word."
 exx "^ start of line, $ end of line, 80% go to 80% position in the whole document. G goto line (10G is goto line 10)."
 exx "'(' jump back a sentence, ')' jump forward a sentence, '{' jump back a paragraph, '}' jump forward a paragraph."
@@ -1738,7 +1815,7 @@ exx "g;        Bring back cursor to the previous position."
 exx ":/friendly/m\$   Move the next line containing the string 'friendly' to the end of the file."
 exx ":/Cons/+1m-2    Move two lines up the line following 'Cons'"
 exx ""
-exx "\${RED}***** EDITING\${NC}   :h edits"
+exx "\${BYELLOW}***** EDITING\${NC}   :h edits"
 exx "x  delete char under cursor, '11x' delete 11 char from cursor. 'dw' delete word, '3dw' delete 3 words, '5dd delete 5 lines."
 exx ":10,18d delete lines 10 to 18 inclusive, r<char> replace char under cursor by another character."
 exx "u  undo (or :u, :undo), Ctrl-r to redo (or :redo)."
@@ -1749,13 +1826,13 @@ exx ">> shift/indent current line, << unindent, 5>> indent 5 lines down from cur
 exx ":10,20> indent lines 10 to 20 by standard indent amount. :10,20< unindent same lines."
 exx "(vim-commentary plugin), gc to comment visual block selected, gcgc to uncomment a region."
 exx ""
-exx "\${RED}***** HELP SYSTEM\${NC}   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
+exx "\${BYELLOW}***** HELP SYSTEM\${NC}   :h      Important to learn to navigate this.   ':h A', ':h I', ':h ctrl-w', ':h :e', ':h :tabe', ':h >>'"
 exx "Even better, open the help in a new tab with ':tab help >>', then :q when done with help tab."
 exx "Open all help"
 exx "Maximise the window vertically with 'Ctrl-w _' or horizontally with 'Ctrl-w |' or 'Ctrl-w o' to leave only the help file open."
 exx "Usually don't want to close everything, so 'Ctrl-w 10+' to increase current window by 10 lines is also good.   :h ctrl-w"
 exx ""
-exx "\${RED}***** SUBSTITUTION\${NC}   :h :s   :h s_flags"
+exx "\${BYELLOW}***** SUBSTITUTION\${NC}   :h :s   :h s_flags"
 exx "https://www.theunixschool.com/2012/11/examples-vi-vim-substitution-commands.html"
 exx "https://www.thegeekstuff.com/2009/04/vi-vim-editor-search-and-replace-examples/"
 exx ":s/foo/bar/  replace first occurence in current line only,  add 'g' to end for every occurence on line, and 'i' to be case insensitive."
@@ -1772,7 +1849,7 @@ exx ":g/foo/ if getcurpos()[1] % 2 == 0 | s//bar/g | endif   # alternative appro
 exx ":for i in range(2, line('$'),2)| :exe i.'s/foo/bar/g'|endfor   # yet another way using a 'for' loop"   # https://gist.github.com/Integralist/042d1d6c93efa390b15b19e2f3f3827a
 exx "nmap <expr> <S-F6> ':%s/' . @/ . '//gc<LEFT><LEFT><LEFT>'   # Put into .vimrc then press Shift-F6 to interactively replace word at cursor globally (with confirmation)."
 exx ""
-exx "\${RED}***** BUFFERS\${NC}   :h buffers   Within a single window, can see buffers with :ls"
+exx "\${BYELLOW}***** BUFFERS\${NC}   :h buffers   Within a single window, can see buffers with :ls"
 exx "vim *   Open all files in current folder (or   'vim file1 file2 file3'   etc)."
 exx ":ls     List all open buffers (i.e. open files)   # https://dev.to/iggredible/using-buffers-windows-and-tabs-efficiently-in-vim-56jc"
 exx ":bn, :bp, :b #, :b name to switch. Ctrl-6 alone switches to previously used buffer, or #ctrl-6 switches to buffer number #."
@@ -1780,12 +1857,12 @@ exx ":bnext to go to next buffer (:bprev to go back), :buffer <name> (Vim can au
 exx ":bufferN where N is buffer number. :buffer2 for example, will jump to buffer #2."
 exx "Jump between your last 'position' with <Ctrl-O> and <Ctrl-i>. This is not buffer specific, but it works. Toggle between previous file with <Ctrl-^>"
 exx ""
-exx "\${RED}***** WINDOWS\${NC}   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
+exx "\${BYELLOW}***** WINDOWS\${NC}   :h windows-into  :h window  :h windows  :h ctrl-w  :h winc"
 exx "vim -o *  Open all with horizontal splits,   vim -O *   Open all with vertical splits."
 exx "<C-W>W   to switch windows (note: do not need to take finger off Ctrl after <C-w> just double press on 'w')."
 exx "<C-W>N :sp (:split, :new, :winc n)  new horizontal split,   <C-W>V :vs (:vsplit, :winc v)  new vertical split"
 exx ""
-exx "\${RED}***** TABS\${NC}   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
+exx "\${BYELLOW}***** TABS\${NC}   :h tabpage   Tabbed multi-file editing is a available from Vim 7.0+ onwards (2009)."
 exx "vim -p *   Open all files in folder in tabs (or   'vim -p file1 file2 file3' etc)."
 exx ":tabnew, just open a new tab, :tabedit <filename> (or tabe), create a new file at filename; like :e, but in a new tab."
 exx "gt/gT  Go to next / previous tab (and loop back to first/last tab if at end). Also: 1gt go to tab 1, 5gt go to tab 5."
@@ -1797,7 +1874,7 @@ exx ":tabedit .   # Opens new tab, prompts for file to open in it. Use cursor ke
 exx "tab names are prefixed with a '+' if they have unsaved changes,  :w  to write changes."
 exx ":set mouse=a   # Mouse support works with tabs, just click on a tab to move there."
 exx ""
-exx "\${RED}***** VIMRC OPTIONS\${NC}   /etc/vimrc, ~/.vimrc"
+exx "\${BYELLOW}***** VIMRC OPTIONS\${NC}   /etc/vimrc, ~/.vimrc"
 exx ":set number (to turn line numbering on), :set nonumber (to turn it off), :set invnumber (to toggle)"
 exx "noremap <F3> :set invnumber<CR>   # For .vimrc, Set F3 to toggle line numbers on/off"
 exx "inoremap <F3> <C-O>:set invnumber<CR>   # Also this line for the F3 toggle"
@@ -1809,7 +1886,7 @@ exx "cnoreabbrev <expr> h getcmdtype() == \\\":\\\" && getcmdline() == 'h' ? 'ta
 exx "nnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the current line (vim-commentry plugin)."
 exx "vnoremap <space>/ :Commentary<CR>   \\\" / will toggle the comment/uncomment state of the visual region (vim-commentry plugin)."
 exx ""
-exx "\${RED}***** PLUGINS, VIM-PLUG\${NC}    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
+exx "\${BYELLOW}***** PLUGINS, VIM-PLUG\${NC}    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
 exx "First, install vim-plug:"
 exx "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
 exx "Then add the following lines to ~/.vimrc ("
@@ -1834,7 +1911,7 @@ exx "Folloing will toggle comment/uncomment by pressing <space>/ on a line or a 
 exx "nnoremap <space>/ :Commentary<CR>"
 exx "vnoremap <space>/ :Commentary<CR>"
 exx ""
-exx "\${RED}***** SPELL CHECKING / AUTOCOMPLETE\${NC}"
+exx "\${BYELLOW}***** SPELL CHECKING / AUTOCOMPLETE\${NC}"
 exx ":setlocal spell spelllang=en   (default 'en', or can use 'en_us' or 'en_uk')."
 exx "Then,  :set spell  to turn on and  :set nospell  to turn off. Most misspelled words will be highlighted (but not all)."
 exx "]s to move to the next misspelled word, [s to move to the previous. When on any word, press z= to see list of possible corrections."
@@ -1842,12 +1919,12 @@ exx "Type the number of the replacement spelling and press enter <enter> to repl
 exx "Press 1ze to replace by first correction Without viewing the list (usually the 1st in list is the most likely replacement)."
 exx "Autocomplete: Say that 'Fish bump consecrate day night ...' is in a file. On another line, type 'cons' then Ctrl-p, to autocomplete based on other words in this file."
 exx ""
-exx "\${RED}***** SEARCH\${NC}"
+exx "\${BYELLOW}***** SEARCH\${NC}"
 exx "/ search forwards, ? search backwards are well known but * and # are less so."
 exx "* search for word nearest to the cursor (forward), and # (backwards)."
 exx "Can repeat a search with / then just press Enter, but easier to use n, or N to repeat a search in the opposite direction."
 exx ""
-exx "\${RED}***** PASTE ISSUES IN TERMINALS\${NC}"
+exx "\${BYELLOW}***** PASTE ISSUES IN TERMINALS\${NC}"
 exx "Paste Mode: Pasting into Vim sometimes ends up with badly aligned result, especially in Putty sessions etc."
 exx "Fix that with ':set paste' to put Vim in Paste mode before you paste, so Vim will just paste verbatim."
 exx "After you have finished pasting, type ':set nopaste' to go back to normal mode where indentation will take place again."
@@ -1870,11 +1947,11 @@ echo "grep Notes (call with 'help-grep')"
 HELPFILE=$hh/help-grep.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small grep Notes)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small grep Notes)\${NC}"
 exx ""
-exx "\${RED}***** Consider using 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
+exx "\${BYELLOW}***** Finding files with 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
 exx "Optional: -l (not 1, but lower-case L) can be added to only return the file name of matching files."
@@ -1917,6 +1994,116 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "grep Notes (call with 'help-assorted')"
+#
+####################
+# https://www.richud.com/wiki/Grep_one_liners
+HELPFILE=$hh/help-assorted.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Assorted Commands)\${NC}"
+exx ""
+exx "Various commands as a general refresher/reminder list ..."
+exx ""
+exx "\${BYELLOW}***** Find\${NC}"
+exx "grep [pattern] [file_name]         # Search for a specific pattern in a file with grep"
+exx "grep -r [pattern] [directory_name] # Recursively search for a pattern in a directory"
+exx "find [/folder/location] -name [a]  # List names that begin with a specified character [a] in a specified location [/folder/location] by using the find command"
+exx "find [/folder/location] -size [+100M]  # See files larger than a specified size [+100M] in a folder"
+exx "locate [name]                      # Find all files and directories related to a particular name"
+exx ""
+exx "gpg -c [file_name]  /  gpg [file_name.gpg]   # Encrypt (-c) or Decrypt a file"
+exx "rsync -a [/your/directory] [/backup/]        # Synchronize the contents of a directory with a backup directory using the rsync command"
+exx ""
+exx "\${BYELLOW}***** Hardware\${NC}"
+exx "dmesg                      # Show bootup messages"
+exx "cat /proc/cpuinfo          # See CPU information"
+exx "free -h                    # Display free and used memory with"
+exx "lshw                       # List hardware configuration information"
+exx "lsblk                      # See information about block devices"
+exx "lspci -tv                  # Show PCI devices in a tree-like diagram"
+exx "lsusb -tv                  # Display USB devices in a tree-like diagram"
+exx "dmidecode                  # Show hardware information from the BIOS"
+exx "hdparm -i /dev/disk        # Display disk data information"
+exx "hdparm -tT /dev/[device]   # Conduct a read-speed test on device/disk"
+exx "badblocks -s /dev/[device] # Test for unreadable blocks on device/disk"
+exx ""
+exx "\${BYELLOW}***** Users\${NC}"
+exx "groupadd [group]    # Add new group"
+exx "adduser [user]                 # Add a new user"
+exx "usermod -aG [group] [user]     # Add to a group"
+exx "userdel [user]                 # Delete a user"
+exx "usermod                        # Modify a user"
+exx "id      # Details about active users,     last     # Show last system login"
+exx "who     # Show currently logged on,       w        # Show logged on users activity"
+exx "whoami        # See which user you are using"
+exx "finger [username]"
+exx ""
+exx "\${BYELLOW}***** Tasks, Processes, Jobs\${NC}"
+exx "pstree   # Show processes in a tree-like diagram"
+exx "pmap     # Display a memory usage map of processes"
+exx "kill [process_id]     # Terminate a Linux process under a given ID"
+exx "pkill [proc_name]     # Terminate a process under a specific name"
+exx "killall [proc_name]   # Terminate all processes labelled “proc”"
+exx "Cltr-Z to suspend a task, then 'bg' to put into background as a job"
+exx "bg  /  jobs   # List and resume jobs in the background"
+exx "fg            # Bring the most recently suspended job to the foreground"
+exx "fg [job]      # Bring a particular job to the foreground"
+exx "lsof          # List files opened by running processes"
+exx "last reboot   # List system reboot history"
+exx "cal           # Calendar"
+exx "w             # List logged in users"
+exx ""
+exx "\${BYELLOW}***** Disk space usage\${NC}"
+exx "df -h      # Free inodes on mounted filesystems"
+exx "df -i      # Display disk partitions and types"
+exx "fdisk -l   # Display disk partitions, sizes, and types with the command"
+exx "du -ah     # See disk usage for all files and directory"
+exx "du -sh     # Show disk usage of the directory you are currently in"
+exx "findmnt    # Display target mount point for all filesystem"
+exx "mount [device_path] [mount_point]   # Mount a device"
+exx ""
+exx "\${BYELLOW}***** File permissions\${NC}"
+exx "chmod 777 [file_name]   # Assign read, write, and execute permission to everyone"
+exx "chmod 755 [file_name]   # Give read, write, and execute permission to owner, and read and execute permission to group and others"
+exx "chmod 766 [file_name]   # Assign full permission to owner, and read and write permission to group and others"
+exx "chown [user] [file_name]   # Change the ownership of a file"
+exx "chown [user]:[group] [file_name]   # Change the owner and group ownership of a file"
+exx ""
+exx "\${BYELLOW}***** Networking\${NC}"
+exx "ip addr show      # List IP addresses and network interfaces"
+exx "ip address add [IP_address]   # Assign an IP address to interface eth0"
+exx "ifconfig          # Display IP addresses of all network interfaces with"
+exx "netstat -pnltu    # See active (listening) ports with the netstat command"
+exx "netstat -nutlp    # Show tcp and udp ports and their programs"
+exx "whois [domain]    # Display more information about a domain"
+exx "dig [domain]      # Show DNS information about a domain using the dig command"
+exx "dig -x host       # Do a reverse lookup on domain"
+exx "dig -x [ip_address]   # Do reverse lookup of an IP address"
+exx "host [domain]     # Perform an IP lookup for a domain"
+exx "hostname -I       # Show the local IP address"
+exx ""
+exx "\${BYELLOW}***** Linux Keyboard Shortcuts\${NC}"
+exx "Ctrl-C   # Kill process running in the terminal"
+exx "Ctrl-Z   # Stop current process => fg / bg"
+exx "Ctrl-W   # Cut one word before the cursor and add it to clipboard"
+exx "Ctrl-U   # Cut part of the line before the cursor and add it to clipboard"
+exx "Ctrl-K   # Cut part of the line after the cursor and add it to clipboard"
+exx "Ctrl-Y   # Paste from clipboard"
+exx "Ctrl-R   # 'Recall' last command that matches the provided characters"
+exx "Ctrl-O   # Run the previously recalled command"
+exx "Ctrl-G   # Exit command history without running a command"
+exx "!!       # Run the last command again"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "cron Notes (call with 'help-cron')"
 #
 ####################
@@ -1939,7 +2126,7 @@ exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small cron Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small cron Help)\${NC}"
 exx ""
 exx "crontab -e   will edit current users cron"
 exx "crontab -e   will edit current users cron"
@@ -2072,9 +2259,9 @@ echo "awk Notes (show with 'help-awk')"
 HELPFILE=$hh/help-awk.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small awk Help)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small awk Notes)\${NC}"
 exx ""
 exx "***** Useful AWK One-Liners to Keep Handy"   
 exx "Search and scan files line by line, splits input lines into fields, compares input lines/fields to pattern and performs an action on matched lines."
@@ -2174,9 +2361,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=$hh/help-wsl.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Help)\${NC}"
+    exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Help)\${NC}"
     exx ""
     exx "You can start the distro from the Ubuntu icon on the Start Menu, or by running 'wsl' or 'bash' from a PowerShell"
     exx "or CMD console. You can toggle fullscreen on WSL/CMD/PowerShell (native consoles or also in Windows Terminal sessions)"
@@ -2190,13 +2377,13 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "\\\$toChange = @(\\\".Default\\\",\\\"SystemAsterisk\\\",\\\"SystemExclamation\\\",\\\"Notification.Default\\\",\\\"SystemNotification\\\",\\\"WindowsUAC\\\",\\\"SystemHand\\\")"
     exx "foreach (\\\$c in \\\$toChange) { Set-ItemProperty -Path \\\"HKCU:\\\AppEvents\\\Schemes\\\Apps\\\.Default\\\\\\\$c\\\.Current\\\" -Name \\\"(Default)\\\" -Value \\\"C:\\WINDOWS\\media\\ding.wav\\\" }"
     exx ""
-    exx "\${RED}***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work\${NC}"
+    exx "\${BYELLOW}***** Breaking a hung Windows session when Ctrl+Alt+Del doesn't work\${NC}"
     exx "In this case, to see Task manager, try Alt+Tab and *hold* Alt for a few seconds to get Task manager preview."
     exx "Also press Alt+D to switch out of not-very-useful Compact mode and into Details mode."
     exx "With Task manager open, press Alt+O followed by Alt+D to enable 'Always on Top'."
     exx "But something that might be even better is to Win+Tab to get the Switcher, then press the '+' at top left to create a new virtual desktop, giving you a clean desktop with nothing on it. In particular, the hung application is not on this desktop, and you can run Task manager here to use it to terminate the hung application."
     exx ""
-    exx "\${RED}***** Windows Terminal (wt) via PowerShell Tips and Split Panes\${NC}"
+    exx "\${BYELLOW}***** Windows Terminal (wt) via PowerShell Tips and Split Panes\${NC}"
     exx "Double click on a tab title to rename it (relating to what you are working on there maybe)."
     exx "Alt+Shift+PLUS (vertical split of your default profile), Alt+Shift+MINUS (horizontal)."
     exx "Click the new tab button, then hold down Alt while pressing a profile, to open an 'auto' split (will vertical or horizontal to be most square)"
@@ -2205,6 +2392,21 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "Close focused pane or tab with Ctrl+Shift+W. If you only have one pane, this close the tab or window if only one tab."
     exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
     exx "To make bash launch in ~ instead of /mnt/c/Users in wt, open the wt Settings, find WSL2 profile, add \\\"commandline\\\": \\\"bash.exe ~\\\" (remember a comma after the previous line to make consistent), or \\\"startingDirectory\\\": \\\"//wsl$/Ubuntu/home/\\\"."
+    exx ""
+    exx "\${BYELLOW}***** To enable 'root'\${NC}"
+    exx "By default on Ubuntu, root has no password and 'su -' will not work."
+    exx "https://msdn.microsoft.com/en-us/commandline/wsl/user_support"
+    exx "The Windows user owns the VM, so from PowerShell/Cmd, run 'wsl -d <distro-name> -u root' to enter the VM as root."
+    exx "Now run 'passwd root' and set the password for root, then 'exit' to return to Windows shell."
+    exx "To change default user::   ubuntu.exe config --default-user [user]"
+    exx "In legacy versions 1703, 1709, it was:   lxrun /setdefaultuser [user]"
+    exx "A restart may be required:   wsl -d <distro_name> --terminate"
+    exx "Go back into the VM normally, and you should not be able to run 'su -' to become root."
+    exx "Can now use 'su':   su -h,   su -    will take you to 'root'"
+    exx "- or -l or -login [user]: Runs login script and switch to a specific username, if no user specified, use 'root'"
+    exx "su -c [command] [user]    # Run a single command as antoher user."
+    exx "su -s /usr/bin/zsh        # Open root user in Z shell."
+    exx "su -p [other_user]        # Keep environment of current user account, keep the same home directory."
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -2217,11 +2419,14 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=$hh/help-wsl-x.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL X Window GUI)\${NC}"
+    exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL X Window GUI)\${NC}"
     exx ""
-    exx "\${RED}***** Run X-Display GUI from WSL   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376\${NC}"
+    exx "GUI apps that run in WSL:"
+    exx "gnome-system-monitor"
+    exx ""
+    exx "\${BYELLOW}***** Run X-Display GUI from WSL\${NC}"   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376
     exx "Can use for various login apps (aws-azure-login) from WSL - Unable to Open X-Display"
     exx "Since WSL distro does not come with GUI, we need to install a X-Server on our Windows Host and Connect to it from WSL."
     exx "1. Install VcXsrv Windows X Server from https://sourceforge.net/projects/vcxsrv/"
@@ -2248,9 +2453,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=$hh/help-wsl-sublime.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Sublime on WSL)\${NC}"
+    exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Sublime on WSL)\${NC}"
     exx ""
     exx "# This is to demonstrate running a full GUI app within WSL:"
     exx "sudo apt update"
@@ -2284,7 +2489,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=$hh/help-wsl-audio.sh
     zzz() { printf "$1\n" >> $HELPFILE; }   # echo without '-e'
     printf "#!/bin/bash\n" > $HELPFILE
-    zzz "BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+    zzz "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
     zzz 'HELPNOTES="'
     zzz '${BCYAN}$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)${NC}'
     zzz ''
@@ -2321,9 +2526,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
 
     ### This is the old version using echo -e
     # exx "HELPNOTES=\""
-    # exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
+    # exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL Audio Setup)\${NC}"
     # exx ""
-    # exx "\${RED}***** To enable sound (PulseAudio) on WSL2:\${NC}"
+    # exx "\${BYELLOW}***** To enable sound (PulseAudio) on WSL2:\${NC}"
     # exx "https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html"
     # exx "Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/"
     # exx "Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)"
@@ -2364,9 +2569,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     HELPFILE=$hh/help-wsl-sshd.sh
     exx() { echo "$1" >> $HELPFILE; }
     echo "#!/bin/bash" > $HELPFILE
-    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m'"
+    exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
     exx "HELPNOTES=\""
-    exx "\${BLUE}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL SSHD Server)\${NC}"
+    exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL SSHD Server)\${NC}"
     exx ""
     exx "Connect to WSL via SSH: https://superuser.com/questions/1123552/how-to-ssh-into-wsl"
     exx "SSH into a WSL2 host remotely and reliably: https://medium.com/@gilad215/ssh-into-a-wsl2-host-remotely-and-reliabley-578a12c91a2"

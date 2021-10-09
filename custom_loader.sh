@@ -2111,6 +2111,73 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "netstat Notes (call with 'help-netstat')"
+#
+####################
+# https://www.richud.com/wiki/Grep_one_liners
+HELPFILE=$hh/help-netstat.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small netstat)\${NC}"
+exx ""
+exx "netstat (ntcommand statistics). Overview of network activities and displays which ports are open or have established connections. Essential for discovering network problems. Part of the 'net-tools' package. Though still widely used, netstat is considered obsolete, and ss command is recommended as a faster and simpler tool."
+exx ""
+exx "Terminal output of the netstat"
+exx "The first list in the output displays active established internet connections on the computer. The following details are in the columns:"
+exx "Proto – Protocol of the connection (TCP, UDP)."
+exx "Recv-Q – Receive queue  of bytes received or ready to be received."
+exx "Send-Q – Send queue of bytes ready to be sent."
+exx "Local address – Address details and port of the local connection. An asterisk (*) in the host indicates that the server is listening and if a port is not yet established."
+exx "Foreign address– Address details and port of the remote end of the connection. An asterisk (*) appears if a port is not yet established."
+exx "State – State of the local socket, most commonly ESTABLISHED, LISTENING, CLOSED or blank."
+exx ""
+exx "The second list shows all active 'Unix Domain' open sockets with the following details:"
+exx "Proto – Protocol used by the socket (always unix)."
+exx "RefCnt – Reference count of the number of attached processes to this socket."
+exx "Flags – Usually ACC or blank."
+exx "Type – The socket type."
+exx "State – State of the socket, most often CONNECTED, LISTENING or blank."
+exx "I-Node – File system inode (index node) associated with this socket."
+exx "Path – System path to the socket."
+exx "For advanced usage, expand the netstat command with options:"
+exx ""
+exx "netstat -a    # List All Ports and Connections"
+exx "netstat -at   # List All TCP Ports"
+exx "netstat -au   # List All UDP Ports"
+exx "netstat -l    # List Only Listening Ports"
+exx "netstat -lt   # List TCP Listening Ports"
+exx "netstat -lu   # List UDP Listening Ports"
+exx "netstat -lx   # List UNIX Listening Ports"
+exx "Note: Scan for open ports with nmap as an alternative."
+exx "netstat -s    # Display Statistics by Protocol"
+exx "netstat -st   # List Statistics for TCP Ports"
+exx "netstat -su   # List Statistics for UDP Ports"
+exx "netstat -i    # List Network Interface Transactions"
+exx "netstat -ie   # Add the option -e to netstat -i to extend the details of the kernel interface table:"
+exx "netstat -M    # Display Masqueraded Connections"
+exx "netstat -tp   # Display the PID/Program name related to a specific connection by adding the -p option to netstat. For example, to view the TCP connections with the PID/Program name listed, use:"
+exx "netstat -lp   # Find Listening Programs"
+exx "netstat -r    # Display Kernel IP Routing Table"
+exx "netstat -g    # Display IPv4 and IPv6 Group Membership"
+exx "netstat -c    # Print netstat Info Continuously"
+exx "netstat -ic   # e.g. To print the kernel interface table continuously, run:"
+exx "netstat --verbose   # Find Unconfigured Address Families at the end of '--verbose'"
+exx "netstat -n    # Display Numerical Addresses, Host Addresses, Port Numbers, and User IDs. By default, addresses, port numbers, and user IDs are resolved into human-readable names when possible. Knowing the unresolved port number is important for tasks such as SSH port forwarding."
+exx "netstat --numeric-hosts    # Display Numerical Host Addresses"
+exx "netstat --numeric-ports    # Display Numerical Port Numbers"
+exx "netstat --numeric-users    # Display Numerical User Ids"
+exx "netstat -an | grep ':[port number]'   # Find a Process That Is Using a Particular Port"
+exx "netstat -an | grep ':80'   # e.g. What process is using port 80?"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "cron Notes (call with 'help-cron')"
 #
 ####################
@@ -2414,6 +2481,13 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "su -c [command] [user]    # Run a single command as antoher user."
     exx "su -s /usr/bin/zsh        # Open root user in Z shell."
     exx "su -p [other_user]        # Keep environment of current user account, keep the same home directory."
+    exx ""
+    exx "Upgrade Ubuntu to 20.10 inside WSL: https://discourse.ubuntu.com/t/installing-ubuntu-20-10-on-wsl/18941"
+    exx "sudo sed --in-place 's/focal/groovy/g' /etc/apt/sources.list"
+    exx "sudo apt update -y && sudo apt upgrade -y"
+    exx "This guide required more to get working https://www.windowscentral.com/how-upgrade-ubuntu-2010-wsl-windows-10"
+    exx "sudo vi /etc/update-manager/release-upgrades   # Change lts to normal on last line"
+    exx "sudo do-release-upgrade -d"
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE

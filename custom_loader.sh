@@ -1427,9 +1427,9 @@ exx "Ctrl+D   Logout of Terminal or ssh (or tmux) session"
 exx "Ctrl+L   Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
 exx ""
 exx "Some structures (split this off to a different file):"
-# exx "  for i in {7..18}; do echo \\\$i; done        # Arbitrary numbers"
-# exx "  for i in \`seq 1 9\`; do echo \\\$i; done    # Another way"
-# exx "  [[ \\\"\$(read -e -p 'A ask a question? [y/N]> '; echo \$REPLY)\\\" == [Yy]* ]]   # One-liner to get input"
+exx "  for i in {7..18}; do echo \\\$i; done        # Arbitrary numbers"
+exx "  for i in \`seq 1 9\`; do echo \\\$i; done    # Another way"
+exx "  [[ \\\"\$(read -e -p 'A ask a question? [y/N]> '; echo \$REPLY)\\\" == [Yy]* ]]   # One-liner to get input"
 exx ""
 exx "grep \`whoami\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
@@ -2902,7 +2902,7 @@ print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .cu
 #
 ####################
 
-if . .custom; then print_header ".custom was sourced successfully ..."; fi
+if . .custom; then echo -e ">>>>> .custom was sourced successfully <<<<<\n"; fi
 
 # The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
 echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory."

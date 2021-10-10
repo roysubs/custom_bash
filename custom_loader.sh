@@ -64,6 +64,7 @@
 ####################
 
 hh=/tmp/.custom   # This is the location of all helper scripts, could change this location
+[ -d $hh ] || mkdir $hh
 
 ### print_header() will display up to 3 arguments as a simple banner
 print_header() {
@@ -84,32 +85,6 @@ print_header() {
 # ToDo (might not be required): modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n"; echo "\$ ${@/eval/}"; "$@"; }
-
-
-
-####################
-#
-print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
-#
-####################
-
-if . .custom; then echo "Succeeded"; else echo "Failed"; fi
-
-read -e -p "oops!"
-
-echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory"
-if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
-    cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
-fi
-
-echo "If ~/.custom still does not exist, then get it from Github"
-if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
-    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-fi
-
-# read -e -p "Press 'Enter' to continue ..."; "$@"
 
 
 
@@ -378,19 +353,18 @@ then
     pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
 fi
 
-# command 'utop' from deb utop (2.4.3-1build1)
-# command 'dtop' from deb diod (1.0.24-4)
-# command 'atop' from deb atop (2.4.0-3)
-# command 'nvtop' from deb nvtop (1.0.0-1ubuntu2)
-# command 'itop' from deb itop (0.1-4build1)
-# command 'top' from deb procps (2:3.3.16-1ubuntu2.3)
-# command 'htop' from deb htop (2.2.0-2build1)
-# command 'ctop' from deb ctop (1.0.0-2)
-# command 'qtop' from deb qtop (2.3.4-2build1)
-# command 'ptop' from deb fp-utils-3.0.4 (3.0.4+dfsg-23)
-# command 'ptop' from deb px (1.0.29-1)
-# command 'mytop' from deb mariadb-client-10.3 (1:10.3.31-0ubuntu0.20.04.1)
-# command 'mytop' from deb mytop (1.9.1-4)
+# command 'utop' from deb utop
+# command 'atop' from deb atop
+# command 'nvtop' from deb nvtop
+# command 'itop' from deb itop
+# command 'top' from deb procps
+# command 'htop' from deb htop
+# command 'ctop' from deb ctop
+# command 'qtop' from deb qtop
+# command 'ptop' from deb fp-utils-3.0.4
+# command 'ptop' from deb px
+# command 'mytop' from deb mariadb-client-10.3
+# command 'mytop' from deb mytop
 # pt -auto utop diod atop nvtop itop procps htop ctop qtop fp-utils mytop px
 
 # ctop 'container top, management of containers'
@@ -846,6 +820,7 @@ print_header "Common changes to /etc/sudoers"
 echo "ToDo: This part is tricky to automate as mistakes in /etc/sudoers can make a system unbootable."
 echo "There is a fix for this in some distros, you can run:   pkexec visudo"
 echo "Then, fix any issues, or add contents from a backed up /etc/sudoers"
+echo "   sudo visudo --file=/etc/sudoers.d/arash-extra-rules"
 echo ""
 echo "The goal is to add a 10 hr timeout for sudo passwords to be re-entered as it gets annoying to"
 echo "have to continually retype this on a home system (i.e. not advised on a production system)."
@@ -981,7 +956,7 @@ echo "Copy Docker Aliases '.customdk' into the helper folder"
 #
 ####################
 if [ -f ./.customdk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    cp .customdk $hh/.customdk
+    cp ./.customdk $hh/
 fi
 
 
@@ -1037,7 +1012,9 @@ exx "sudo $manager install cowsay xcowsay ponysay lolcat toilet   # https://www.
 exx "# Random Animal Effect"
 exx "dir=/usr/share/cowsay/cows/; file=`/bin/ls -1 \\\"\$dir\\\" | sort –random-sort | head -1`; cow=$(echo “\$file” | sed -e “s/\.cow//”)"
 exx "/usr/games/fortune /usr/share/games/fortunes | cowsay -f $cow"
-exx "sudo $manager install lolcat     # pipe text, fortune, figlet, cowsay etcfor 256 colour rainbow effect"
+exx "sudo $manager install lolcat     # pipe text, fortune, figlet, cowsay etcfor 256 colour rainbow effect. To install on CentOS:"
+exx "   sudo yum install ruby install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-rdoc ruby-devel rubygems"
+exx "   sudo gem install lolcat"
 exx "sudo $manager install toilet     # pipe text, fortune, figlet, cowsay etc for coloured output   http://caca.zoy.org/wiki/toilet"
 exx "# toilet -f mono9 -F metal $(date)   ;   while true; do echo \\\"$(date '+%D %T' | toilet -f term -F border --gay)\\\"; sleep 1; done"
 exx "sudo $manager install boxes      # ascii boxes around text"
@@ -1063,15 +1040,15 @@ exx "top-ips.sh	List all top hitting IP address to your webserver"
 exx "turn-server-uploads.sh	Turn on or off Apache / Nginx / Lighttpd web server upload"
 exx "web-server.sh	Simple web server"
 exx ""
-exx "rev (reverse), tac (cat backwards) are not completely trivial, can be used to flip text while workin with it on the pipeline"
+exx "rev (reverse), tac (cat backwards) and (nl) are not completely trivial, can be used to manipulate text while working on pipeline"
 exx "sudo $manager install ddate      # Convert Gregorian dates to Discordian dates"
 exx "sudo $manager rig                # Generate random name, address, zip code identities"
 exx "sudo npm install -g terminalizer # Record Linux terminal and generate animated GIF"
-exx "terminalizer record test     # To start a recording. End recording with CTRL+D or terminate the program using CTRL+C."
-exx "After stopping, test.yml is created in the current directory. Edit configurations and the recorded frames as required."
+exx "terminalizer record test     # To start a recording. End recording with CTRL+D or terminate the program using CTRL+C"
+exx "After stopping, test.yml is created in the current directory. Edit configurations and the recorded frames as required"
 exx "terminalizer play test       # replay your recording using the play command"
 exx "terminalizer render test     # render your recording as an animated gif"
-exx "To create a global configuration directory, use the init command. You can also customize it using the config.yml file."
+exx "To create a global configuration directory, use the init command. You can also customize it using the config.yml file"
 exx "sudo $manager install trash-cli  # trash-cli, cli recoverable trashcan, https://pypi.org/project/trash-cli/"
 exx ""
 exx "sudo $manager nodejs npm; sudo npm install wikit -g  # wikit, wikipedia cli tool https://www.tecmint.com/wikipedia-commandline-tool/"
@@ -1449,7 +1426,12 @@ exx "Ctrl+W   Cut the word on the left side of the cursor"
 exx "Ctrl+D   Logout of Terminal or ssh (or tmux) session"
 exx "Ctrl+L   Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
 exx ""
-exx "grep `whoami` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
+exx "Some structures (split this off to a different file):"
+# exx "  for i in {7..18}; do echo \\\$i; done        # Arbitrary numbers"
+# exx "  for i in \`seq 1 9\`; do echo \\\$i; done    # Another way"
+# exx "  [[ \\\"\$(read -e -p 'A ask a question? [y/N]> '; echo \$REPLY)\\\" == [Yy]* ]]   # One-liner to get input"
+exx ""
+exx "grep \`whoami\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
 exx ""
 exx "\${BYELLOW}***** Breaking a hung SSH session\${NC}"
@@ -1865,7 +1847,9 @@ exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GUI Games)\${NC}"
 exx ""
 exx "\${BYELLOW}xxx\${NC}"
-exx "sudo $manager install nestopia   # The error was 'GLXBadFBConfig'"
+exx "sudo $manager install nestopia   # The error was 'GLXBadFBConfig' ... try to fix"
+exx "RetroPie ... try to fix"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2912,17 +2896,35 @@ if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then
 fi
 
 
+####################
+#
+print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
+#
+####################
 
-####################
-#
-print_header "Run 'source ~/.custom' to load '.custom' into this current session"
-#
-####################
-# echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
-# read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
-echo ""
-echo ""
-[ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
+if . .custom; then print_header ".custom was sourced successfully ..."; fi
+
+# The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
+echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory."
+if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
+    cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
+elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
+    echo "~/.custom is still not in \$HOME, so get latest version from Github."
+    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
+
+# ####################
+# #
+# print_header "Run 'source ~/.custom' to load '.custom' into this current session"
+# #
+# ####################
+# # echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
+# # read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
+# # echo ""
+# # echo ""
+# # [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 echo "Note the above configuration details for any useful additional manual actions."
 echo "'updistro' to run through all update/upgrade actions (use 'def updistro' to see commands)."
 echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"

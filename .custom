@@ -537,14 +537,12 @@ help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cr
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
-hhliq="$hhtmp/liquid.sh"; [[ -f $hhliq ]] && alias liquid="source $hhliq"   # Can source a script from an alias/function created during .bashrc
 
-####################
-# Modules:   Activate additional aliases and functions by running these. e.g. running 'dk' will only add these tools if Docker is installed
-####################
+hhliq="$hhtmp/liquid.sh"; [[ -f $hhliq ]] && alias liquid="source $hhliq"   # Can source a script from an alias/function created during .bashrc
 hh="$hhdk/.customdk"; [[ -f $hhdk ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hhdk\n$(type docker)'; source $hhdk; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
 # Trivial but can be nice to have (on Ubuntu these are already available in repository)
-type dnf &>/dev/null && install-lolcat() { sudo dnf install ruby install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-rdoc ruby-devel rubygems; sudo gem install lolcat; } # https://gist.github.com/mtaziz/d5b2f9ef46b06f04fbbd
+type dnf &>/dev/null && install-all-toys() { sudo dnf install ruby install gcc make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-devel rubygems; sudo gem install lolcat; } # https://gist.github.com/mtaziz/d5b2f9ef46b06f04fbbd   g++ ruby-rdoc
+type dnf &>/dev/null && install-acquarium() { echo "run script from /tmp/1"; }
 
 ####################
 # WSL:   These will only activate if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/

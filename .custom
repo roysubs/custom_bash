@@ -134,6 +134,7 @@ alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A
 alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
 alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
 alias sl='ls'          # Common typo
+alias ee='exa -lA'
 # replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
 lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format).

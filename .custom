@@ -33,16 +33,17 @@
 #    *or* 2. Press Ctrl-r on an *empty* line, (reverse-i-search)`' will appear, then type part of a command (the `' will populate), after this, only Ctrl-r or Ctrl-? will work (Ctrl-p/n or PgUp/PgDn do not seem to work in this mode).
 
 ####################
-# Function and Alias discovery:
+# Function and Alias discovery: Find definitions of functions and aliases
 ####################
-# Show definitions of currently loaded functions and aliases: Just use 'fa <string>' which stands for 'funtions/aliases', the 'fu <string>' and 'al <string>' functions are less useful, just used by 'fa'.
-# e.g. 'fa grep' show every function and alias containing the term 'grep'. There is limited regex support, 'al ^t' works, but '*' in the body of the search do not.
+# 'ffa <string>' 'find functions/aliases, 'fal <string>' 'find aliases', 'ffn <string>' 'find functions'.
+# e.g. 'ffa grep' show every function and alias containing the term 'grep'. There is limited regex support, 'fal ^t' works, but '*' in the body of the search do not.
 # For names found with the above, you can then use 'def' to output display the full definition of a single alias or function.
 # Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
 uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'fa' function below (and generally useful to remove control characters from files or pipeline output)
-fu() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
-al() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
-fa() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; fu $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; al $1; }   # Just show the names of functions that contain the search-string
+fal() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
+ffn() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
+ffa() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; ffn $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; fal $1; }   # Just show the names of functions that contain the search-string
+paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
 
 ####################
@@ -55,8 +56,12 @@ shopt -s checkwinsize   # At every prompt check if the window size has changed
 shopt -s histappend;   # Append commands to the bash history (~/.bash_history) instead of overwriting it   # https://www.digitalocean.com/community/tutorials/how-to-use-bash-history-commands-and-expansions-on-a-linux-vps
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"   # -a append immediately, then  -c clear history, then -r read history every time a prompt is shown instead of after closing the session.
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
-# history 7 (last 7 lines), !51 (run command 51 in history), !-3 (run 3rd last command), !! (or !-1) run last command
+# history 7 (last 7 lines), !51 (run command 51 in history), !-3 (run 3rd last command), !! (or !-1) run last command, su -c "!!" root,  switch user to root and run last command
+#   touch a.txt b.txt c.txt; echo !^; echo !:1; echo !:2; echo !:3; echo !$; echo !*
+#   rm !(abc.txt)   remove everything except abc.txt      rm !(*.pdf)   remove everything except pdf files
+#   !# (retype from current line)    cp /some/long/path/file !#:1 (now press tab and it will expand)
 # Event Designators: !?grep? (last command with 'grep' somewhere in the body), !ssh (last command starting 'ssh')
+#   !?torn  (grep for last command with 'torn' in the body),   wc !?torn:2   (run wc using the 2nd argument of the last command with 'torn' in body)
 # Word Designatores: ls /etc/, cd !!:1 (:0 is the initial word), !!:1*, !!:1-$, !!:*     'cat /etc/hosst', then type '^hosst^hosts^' will immediately run the fixed command.
 # Modifiers: 'cat /etc/hosts', cd !!:$:h (will cd into /etc/ as :h chops the 'head' off, :t, 'tail' will remove 'cat /etc/', :r to remove trailing extension, :r:r to remove .tar.gz, :p is just to 'print', 'find ~ -name "file1"', try !119:0:p / !119:2*:p
 alias h='history'   # Note: 'h 7' to show last 7 lines
@@ -352,12 +357,16 @@ alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn' 
 # Note: 'python3.8' / 'python3.9' to start those versions, and 'pip2' does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias python='python3'; alias p='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 # Terminal Web tools, limited usefulness, test elinks, links2, w3m also, ideally would like to return various information to terminal if possible
+py2web() { [ -z "$1" ] && echo "No port specified, defaulting to port 8000"; python2 -m SimpleHTTPServer $1 & echo "Python Web Server started as background job with PID $!"; }   # https://serverfault.com/questions/205498/how-to-get-pid-of-just-started-process
+py3web() { if [ -z "$1" ]; then echo "No port specified, defaulting to port 8000"; port=8000; else port=$1; fi; python3 -m http.server $1      & echo -e "\nnetstat -tulpn $(netstat -tulpn)\nss -tulw $(ss -tulw)\n\n\nPython Web Server started sharing the contents of\n'$(pwd)' as a background job on port $1 with PID $!\n"; }
+py3web-example() { py=py3web-example.py; [ ! -f "~/$py" ] && [ -f /tmp/.custom/$py ] && cp /tmp/.custom/$py ~/; [ -f ~/$py ] && python3 ~/$py || echo "Python Server Example ($py) was not found"; }
 alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
 alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
 alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav -f' && alias espeak-wav='espeak -s 150 -w voice.wav' && alias espeak-us='espeak -v en-us -s 150' && alias espeak-file='espeak -s 150 -f'   # Only created if espeak present
 type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # resize all PNG in current folder only if wider than 690px using ImageMagick
+
 # alias df="df -Tha --total"   # We might as well add an alias for our preferred du output as well:
 # alias du="du -ach | sort -h" # Let’s keep going in the same direction by making our free output more human friendly:
 # alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
@@ -450,10 +459,11 @@ vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit conf
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
-figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
-figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
-fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
-figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+# TOIlet stands for “The Other Implementation's letters”, coined after FIGlet’s “Frank, Ian and Glen’s letters”.
+type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
+type figlet  &> /dev/null && figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
+type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
+type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 type cowsay  &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay  &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type cowsay  &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"   # -b Borg, -d dead, -g greedy, -p paranoia, -s stoned, -t tired, -w wired mode, -y brings youthful
@@ -465,38 +475,44 @@ type ponysay &> /dev/null && ponymix() { files=(/usr/share/ponysay/ponies/*.pony
 type toilet  &> /dev/null && toiletgayclock() { echo "$(date '+%D %T' | toilet -f `figrandom` -F border --gay)"; }
 type toilet  &> /dev/null && toiletmetalclock() { echo "$(date '+%D %T' | toilet -f `figrandom` -F border --metal)"; }
 type toilet  &> /dev/null && tom() { toilet -f term --metal; } && tog() { toilet -f term --gay; }  # pipe anything to these for the --metal / --gay effect
-artscene() { curl -s http://artscene.textfiles.com/vt100/$1.vt | pv -q -L 9600; echo -e "\n\n\nAvailable art-files at http://artscene.textfiles.com/vt100/:\n"; lynx -dump http://artscene.textfiles.com/vt100/ | cut -d'.' -f4 | cut -d'/' -f3 | grep -v -e '^ ' -e 'References' -e '^[[:space:]]*$' | tr '\n' ','; }
-# TOIlet stands for “The Other Implementation's letters”, coined after FIGlet’s “Frank, Ian and Glen’s letters”.
+type lolcat  &> /dev/null && alias lcat='lolcat' && alias lcata='lolcat -a -d 9'    # pip to lol to colour anything, more advanced than toilet effect
+artscene() { curl -s http://artscene.textfiles.com/vt100/$1.vt --limit-rate 9600; echo -e "\n\n\nAvailable art-files at http://artscene.textfiles.com/vt100/:\n"; lynx -dump http://artscene.textfiles.com/vt100/ | cut -d'.' -f4 | cut -d'/' -f3 | grep -v -e '^ ' -e 'References' -e '^[[:space:]]*$' | tr '\n' ','; }   #  Alternative way to slow rate:  | pv -q -L 9600
+knights() { URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=$(wget $URL -q -O -); lynx -dump $URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50; }
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
 setup-starship-prompt() { sh -c "$(curl -fsSL https://starship.rs/install.sh)"; }   # https://github.com/starship/starship
 setup-angel-PS1-prompt() { wget https://github.com/dolmen/angel-PS1/raw/release/angel-PS1; eval `./angel-PS1`; }
 # https://github.com/chris-marsh/pureline   https://github.com/powerline/powerline   https://github.com/dolmen/angel-PS1
 
 ####################
-# Networks:
+# Networks:   https://www.tecmint.com/command-line-tools-to-monitor-linux-performance/
 ####################
-alias n.install='ii iftop iptstate net-tools lsof nmap'
-alias d.="sudo ifdown eth0"
-alias u.="sudo ifup eth0"
-alias if.="sudo iftop -Pp -i eth0"
-alias i.="ifconfig"
+# For these commands "." at the end sometimes denotes a generally useful set of options for that command
+alias n.install-cli='echo "pt iftop iptstate net-tools lsof nmap whois iptraf-ng arpwatch vnstat"'
+alias n.install-gui='echo "pt monit nethogs monitorix vnstatphp nagios"'   # vnstat-php https://www.tecmint.com/vnstat-php-frontend-for-monitoring-network-bandwidth/
+alias n.show-open-ports='echo -e "sudo lsof -i -P -n | grep LISTEN\nsudo netstat -tulpn | grep LISTEN\nsudo ss -tulpn | grep LISTEN\nsudo lsof -i:22 ## see a specific port such as 22 ##\nsudo nmap -sTU -O IP-address-Here"'
+alias ip.="[ type ifconfig &> /dev/null ] && ifconfig; ip addr show"
 alias r.="route"
-alias ipt.="sudo iptstate -l -1"
-alias iptq.="sudo iptstate -l -1|grep $1"
-alias n.1='netstat -tua'
-alias n.2="netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,21-94 | tail"
-alias n.3='watch --interval=2 "sudo netstat -apn -l -A inet"'
-alias n.4='watch --interval=2 "sudo netstat -anp --inet --inet6"'
-alias n.5='sudo lsof -i'
-alias n.6='watch --interval=2 "sudo netstat -p -e --inet --numeric-hosts"'
-alias n.7='watch --interval=2 "sudo netstat -tulpan"'
-alias n.8='sudo netstat -tulpan'
-alias n.9='watch --interval=2 "sudo netstat -utapen"'
-alias n.10='watch --interval=2 "sudo netstat -ano -l -A inet"'
-alias n.11='netstat -an | sed -n "1,/Active UNIX domain sockets/ p" | more'
-alias netl='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
+alias ip4="ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'
+alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
 alias ping='ping -c 4'
 alias whois='whois -H'
+alias eth0down="sudo ifdown eth0"; alias eth0up="sudo ifup eth0"
+get-domain-info() { domains=$@; if [[ $# -eq 0 ]]; then echo "Usage: $0 test.com example.com ..."; exit 1; fi; for d in $domains; do ip=$(host $d | grep 'has add' | head -1 | awk '{ print $4}'); [ "$ip" == "" ] && { echo "Error: An error occurred!"; continue; }; echo -e "\033[93mGetting information about domain: $d [ $ip ] \033[0m"; whois "$ip" | \egrep -w 'OrgName:|City:|Country:|OriginAS:|NetRange:'; echo ""; done; }
+alias iftop.="sudo iftop -Pp -i eth0"
+alias ipt.="sudo iptstate -l -1"
+alias ipt?="sudo iptstate -l -1 | grep"
+alias netstat1='sudo netstat -tulpan'
+alias netstat2='netstat -tua'
+alias netstat3="netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,21-94 | tail"
+alias netstat4='netstat -an | sed -n "1,/Active UNIX domain sockets/ p" | more'
+alias netstatw1='watch --interval=2 "sudo netstat -apn -l -A inet"'              # netstat watch 1
+alias netstatw2='watch --interval=2 "sudo netstat -anp --inet --inet6"'          # netstat watch 2
+alias netstatw3='watch --interval=2 "sudo netstat -p -e --inet --numeric-hosts"' # netstat watch 3
+alias netstatw4='watch --interval=2 "sudo netstat -tulpan"'                      # netstat watch 4
+alias netstatw5='watch --interval=2 "sudo netstat -utapen"'                      # netstat watch 5
+alias netstatw6='watch --interval=2 "sudo netstat -ano -l -A inet"'              # netstat watch 6
+alias lsof.='sudo lsof -i'
+alias namp.='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
 
 ####################
 # Personal Settings.   Some examples of useful shortcuts for personalised techniques, these can be in this script or in 
@@ -523,34 +539,41 @@ help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 hh="$hhtmp/liquid.sh"; [[ -f $hh ]] && alias liquid="source $hh"   # Can source a script from an alias/function created during .bashrc
+
+####################
+# Modules:   Activate additional aliases and functions by running these. e.g. running 'dk' will only add these tools if Docker is installed
+####################
 hh="$hhtmp/.customdk"; [[ -f $hh ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hh\n$(type docker)'; source $hh; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
 
 ####################
-# WSL: These will only activat if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
+# WSL:   These will only activate if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
 ####################
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias shutdown='wsl.exe --terminate $WSL_DISTRO_NAME'   # To get around no systemd, this will properly terminate the running WSL instance
     alias reboot='cd /mnt/c/ && cmd.exe /c start "Rebooting WSL"     cmd /c "timeout 5 && start wsl -d $WSL_DISTRO_NAME" && wsl.exe --terminate $WSL_DISTRO_NAME'
-    # Notes on WSL close/shutdown/reboot:   https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
+    # Shutting down or rebooting WSL https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
     # 1. There is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd.
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
     # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
-    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"   # notepad++ C:\Temp\Test.txt , 
-    alias n++='notepad++'                                              # n C:\Temp\Test.txt
     alias x='explorer.exe'
     alias x.='explorer.exe .'
     alias xcloud='explorer.exe "D:\0 Cloud"'
-    alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # This alias will work with any URL:  chrome www.google.com
+    alias notepad++="'/mnt/c/Program Files/Notepad++/notepad++.exe'"   # notepad++ C:\Temp\Test.txt , 
+    alias n++='notepad++'                                              # n C:\Temp\Test.txt
     # All of the below use + instead of %20 : real percent encoding uses %20 while form data in URLs is in a modified form that uses +. So you're most likely to only see + in URLs in the query string after a '?'. https://stackoverflow.com/questions/1634271/url-encoding-the-space-character-or-20
     # Might need to replace more of these in 'urlfix', but mostly it should work just with: + %2B, ! %21, ? %3F then replace spaces with '+' at the end
     # Space	%20     :  %3A     ]  %5D     +  %2B     /  %2F     \  %5C     ‘  %27          
     # $  %24        <  %3C     {  %7B     #  %23     ;  %3B     ^  %5E     ,  %2C  
     # &  %26        >  %3E     }  %7D     %  %25     =  %3D     |  %7C          
     # `  %60        [  %5B     “  %22     @  %40     ?  %3F     ~  %7E          
-    urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/\?/%3F/g' | sed 's/[ ][ ]*/\+/g'); }
-    gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; ddg="https://duckduckgo.com/?q=${phrase}"; echo "$ddg"; }
-    # Can do a lot with 'gg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
+    alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # This alias will work with any URL:  chrome www.google.com
+    alias firefox="'C:\Program Files\Mozilla Firefox\firefox.exe'"
+    alias opera="'C:\Program Files\Opera\opera.exe'"
+    # Can do a lot with 'gg' or 'ddg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
     # However, some useful speific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
+    urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/\?/%3F/g' | sed 's/[ ][ ]*/\+/g'); }
+    gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; }
+    ddg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.duckduckgo.com/?q=${phrase}"; echo $url; chrome $url; }
     tt() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+$phrase"; type trans >/dev/null 2>&1 && trans -b "$@"; chrome $url; }   # tt conflicts with package 'treetop', but not something I would need
     ttnl() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t nl -b "$@"; chrome $url; }
     tten() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.google.co.uk/search?q=translate+nl+$phrase"; type trans >/dev/null 2>&1 && trans -t en -b "$@"; chrome $url; }
@@ -617,5 +640,6 @@ fi
 # Display login banner, except for when starting a new tmux/byobu session)
 ####################
 login_banner() { printf "\n$(RGB)\n$(ver) : $(date +"%Y-%m-%d, %H:%M:%S, %A, Week %V")\n$(sys)\n"; type figlet >/dev/null 2>&1 && fignow; }
+
 [ -z "$TMUX" ] && login_banner   # Only display login_banner if this is not a new tmux session
 # [ -z "$TMUX" ] && export TERM=xterm-256color && exec tmux   # Optional: Always start tmux at login, but skip when running a new tmux session

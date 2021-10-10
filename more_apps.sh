@@ -2838,7 +2838,7 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 ###   
 ###   #function dfi { df -PTai $@; }
 ###   
-###   #copy and go to dir
+###   #copy and go to dir    # too fiddly, would never use this
 ###   #cpg (){
 ###   # if [ -d "$2" ];then
 ###   # cp $1 $2 && cd $2
@@ -2847,7 +2847,7 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 ###   # fi
 ###   #}
 ###   
-###   #move and go to dir
+###   #move and go to dir    # too fiddly, would never use this
 ###   #mvg (){
 ###   # if [ -d "$2" ];then
 ###   # mv $1 $2 && cd $2
@@ -2856,22 +2856,24 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 ###   # fi
 
 
-# Below have been superseded by 'trans' (Translate-Shell), but leaving them here as good techniques for web crawling
+# Below have been superseded by 'trans' (Translate-Shell), but leaving them here as web crawl technique
 # webget() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   '"${2:-noun}"'$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # webdef() { if [ -z $2 ]; then header=40; else header=$2; fi; lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }  # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # websyn() { if [ -z $2 ]; then header=40; else header=$2; fi; lynx -dump "http://www.google.com/search?hl=en&q=synonym%3A+${1}&btnG=Google+Search" | grep -v "\[1\] Google" | grep -v "define: ${1}__" | grep -v "ALL.*IMAGES" | head -n ${header}; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # webdefapi() { lynx -dump "https://api.dictionaryapi.dev/api/v2/entries/en/${1}" | jq '.[] | .meanings[] | select(.partOfSpeech=="noun") | .definitions | .[].definition'; }
 
-# If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is almost definitely redundant since I now use git tokens natively on WSL)
+
+
+# If in WSL, bypass need for git in Linux and use Git for Windows for all projects (this is almost definitely useless since I now use git tokens natively on WSL)
     # [ -f '/mnt/c/Program Files/Git/bin/git.exe' ] && alias git="'/mnt/c/Program Files/Git/bin/git.exe'"
     # winalias() { [ -f $2 ] && alias $1="$2" }   # Possible general function for winaliases, $1 is name of alias, $ is the escaped path to target file
-
 
 
 ####################
 #
 # Randomly select from array 
 # 
+####################
 # 
 # # Following syntax is correct, but VS Code thinks it is wrong due to the complex braces https://stackoverflow.com/questions/28544522/function-to-get-a-random-element-of-an-array-bash
 # # randArrayElement(){ arr=("${!1}"); echo ${arr["$[RANDOM % ${#arr[@]}]"]}; }   # Select a random item from an array
@@ -2913,8 +2915,6 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 #     while found
 #     index=$(( ( RANDOM % $files_length )  + 1 ))
 #     if [[ ! " ${array[*]} " =~ " ${value} " ]]; then
-#     
-# 
 # 
 # for (( i=0; i<$files_length; ++i)); do
 #     index=$[RANDOM % ${#files[@]}]   # Select a random index
@@ -3738,6 +3738,16 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 # echo "Perhaps adding LANG and LANGUAGE in /etc/environment could force a change. Try logout/login or rebooting."
 # echo ""
 # echo "locale will show your current locale for the current user. Perhaps it's worth checking out these files just to be sure no local language variables are set: ~/.profile ~/.bashrc ~/.bash_profile"
+
+
+# For Peppermint UI to havve hot corners.
+# This should not be here - move to advanced installers
+# Check if Peppermint
+# https://launchpad.net/ubuntu/+source/brightside
+# https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
+# BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
+# [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
+# which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
 
 
 ### Don't really need this anymore

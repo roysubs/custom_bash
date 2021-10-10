@@ -34,6 +34,7 @@
 # https://serverfault.com/questions/3743/what-useful-things-can-one-add-to-ones-bashrc?page=1&tab=votes#tab-top
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
 # https://www.grymoire.com/Unix/Sed.html  Excellent Sed Guide
+# https://blog.sanctum.geek.nz/series/unix-as-ide/  Excellent Guide on shell usage
 # https://blog.ssdnodes.com/blog/13-smart-terminal-tools-to-level-up-your-linux-servers/ # Some very useful tools
 # tldr: Read simplified instructions on common terminal commands
 # how2: Get answers to your terminal questions
@@ -83,6 +84,32 @@ print_header() {
 # ToDo (might not be required): modify this so that it displays a y/n after each command so can skip some and continue on to other commands.
 # https://stackoverflow.com/questions/29436275/how-to-prompt-for-yes-or-no-in-bash
 exe() { printf "\n"; echo "\$ ${@/eval/}"; "$@"; }
+
+
+
+####################
+#
+print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
+#
+####################
+
+if . .custom; then echo "Succeeded"; else echo "Failed"; fi
+
+read -e -p "oops!"
+
+echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory"
+if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
+    cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
+fi
+
+echo "If ~/.custom still does not exist, then get it from Github"
+if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
+    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
+    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
+fi
+
+# read -e -p "Press 'Enter' to continue ..."; "$@"
 
 
 
@@ -428,54 +455,6 @@ echo ""
 # curl --create-dirs -o ~/.config/up/up.sh https://raw.githubusercontent.com/shannonmoeller/up/master/up.sh   # echo 'source ~/.config/up/up.sh' >> ~/.bashrc   # For .custom
 # [[ ! -d ~/.config/shortcut ]] && git clone https://github.com/zakkor/shortcut.git ~/.config/shortcut   # install.sh will create ~/.scrc for key-pairs and /usr/local/bin/shortcut.sh
 
-# https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/
-# exe sudo $manager install lolcat -y     # pipe text or figlet/cowsay for rainbow
-# exe sudo $manager install toilet -y     # pipe text or figlet/cowsay for coloured output
-# exe sudo $manager install boxes -y      # ascii boxes around text (cowsay variant)
-# exe sudo $manager install lolcat -y     # pipe figlet/cowsay for rainbow
-# exe sudo $manager install nms -y        # no more secrets
-# exe sudo $manager install chafa -y      # chafa
-# exe sudo $manager install cmatrix -y    # cmatrix
-# exe sudo $manager install trash-cli -y  # trash-cli
-# exe sudo $manager install wikit-cli -y  # wikit
-# exe sudo $manager install googler -y    # googler
-# exe sudo $manager install browsh -y     # browsh
-# toilet -f mono9 -F metal $(date)
-# while true; do echo "$(date '+%D %T' | toilet -f term -F border --gay)"; sleep 1; done
-# Fork Bomb (do not ever run)   :   :(){ :|:& }:
-# bashtop 
-# bpytop : https://www.osradar.com/install-bpytop-on-ubuntu-debian-a-terminal-monitoring-tool/
-# Very good guide of random tips for Linux to review
-# https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/
-# sudo apt install python3-pip ; # pip3 install bpytop
-
-### AsciiAquarium
-#apt-get install libcurses-perl
-# cd /tmp 
-# wget http://search.cpan.org/CPAN/authors/id/K/KB/KBAUCOM/Term-Animation-2.4.tar.gz
-# tar -zxvf Term-Animation-2.4.tar.gz
-# cd Term-Animation-2.4/
-# perl Makefile.PL &&  make &&   make test
-# make install
-# Now Download and Install ASCIIquarium.
-# cd /tmp
-# wget http://www.robobunny.com/projects/asciiquarium/asciiquarium.tar.gz
-# tar -zxvf asciiquarium.tar.gz
-# cd asciiquarium_1.1/
-# cp asciiquarium /usr/local/bin
-# chmod 0755 /usr/local/bin/asciiquarium
-
-# Removed this installer, it's for Peppermint UI to havve hot corners.
-# This should not be here - move to advanced installers
-# Check if Peppermint
-# https://launchpad.net/ubuntu/+source/brightside
-# https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/
-# BRIGHTSIDE=brightside_1.4.0-4.1ubuntu3_amd64.deb
-# [ ! -f /tmp/$BRIGHTSIDE ] && exe wget -P /tmp/ https://launchpad.net/ubuntu/+source/brightside/1.4.0-4.1ubuntu3/+build/11903300/+files/$BRIGHTSIDE   # 64-bit version
-# which brightside &> /dev/null || exe sudo dpkg -i /tmp/$BRIGHTSIDE   # if true, do nothing, else if false use dpkg
-
-
-
 if [ ! $(which bat) ]; then    # if 'bat' is not present, then try to get it
     ####################
     #
@@ -566,7 +545,7 @@ fi
 
 ####################
 #
-print_header "Install exa (replacement for ls)"
+print_header "Install exa (possible replacement for ls)"
 #
 ####################
 # WARNING!!! Could break system!
@@ -711,28 +690,6 @@ if [ -s ~/.bash_profile ] && [ ! ~/.bashrc ]; then   # Only do this if a greater
     grep -qxF "$GETCUSTOM" ~/.bash_profile || echo "$GETCUSTOM" | tee --append ~/.bash_profile
     grep -qxF "$RUNCUSTOM" ~/.bash_profile || echo "$RUNCUSTOM" | tee --append ~/.bash_profile
 fi
-
-
-
-####################
-#
-print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
-#
-####################
-
-echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory"
-if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
-    cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
-fi
-
-echo "If ~/.custom still does not exist, then get it from Github"
-if [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
-    curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
-fi
-
-# read -e -p "Press 'Enter' to continue ..."; "$@"
 
 
 
@@ -1065,6 +1022,109 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "Toys (call with 'help-toys')"
+#
+####################
+HELPFILE=$hh/help-help.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Toys)\${NC}"
+exx ""
+exx "https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/"
+exx "sudo $manager install cowsay xcowsay ponysay lolcat toilet   # https://www.asciiart.eu/faq"
+exx "# Random Animal Effect"
+exx "dir=/usr/share/cowsay/cows/; file=`/bin/ls -1 \\\"\$dir\\\" | sort –random-sort | head -1`; cow=$(echo “\$file” | sed -e “s/\.cow//”)"
+exx "/usr/games/fortune /usr/share/games/fortunes | cowsay -f $cow"
+exx "sudo $manager install lolcat     # pipe text, fortune, figlet, cowsay etcfor 256 colour rainbow effect"
+exx "sudo $manager install toilet     # pipe text, fortune, figlet, cowsay etc for coloured output   http://caca.zoy.org/wiki/toilet"
+exx "# toilet -f mono9 -F metal $(date)   ;   while true; do echo \\\"$(date '+%D %T' | toilet -f term -F border --gay)\\\"; sleep 1; done"
+exx "sudo $manager install boxes      # ascii boxes around text"
+exx "sudo apt moo                     # an easter egg inside 'apt'"
+exx "sudo $manager install funny-manpages # Installs various funny man pages"
+exx "   baby celibacy condom date echo flame flog gong grope egrope fgrope party rescrog rm rtfm tm uubp woman (undocumented) xkill xlart sex strfry"
+exx "cd /tmp; git clone https://github.com/bartobri/no-more-secrets.git   # No More Secrets (eye candy). Pipe text to it to garble that, then press any key to unscramble the text, like the film Sneakers"
+exx "cd no-more-secrets; sudo make nms; sudo make sneakers; sudo make install                 # https://ostechnix.com/no-more-secrets-recreate-famous-data-decryption-effect-seen-on-sneakers-movie/"
+exx "   ls -l | nms -f green -a       # To remove: 'sudo make uninstall', then delete the git folder"
+exx "sudo $manager install chafa      # chafa convert images, including GIFs, to ANSI/Unicode character output for a terminal"
+exx "sudo $manager install cmatrix    # cmatrix, colour matrix screensaver for terminal   http://www.asty.org/cmatrix/"
+exx "sudo $manager install aafire     # A fireplace animation"
+exx "sudo $manager install aview      # asciiview elephant.jpg -driver curses   # Convert an image file into ASCII art"
+exx "git clone https://github.com/Naategh/Funny-Scripts     # Funny Bash Scripts"
+exx "colorful-date.sh	Show date and time in a colorful way"
+exx "extractor.sh	Simply extract any archived file"
+exx "get-info.sh	Get some information from a domain"
+exx "ip-tor.sh	Install tor and show public ip"
+exx "length-finder.sh	Get length of a given string"
+exx "mailer.sh	Send an email"
+exx "movies.sh	Quick search that grabs relevant information about a movie"
+exx "top-ips.sh	List all top hitting IP address to your webserver"
+exx "turn-server-uploads.sh	Turn on or off Apache / Nginx / Lighttpd web server upload"
+exx "web-server.sh	Simple web server"
+exx ""
+exx "rev (reverse), tac (cat backwards) are not completely trivial, can be used to flip text while workin with it on the pipeline"
+exx "sudo $manager install ddate      # Convert Gregorian dates to Discordian dates"
+exx "sudo $manager rig                # Generate random name, address, zip code identities"
+exx "sudo npm install -g terminalizer # Record Linux terminal and generate animated GIF"
+exx "terminalizer record test     # To start a recording. End recording with CTRL+D or terminate the program using CTRL+C."
+exx "After stopping, test.yml is created in the current directory. Edit configurations and the recorded frames as required."
+exx "terminalizer play test       # replay your recording using the play command"
+exx "terminalizer render test     # render your recording as an animated gif"
+exx "To create a global configuration directory, use the init command. You can also customize it using the config.yml file."
+exx "sudo $manager install trash-cli  # trash-cli, cli recoverable trashcan, https://pypi.org/project/trash-cli/"
+exx ""
+exx "sudo $manager nodejs npm; sudo npm install wikit -g  # wikit, wikipedia cli tool https://www.tecmint.com/wikipedia-commandline-tool/"
+exx "sudo $manager install googler    # googler googler is a power tool to Google (web, news, videos and site search) from the command-line. It shows the title, URL and abstract for each result, which can be directly opened in a browser from the terminal. Results are fetched in pages (with page navigation). Supports sequential searches in a single googler instance."
+exx "sudo $manager install browsh     # browsh text mode browser, can render anything, including videos on terminal https://www.brow.sh/"
+exx "https://www.youtube.com/watch?time_continue=3&v=zqAoBD62gvo&feature=emb_logo"
+exx "curl -u YourUsername:YourPassword -d status=\\\"Your status message\\\" http://twitter.com/statuses/update.xml   # update Twitter status message"
+exx "Use 'pv' (pipe viewer) to slow print text by limiting the transfer rate:"
+exx "URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=$(wget $URL -q -O -); lynx -dump $URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50"
+exx "Fancy meta tags radio stream output:"
+exx "#$ ogg123 http://ai-radio.org"
+exx "or"
+exx "#$ wget -qO- http://ai-radio.org/128.opus | opusdec – – | aplay -qfdat"
+exx "or"
+exx "#$ curl -sLN http://ai-radio.org/128.opus | opusdec – – | aplay -qfdat"
+exx "example output"
+exx "http://ai-radio.org/chronos/.media/fancy_meta.gif"
+exx ""
+exx "Google Search Operators   https://www.yeahhub.com/top-8-basic-google-search-dorks-live-examples/"
+exx "S.No.	Operator	Description	Example"
+exx "1	intitle:    finds strings in the title of a page        intitle:'Your Text'"
+exx "2	allintext:  finds all terms in the title of a page      allintext:'Contact'"
+exx "3	inurl:      finds strings in the URL of a page          inurl:'news.php?id='"
+exx "4	site:       restricts a search to a particular site or domain   site:yeahhub.com 'Keyword'"
+exx "5	filetype:   finds specific types of files (doc, pdf, mp3 etc) based on file extension   filetype:pdf 'Cryptography'"
+exx "6	link:       searches for all links to a site or URL     link:'example.com'"
+exx "7	cache:      displays Google’s cached copy of a page     cache:yeahhub.com"
+exx "8	info:       displays summary information about a page   info:www.example.com"
+exx ""
+exx "for i in {1..12}; do for j in $(seq 1 \\\$i); do echo -ne \\\$iÃ—\\\$j=$((i*j))\\t;done; echo; done   # Multiplication tables"
+exx "for i in {0..600}; do echo \\\$i; sleep 1; done | dialog --guage 'Installing Patches….' 6 40exx"
+exx "# AsciiAquarium   # Might also need: perl -MCPAN -e shell ; install Term::Animation"
+exx "pt tar wget make libcurses-perl   # using 'package tool'"
+exx "cd /tmp"
+exx "wget http://search.cpan.org/CPAN/authors/id/K/KB/KBAUCOM/Term-Animation-2.4.tar.gz"
+exx "tar -zxvf Term-Animation-2.4.tar.gz"
+exx "cd Term-Animation-2.4/"
+exx "sudo perl Makefile.PL && make && make test"
+exx "sudo make install"
+exx "cd /tmp"
+exx "wget http://www.robobunny.com/projects/asciiquarium/asciiquarium.tar.gz --no-check-certificate"
+exx "tar -zxvf asciiquarium.tar.gz"
+exx "cd asciiquarium_1.1/"
+exx "sudo cp asciiquarium /usr/local/bin"
+exx "sudo chmod 0755 /usr/local/bin/asciiquarium"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "byobu terminal multiplexer (call with help-byobu)"
 #
 ####################
@@ -1366,13 +1426,28 @@ exx "-   e.g.  cd -      Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
 exx ""
+exx "touch a.txt b.txt c.txt"
+exx "echo !^ –> display first parameter"
+exx "echo !:1 –> also display first parameter"
+exx "echo !:2 –> display second parameter"
+exx "echo !:3 –> display third parameter"
+exx "echo !$ –> display last (in our case 3th) parameter"
+exx "echo !* –> display all parameters"
+exx "!? finds the last command with its string argument. For example, if these are in history:"
+exx "   1013 grep tornado /usr/share/wind"
+exx "   1014 grep hurricane /usr/share/dict/words"
+exx "   1015 wc -l /usr/share/dict/words"
+exx "!?torn   will grep for tornado again, while !torn would search in vain for a command starting with torn."
+exx "wc !?torn?:2   would also work, selecting argument 2 from the found command and run 'wc'. e.g. wc /usr/share/wind"
+exx ""
 exx "Tab    Autocomplete commands"
-exx "Ctrl+r   Search the history of commands used"
-exx "Ctrl+a / e  Move to start / end of current line"
-exx "Alt+f / b   Move to the next / previous word"
-exx "Ctrl+u / k  Cut all text on the left / right side of the cursor"
-exx "Ctrl+w   Cut the word on the left side of the cursor"
-exx "Ctrl+d   Logout of Terminal or ssh (or tmux) session,   Ctrl+l   Clear Terminal"
+exx "Ctrl+R   Search the history of commands used   Ctrl-O open/run command,  Ctrl-G do not run"
+exx "Ctrl+A / A  Move to start / end of current line"
+exx "Alt +F / B  Move to the next / previous word"
+exx "Ctrl+U / K  Cut all text on the left / right side of the cursor"
+exx "Ctrl+W   Cut the word on the left side of the cursor"
+exx "Ctrl+D   Logout of Terminal or ssh (or tmux) session"
+exx "Ctrl+L   Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
 exx ""
 exx "grep `whoami` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
@@ -1583,13 +1658,19 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Apps)\${NC}"
 exx ""
-exx "Just a list of various apps"
+exx "Just a list of various apps..."
+exx ""
+exx "sudo apt install bashtop bpytop"
+exx "https://www.osradar.com/install-bpytop-on-ubuntu-debian-a-terminal-monitoring-tool/"
+exx "Very good guide of random tips for Linux to review"
+exx "https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/"
 exx ""
 exx "bc, dc, $(( )), calc, apcalc: Calculators, echo \\\"1/2\\\" | bc -l  # need -l to get fraction, https://unix.stackexchange.com/a/480316/441685"
+exx "The factor command:   factor 182: 2 7 13"
 exx "lynx elinks links2 w3m : console browsers"
 exx "wyrd : text based calendar"
 exx ""
-exx "Some template structures:"
+exx "Some template structures: (also xargs seq etc)"
 exx "for i in {1,2,3,4,5}; do echo \$i; done"
 exx "Perform a command with different arguments:"
 exx "for argument in 1 2 3; do command \$argument; done"
@@ -1603,15 +1684,15 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Console Games (call with 'help-games-terminal')"
+echo "CLI Games (call with 'help-games-cli')"
 #
 ####################
-HELPFILE=$hh/help-games-terminal.sh
+HELPFILE=$hh/help-games-cli.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Terminal Games)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small CLI Games)\${NC}"
 exx ""
 exx "Just a list of various console games:"
 exx ""
@@ -1769,6 +1850,25 @@ exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
+
+
+####################
+#
+echo "GUI Games (call with 'help-games-gui')"
+#
+####################
+HELPFILE=$hh/help-games-gui.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GUI Games)\${NC}"
+exx ""
+exx "\${BYELLOW}xxx\${NC}"
+exx "sudo $manager install nestopia   # The error was 'GLXBadFBConfig'"
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
 
 
 
@@ -1969,6 +2069,7 @@ exx "grep --exclude=\*.o -rnw '/path/to/somewhere/' -e 'pattern'   # Exclude sea
 exx "It is possible to exclude one or more directories with --exclude-dir."
 exx "e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
 exx "grep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/somewhere/' -e 'pattern'"
+exx "https://www.tecmint.com/find-a-specific-string-or-word-in-files-and-directories/"
 exx ""
 exx "Search for a pattern within a file:"
 exx "grep \\\"search_pattern\\\" path/to/file"
@@ -2013,6 +2114,7 @@ exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Assorted Commands)\${NC}"
 exx ""
 exx "Various commands as a general refresher/reminder list ..."
+exx "https://www.tecmint.com/51-useful-lesser-known-commands-for-linux-users/"
 exx ""
 exx "\${BYELLOW}***** Find\${NC}"
 exx "grep [pattern] [file_name]         # Search for a specific pattern in a file with grep"
@@ -2093,16 +2195,12 @@ exx "host [domain]     # Perform an IP lookup for a domain"
 exx "hostname -I       # Show the local IP address"
 exx ""
 exx "\${BYELLOW}***** Linux Keyboard Shortcuts\${NC}"
-exx "Ctrl-C   # Kill process running in the terminal"
-exx "Ctrl-Z   # Stop current process => fg / bg"
-exx "Ctrl-W   # Cut one word before the cursor and add it to clipboard"
-exx "Ctrl-U   # Cut part of the line before the cursor and add it to clipboard"
-exx "Ctrl-K   # Cut part of the line after the cursor and add it to clipboard"
-exx "Ctrl-Y   # Paste from clipboard"
-exx "Ctrl-R   # 'Recall' last command that matches the provided characters"
-exx "Ctrl-O   # Run the previously recalled command"
-exx "Ctrl-G   # Exit command history without running a command"
-exx "!!       # Run the last command again"
+exx "Ctrl-C  # Kill process in the terminal  /  Ctrl-Z   # Stop current process => fg / bg"
+exx "Ctrl-R  # 'Recall' last command that matches the provided characters  /  !!  # Run last command again"
+exx "Ctrl-O  # Run recalled command  /  Ctrl-G   # Exit command history without running a command"
+exx "Ctrl-W     # Cut the single word before the cursor and add it to clipboard"
+exx "Ctrl-U / K # Cut all line *before* (U) or after (K) cursor into clipboard"
+exx "Ctrl-Y     # Paste from clipboard"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2406,6 +2504,55 @@ exx "Print all the lines which the 10th column value is between a min and a max 
 exx "awk '(\\\$10 >= min_value && \\\$10 <= max_value)'"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Python Server Example on port 8001"
+#
+####################
+HELPFILE=$hh/py3web-example.py
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/python3" > $HELPFILE
+exx "# Python 3 server example on port 8001"
+exx "# Copy this script into your home folder to work with if required as the"
+exx "# copy in $hh may be overwritten by .custom configuration periodically."
+exx "# The .custom function 'pyweb3example' will look first in ~, then in"
+exx "# $hh only if if there is no working copy in ~."
+exx "# If you open an url like http://127.0.0.1/example the method do_GET() is called."
+exx "# We send the webpage manually in this method, web server in python 3"
+exx "# The variable self.path returns the web browser url requested. In this case it would be /example"
+exx ""
+exx "from http.server import BaseHTTPRequestHandler, HTTPServer"
+exx "import time"
+exx ""
+exx "hostName = \"localhost\""
+exx "serverPort = 8001"
+exx ""
+exx "class MyServer(BaseHTTPRequestHandler):"
+exx "    def do_GET(self):"
+exx "        self.send_response(200)"
+exx "        self.send_header(\"Content-type\", \"text/html\")"
+exx "        self.end_headers()"
+exx "        self.wfile.write(bytes(\"<html><head><title>https://pythonbasics.org</title></head>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<p>Request: %s</p>\" % self.path, \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<body>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<p>This is an example web server.</p>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"</body></html>\", \"utf-8\"))"
+exx ""
+exx "if __name__ == \"__main__\":        "
+exx "    webServer = HTTPServer((hostName, serverPort), MyServer)"
+exx "    print(\"Server started http://%s:%s\" % (hostName, serverPort))"
+exx ""
+exx "    try:"
+exx "        webServer.serve_forever()"
+exx "    except KeyboardInterrupt:"
+exx "        pass"
+exx ""
+exx "    webServer.server_close()"
+exx "    print(\"Server stopped.\")"
 chmod 755 $HELPFILE
 
 
@@ -2751,16 +2898,16 @@ print_header "List Installed Repositories"
 #
 ####################
 if [ "$manager" = "apt" ]; then
-    echo "=====>  sudo grep -rhE ^deb /etc/apt/sources.list*"
+    echo       ">>>>>>>>  sudo grep -rhE ^deb /etc/apt/sources.list*"
     echo ""
     sudo \grep -rhE ^deb /etc/apt/sources.list*
-    echo "=====>  sudo apt-cache policy | grep http"
-    sudo apt-cache policy | \grep http
+    echo -e "\n>>>>>>>>  sudo apt-cache policy | grep http\n"
+    sudo apt-cache policy | \grep http | sed 's/^ //'
     echo ""
 fi
 if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then
-    echo "=====>  sudo $manager repolist   (straight print of the repolist from $manager)"
-    sudo $manager repolist
+    echo ">>>>>>>>  sudo $manager repolist   (straight print of the repolist from $manager)"
+    sudo $manager repolist | lcat
     echo ""
 fi
 
@@ -2793,7 +2940,7 @@ echo ""
 # Repeat "reboot required" messsage right at end so that it can't be missed
 if [ -f /var/run/reboot-required ]; then
     echo ""
-    echo "A reboot is required (/var/run/reboot-required is present)."   # >&2
+    echo "A reboot is required (/var/run/reboot-required is present)."
     echo "If running in WSL, can shutdown with:   wsl.exe --terminate \$WSL_DISTRO_NAME"
     echo "Re-run this script after reboot to finish the install."
     return   # Script will exit here if a reboot is required
@@ -2803,7 +2950,7 @@ if [ "$manager" == "dnf" ] || [ "$manager" == "yum" ]; then
     if [[ $needsReboot == 1 ]]; then
         echo "Note: A reboot is required (by checking: needs-restarting -r)."
         echo "Re-run this script after reboot to finish the install."
-        return   # Script will exit here if a reboot is required
+        return   # Script will exit here if a reboot is required 
     fi
 fi
 

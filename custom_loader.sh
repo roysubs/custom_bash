@@ -1001,7 +1001,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Toys (call with 'help-toys')"
+echo "Fun Tools and Toys (call with 'help-toys')"
 #
 ####################
 HELPFILE=$hh/help-toys.sh
@@ -1014,8 +1014,8 @@ exx ""
 exx "https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/"
 exx "sudo $manager install cowsay xcowsay ponysay lolcat toilet   # https://www.asciiart.eu/faq"
 exx "# Random Animal Effect"
-exx "dir=/usr/share/cowsay/cows/; file=`/bin/ls -1 \\\"\$dir\\\" | sort –random-sort | head -1`; cow=$(echo “\$file” | sed -e “s/\.cow//”)"
-exx "/usr/games/fortune /usr/share/games/fortunes | cowsay -f $cow"
+exx "dir=/usr/share/cowsay/cows/; file=\\\$(/bin/ls -1 \\\"\$dir\\\" | sort –random-sort | head -1); cow=$(echo \\\"\$file\\\" | sed -e \\\"s/\.cow//\\\")"
+exx "/usr/games/fortune /usr/share/games/fortunes | cowsay -f \\\$cow"
 exx "sudo $manager install lolcat     # pipe text, fortune, figlet, cowsay etcfor 256 colour rainbow effect. To install on CentOS:"
 exx "   sudo yum install ruby install gcc g++ make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-rdoc ruby-devel rubygems"
 exx "   sudo gem install lolcat"
@@ -1061,7 +1061,7 @@ exx "sudo $manager install browsh     # browsh text mode browser, can render any
 exx "https://www.youtube.com/watch?time_continue=3&v=zqAoBD62gvo&feature=emb_logo"
 exx "curl -u YourUsername:YourPassword -d status=\\\"Your status message\\\" http://twitter.com/statuses/update.xml   # update Twitter status message"
 exx "Use 'pv' (pipe viewer) to slow print text by limiting the transfer rate:"
-exx "URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=$(wget $URL -q -O -); lynx -dump $URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50"
+exx "URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=\\\$(wget \\\$URL -q -O -); lynx -dump \\\$URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50"
 exx "Fancy meta tags radio stream output:"
 exx "#$ ogg123 http://ai-radio.org"
 exx "or"
@@ -1426,7 +1426,7 @@ exx "https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-
 exx "Ctrl-C   Kill process in the terminal  /  Ctrl-Z    =>  Stop current process (fg / bg / jobs)"
 exx "Ctrl+R   'Recall', search history of used commands  =>  Ctrl-O Open/run command,  Ctrl-G Do not run"
 exx "Ctrl+A (or Home) / E (or End)  Move to start / end of current line"
-exx "Alt+F / B   Move forward / backwards one word"
+exx "Alt +F / B  Move forward / backwards one word"
 exx "Ctrl+F / B  Move forward / backwards one character"
 exx "Ctrl-U / K  Cut all line *before* (U) or after (K) cursor into clipboard"
 exx "Ctrl-Y     # Paste from clipboard"
@@ -1439,7 +1439,7 @@ exx "  for i in {7..18}; do echo \\\$i; done        # Arbitrary numbers"
 exx "  for i in \\\`seq 1 9\\\`; do echo \\\$i; done      # Another way"
 exx "  [[ \\\"\\\$(read -e -p 'A ask a question? [y/N]> '; echo \\\$REPLY)\\\" == [Yy]* ]]   # One-liner to get input"
 exx ""
-exx "grep \`whoami\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
+exx "grep \\\`whoami\\\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
 exx ""
 exx "\${BYELLOW}***** Breaking a hung SSH session\${NC}"

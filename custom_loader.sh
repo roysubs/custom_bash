@@ -2527,20 +2527,19 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "WSL integration (show with 'help-wsl')"
+echo "WSL integration (show with 'help-wsl'), only run this is WSL is detected"
 #
 ####################
-
-echo ""
-echo "The following lines in a PowerShell console on Windows will alter the jarring Windows Event sounds that affect WSL sessions:"
-echo ""
-echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
-echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
-# Following command will run the above PowerShell from within this session to inject the registry changes:
 
 # Test if running in WSL, and if so, create /tmp/help-wsl with important WSL notes
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
 
+    echo ""
+    echo "The following lines in a PowerShell console on Windows will alter the jarring Windows Event sounds that affect WSL sessions:"
+    echo ""
+    echo '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand")'
+    echo 'foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }'
+    
     # Go ahead and run the PowerShell to adjust the system as it's such a minor/useful alteration
     powershell.exe -NoProfile -c '$toChange = @(".Default","SystemAsterisk","SystemExclamation","Notification.Default","SystemNotification","WindowsUAC","SystemHand"); foreach ($c in $toChange) { Set-ItemProperty -Path "HKCU:\AppEvents\Schemes\Apps\.Default\$c\.Current\" -Name "(Default)" -Value "C:\WINDOWS\media\ding.wav" }' 2>&1
     

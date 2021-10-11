@@ -1,6 +1,7 @@
 #!/bin/bash
 ####################
-# git clone https://github.com/roysubs/custom_bash     # Then cd into project and run '. custom_loader.sh' to configure.
+# git clone https://github.com/roysubs/custom_bash                          # cd into project: '. custom_loader.sh' to configure.
+# git clone https://roysubs:<ghp_xxxxxxxx>@github.com/roysubs/custom_bash   # To clone with token
 # If working on a server, simply copy the contents of RAW .custom into a new file '.custom' in home folder then dotsource that
 # https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 # .custom is always compatible with Ubuntu/Debian, RedHat/Fedora/CentOS, and Alpine. WSL extensions only instll if WSL is detected and include many tools to help with that setup.
@@ -406,7 +407,7 @@ pswatch() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
-mykill()   # Kill from my process list (myps) by any matching name from $1 (this is a safety function to prevent killing critical processes by a typo on a PID)
+mykill()   # Kill processes, but *only* from my process list (myps) for any matching name $1 (safety function to prevent killing critical processes by a typo on a PID)
 {
     local pid pname sig="-TERM"   # default signal
     if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
@@ -444,7 +445,7 @@ split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
-sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }
+sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1),$(uptime)\n"; }
 cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
@@ -490,11 +491,13 @@ setup-angel-PS1-prompt() { wget https://github.com/dolmen/angel-PS1/raw/release/
 alias n.info-cli='echo "pt iftop iptstate net-tools lsof nmap whois iptraf-ng arpwatch vnstat"'
 alias n.info-gui='echo "pt monit nethogs monitorix vnstatphp nagios"'   # vnstat-php https://www.tecmint.com/vnstat-php-frontend-for-monitoring-network-bandwidth/
 alias n.info-open-ports='echo -e "sudo lsof -i -P -n | grep LISTEN\nsudo netstat -tulpn | grep LISTEN\nsudo ss -tulpn | grep LISTEN\nsudo lsof -i:22 ## see a specific port such as 22 ##\nsudo nmap -sTU -O IP-address-Here"'
-alias ip.="[ type ifconfig &>/dev/null ] && ifconfig; ip addr show"
 alias r.="route"
+alias ip.="type ifconfig &>/dev/null && ifconfig; ip addr show -c"
 alias ip4="ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'
 alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
-ipup() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
+ipup-ping() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
+ipup-nmap() { nmap -n -sn 192.168.1.0/24 -oG - | awk '/Up$/{print $2}'; }   # Very fast # -n turns off reverse name resolution, as on local LAN this is probably the slowest step, -sn means "Don't do a port scan.", -oG - sends "grepable" output to stdout, which gets piped to awk.
+alias nmap.='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
 alias ping='ping -c 4'
 alias whois='whois -H'
 alias eth0down="sudo ifdown eth0"; alias eth0up="sudo ifup eth0"
@@ -513,10 +516,9 @@ alias netstatw4='watch --interval=2 "sudo netstat -tulpan"'                     
 alias netstatw5='watch --interval=2 "sudo netstat -utapen"'                      # netstat watch 5
 alias netstatw6='watch --interval=2 "sudo netstat -ano -l -A inet"'              # netstat watch 6
 alias lsof.='sudo lsof -i'
-alias namp.='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
-
+alias what-port='echo -e "See /etc/services for complete list\n20 FTP data transfer\n21 FTP session\n22 SSH\n23 Telnet\n25 SMTP email\n43 WHOIS\n53 DNS\n67 DHCP server\n68 DHCP client\n80 HTTP\n110 POP3 email\n119 NNTP\n123 NTP\n137 NETBIOS nameservice\n138 NETBIOS datagram\n139 NETBIOS session\n143 IMAP email\n161 SNMP\n162 SNMP trap\n194 IRC\n443 HTTPS over TLS/SSL\n587 SMTP email\n873 rsync"'
 ####################
-# Personal Settings.   Some examples of useful shortcuts for personalised techniques, these can be in this script or in 
+# Personal Settings.   # Personal settings that will be overwritten by "~/.custom-me' is that file is present
 ####################
 alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
@@ -526,7 +528,7 @@ alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust thi
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
 # defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
-me="~/.customme"; [[ -f $me ]] && source $me   # The above are samples; if "~/.custom' if it is present
+me="~/.customme"; [[ -f $me ]] && source $me   
 
 ####################
 # Help Topics:   Created at /tmp/.custom by custom_loader.sh and then aliased
@@ -618,7 +620,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias c='code'   # Also alias 'c' to point at VS Code
 
     # Demonstrate using Windows clip.exe within WSL to get a string into the clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
-    alias get-ip='hostname -I | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
+    alias get-ip='ip4 | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
     # Run CMD scripts from within WSL, note that you must use the Windows path, so run-cmd D:\test.cmd, and not run-cmd /mnt/d/test.cmd   https://github.com/microsoft/WSL/issues/4547
     run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
     # Run PS scripts from within WSL, note that you must use the Windows path, so cmd D:\test.ps1, and not cmd /mnt/d/test.ps1

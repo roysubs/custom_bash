@@ -349,29 +349,13 @@ if [[ "${lastUpdate}" -gt "${updateInterval}" ]]
 then
     packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
                python3.9 python3-pip perl \     # Get latest python/pip and perl if not present on this distro
-               cron curl wget \                 # Basic tools, cron is not installed by default on 
+               cron curl wget pv dos2unix \     # Basic tools, cron is not installed by default on CentOS etc
                git vim zip unzip mount byobu \
-               nnn dfc dos2unix \          # nnn (more direct / better than mc), dfc (updated fc), cron 
-               neofetch pydf inxi ncdu tree )
+               nnn dfc pydf ncdu tree  \        # nnn (more useful than mc), dfc, pdf, ncdu variants
+               htop neofetch inxi )             # inxi system information tool
 
     pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
 fi
-
-# command 'utop' from deb utop
-# command 'atop' from deb atop
-# command 'nvtop' from deb nvtop
-# command 'itop' from deb itop
-# command 'top' from deb procps
-# command 'htop' from deb htop
-# command 'ctop' from deb ctop
-# command 'qtop' from deb qtop
-# command 'ptop' from deb fp-utils-3.0.4
-# command 'ptop' from deb px
-# command 'mytop' from deb mariadb-client-10.3
-# command 'mytop' from deb mytop
-# pt -auto utop diod atop nvtop itop procps htop ctop qtop fp-utils mytop px
-
-# ctop 'container top, management of containers'
 
 echo ""
 echo ""
@@ -914,17 +898,17 @@ echo "Run 'locale' to view the current settings before changing."
 
 
 
-####################
-#
-print_header "Dotfile management"
-#
-####################
-echo "The goal here is to create a folder for all dotfiles, then hard link them and so be able to"
-echo "create a git project that is easy to update / replicate on another system."
-echo "Using this script, and the dotfile project above it: https://github.com/gibfahn/dot/blob/main/link"
-echo ""
-echo ""
-echo ""
+### ####################
+### #
+### print_header "Dotfile management"
+### #
+### ####################
+### echo "The goal here is to create a folder for all dotfiles, then hard link them and so be able to"
+### echo "create a git project that is easy to update / replicate on another system."
+### echo "Using this script, and the dotfile project above it: https://github.com/gibfahn/dot/blob/main/link"
+### echo ""
+### echo ""
+### echo ""
 
 
 

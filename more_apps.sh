@@ -3812,3 +3812,21 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 # hh="$hhtmp/help-tmux.sh";        [[ -f $hh ]] && alias help-tmux="$hh"   && alias help-t="$hh"
 # hh="$hhtmp/help-tmux-conf.sh";   [[ -f $hh ]] && alias help-tmux-conf="$hh"
 # hh="$hhtmp/help-ps.sh";          [[ -f $hh ]] && alias help-ps="$hh"
+
+
+# command 'utop' from deb utop
+# command 'atop' from deb atop
+# command 'nvtop' from deb nvtop
+# command 'itop' from deb itop
+# command 'top' from deb procps
+# command 'htop' from deb htop
+# command 'ctop' from deb ctop
+# command 'qtop' from deb qtop
+# command 'ptop' from deb fp-utils-3.0.4
+# command 'ptop' from deb px
+# command 'mytop' from deb mariadb-client-10.3
+# command 'mytop' from deb mytop
+# pt -auto utop diod atop nvtop itop procps htop ctop qtop fp-utils mytop px
+
+# ctop 'container top, management of containers'
+

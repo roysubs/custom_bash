@@ -3830,3 +3830,651 @@ exe which playonlinux &> /dev/null || sudo apt get playonlinux   # WINE implemen
 
 # ctop 'container top, management of containers'
 
+
+
+
+
+
+
+# 35 Network Security Tools You Should Be Using, According To Experts
+# Securing a network can seem overwhelming. The world of Security can be complicated. Network security tools assist in securing your monitoring IT environment.
+# The more tools an InfoSec professional has to work with, the better they will be able to address the task at hand. Access to a wide range of computer network security software is only the start. Knowing how to put them to use is the essence of network protection.
+# New security threats seemingly appear daily. The progressive nature of these attacks requires dynamic multi-point security solutions. It is critical administrators quickly identify vulnerabilities to protect data security.
+# We have collected the best security tools to combat network threats. These applications should make for a strong starting point for anyone working in Information Security. Don’t miss the expert contributors!
+# 
+# a padlock representing network security
+# Network Security Monitoring Tools
+# Argus
+# One of the best free and open source tools available for network traffic analysis. Argus stands for Audit Record Generation and Utilization System. The program does just what the acronym says. Efficient, in-depth analysis of network data, sifting through big chunks of traffic with fast, comprehensive reporting. Whether or not it’s the only traffic monitoring tool users need, it provides a solid foundation.
+# 
+# P0f
+# P0f remains popular in spite of a lack of updates. The program has scarcely changed in over a decade because it was just about perfect on release. Streamlined and efficient, P0f generates no additional traffic. It can be used to identify the operating system of any host with which it interacts. Many tools in this category create probes, name lookups, assorted queries, and so on. P0f is light, fast, and clean-running. A must-have for advanced users, but not the easiest to learn for the rookies on the team.
+# 
+# Nagios
+# Nagios monitors hosts, systems, and networks, delivering alerts in real-time. Users can specify exactly which notifications they want to receive. The program can monitor network services, including HTTP, NNTP, ICMP, POP3, and SMTP, among others.
+# 
+# To many, Nagios is The name in traffic monitoring. A comprehensive, all-bases-covered approach to network management. One of the most powerful free tools for cybersecurity professionals and small businesses alike.
+# 
+# Splunk
+# Designed for both real-time analysis and historical data searches. Splunk is a fast and versatile network monitoring tool.
+# 
+# One of the more user-friendly programs with a unified interface. Splunk’s strong search function makes application monitoring easy. Splunk is a paid app with free versions available. The free version is limited. This is an excellent tool to put on the list for those who have a budget to work with. Independent contractors tend to be careful about the premium tools they buy. Splunk is well worth the cost. Any information security professional with a strong enough client base should invest in Splunk.
+# 
+# OSSEC
+# OSSEC open-source intrusion detection service provides real-time analytics of system security events.
+# 
+# It can be configured to be constantly monitoring all possible sources of entry and access, including files, rootkits, logs, registries, and processes. It is also available for a variety of platforms, such as Linux, Windows, Mac, BSD, and VMWare ESX. The OSSEC user community is also good at sharing strategies, modifications, support, and other useful information. Other available tools include “Atomicorp,” which provides ‘self-healing’ to automatically fix detected vulnerabilities, and Wazuh, which offers training and support.
+# 
+# InfoSec professionals honestly need a lot of tools to do their work. If only had to choose one; it would be a properly tuned Data Analytics Aggregator or SIEM software; e.g., Splunk
+# 
+# There’s too much data to try to parse and correlate between devices and hosts on your own. You need to be collecting decrypted packets and logs and then enriching it with threat intelligence.
+# 
+# At least for our group, our backbone is Splunk-the features that set it apart from most SIEMs is that it handles unstructured data quite well and can scale easy. Most shops only utilize logs, and maybe NetFlow.
+# 
+# With Splunk, we can utilize every use case our engineers can create use cases and content for. Splunk while not a SIEM by itself, can be made to do it and add the predictive analytics out of the box. It also Supports both push and pull models.
+# 
+# Dennis Chow CISO of SCIS Security
+# 
+# Encryption Tools
+# Tor
+# Tor gained a lot of press when people started talking about the “dark web” some years back. The dark web turned out not to be as scary as urban legends made it out to be. Tor is just a tool to ensure privacy on the Internet. The system routes requests to proxy web servers for privacy, making users harder to track. Although there are malicious exit nodes used to sniff traffic, this isn’t a significant concern with careful use. Tor’s applications in InfoSec are more plentiful than its applications in cybercrime.
+# 
+# KeePass
+# Used in identity management, KeePass is a necessity for many office settings. A simple password management system. KeePass allows users to access all of their accounts with one password. Combining convenience with security, KeePass lets users set unique passwords for different accounts with an auto-fill function when typing in the master password. Those who have dealt in InfoSec for more than a day know how important this can be. Sometimes a security issue just comes down to bad password management. KeePass helps network security officers manage the human element of the job.
+# 
+# TrueCrypt
+# TrueCrypt remains popular despite having gone years without updates. Abandoned by its developer in 2014, TrueCrypt is technically outdated, yet still a strong tool. A disk encryption system, TrueCrypt allows for layered content encryption with two tiers of access control. Free, powerful, open software. It’s easy to see why TrueCrypt remains popular despite not having been updated in four years. One of the best open source security programs available.
+# 
+# Kali Linux is a security system designed for digital forensics and penetration testing which now can run on both Linux distributions and Windows operating systems. It is compatible with a wide range of wireless devices. It is valued for more than 600 tools geared towards various information security tasks, such as Penetration Testing, Security Research, Computer Forensics, and Reverse Engineering.
+# 
+# QRadar SIEM, IBM’s Security Intelligence Platform that provides real-time visibility of the entire IT infrastructure. The system boasts an extensive set of modules (Log Management, Security Intelligence, Network Activity Monitoring, IT Security Risk management, Vulnerability Management, and Network Forensics) that are available through a single web-based console. QRadar is a commercial tool, but you can use its free version with 50 Events per Second (EPS) limit known as Community Edition.
+# 
+# Dmitry Nikolaenya, SIEM department coordinator at ScienceSoft
+# 
+# woman holding a sign that says penetration testing
+# Web Vulnerability Scanning Tools
+# Burp Suite
+# A powerful tool for network protection. Burp Suite is a real-time network security scanner designed to identify critical weaknesses. Burp Suite will determine how cybersecurity threats might invade a network via a simulated attack. The suite is available in three versions: Community, Professional, and Enterprise. Professional and Enterprise are paid application testing tools, including the web vulnerability scanner. The Community version is free but severely limited. Community includes only the essential manual tools. Burp Suite is a potent tool for businesses, but perhaps pricey for smaller organizations. Still, a critical application security testing tool.
+# 
+# Nikto
+# One of the best open-source vulnerability scanner management tools. Nikto will scan web servers and networks for matches with a database of over 6400 threats. Although the network protection software itself has not been updated in some time, it is still up to date. This is because the threat database is regularly updated. There are also countless plugins being released and continuously updated. For many security professionals, Nikto is a cornerstone of the vulnerability assessment routine.
+# 
+# Paros Proxy
+# Java-based web proxy Paros Proxy includes several useful tools for running security tests. These include a web spider, traffic recorder, and vulnerability scanner. Excellent for detecting network intrusion openings to some of the most common threats, including detecting SQL injection attacks and cross-site scripting.
+# 
+# Very easy to edit with even rudimentary Java or HTTP/HTTPS knowledge. Anyone who can write a web application can edit Paros Proxy. An excellent network protection software testing tool for identifying a security risk before it becomes a security breach.
+# 
+# NMap
+# Companies seeking improved access to potential weak spots in their network can use this free open source monitoring tool. It has been designed to offer a close look at every network. Including indicating hosts, what services are being provided at each host, what types of packet filters are in use and other features.
+# 
+# Nmap also includes a debugging tool for all major platforms and can be used to scan one network at a time or multiple networks at once. The network security tool is designed to be user-friendly and can be easily customized.
+# 
+# Nessus Professional
+# For all the times that your organization may have improperly configured security settings or put in the wrong patch, this software corrects mistakes and improves the integrity of your networks.
+# 
+# Nessus identifies and repairs detected vulnerabilities, including missing or incomplete patches; software bugs; or other general misconfigurations throughout applications, devices, and operating systems.
+# 
+# Along with the Pro version, admins/security experts can consider a free open source scanner that looks for possible exploits. One advantage of the Nessus service is daily database updates. Current information about threats and patches are always available. It also just doesn’t check to see if version numbers match, but programs are doing what they’re supposed to. Users can access a variety of security plug-ins as well as develop their own and scan individual computers as well as networks.
+# 
+# Available for Unix and Linux systems, there’s also a Win32 GUI client that works with Windows products. Users pay an annual subscription to utilize all its services. Nessus is used by more than 24,000 companies worldwide and claims to have the lowest false positive rate among its competitors, plus offers access to more than 100,000 security plug-ins that are regularly updated.
+# 
+# Nexpose
+# Nexpose offers real-time, on-premises vulnerability scanning and management.
+# 
+# It helps security/IT teams look for, detect, and reduce possible weak points, and presents ‘live’ views of the network.  It also continually refreshes and adapts to new threats in software and data. Another useful feature is its ability to help security teams prioritize the highest vulnerabilities by providing a risk score. This is useful for coordinating responses to multiple breaches or delegating workflow, starting with the weakest areas where the more serious/potentially damaging breaches are more likely to take place.
+# 
+# Kali Linux comes with a number of tools for pen testing and wireless scanning that hackers like to use for scanning networks
+# 
+# It is recommended that security professionals use it as it is a comprehensive toolset that will allow infosec professionals to conduct reconnaissance, scanning, and penetration all on one network security platform, it’s also a free tool.
+# 
+# Sanjay Deo, President 24 By 7 Security
+# 
+# applications secure from network threats
+# Penetration Testing
+# Metasploit
+# If you are looking for a penetration testing tool, you’ll appreciate this framework of Metasploit. Available in open source versions for developers/security staff or a commercial Pro version.
+# 
+# Users can use the network security tool from Rapid7 to look for more than 1,500 exploits, including network segmentation security. It also allows companies to perform various security assessments and improve their overall network defenses, so they’re more thorough and responsive.
+# 
+# Kali Linux
+# Kali Linux offers a security auditing operating system and toolkit with more than 300 techniques to ensure your sites and Linux servers stay safe from attack.
+# 
+# Funded and maintained by Offensive Security, which also operates and moderates an active user community and an extensive database of threats and exploits. Part of this knowledge base includes certification in pen tests and a free online course called Metasploit Unleashed. The toolkit is designed for all security skill levels to use, not just advanced IT pros.
+# 
+# Rapid fire tools helps us identify weaknesses within the network, potential issues, and be able to detect when and where problems will occur. It is more of a proactive than a reactive tool. But it is effective.
+# 
+# Auvik is an on-demand threat monitoring tool for potential network issues. It shows us traffic, connectivity, and networks that we may or may not have seen before. It allowed us to find in multiple companies hidden wireless routers, switches, and more at even the client didn’t know about.
+# 
+# We also use an image-based virtual addition of OpenVAS to penetrate test a network for when we get to a new client. It’s open source, free, and easy to use. We drop off the computer at a location, let it cook for a week and then produce a report so we can then go back to the client and show them what we have found. Some are surprised, others are terrified.
+# 
+# Trave Harmon, Chief Executive Officer, Triton Computer Corporation
+# 
+# Packet Sniffers and Password Auditing Tools
+# John the Ripper
+# Ready to crack some passwords, or at least test how strong yours are?
+# 
+# Openwall is designed to detect weak passwords quickly.
+# 
+# Initially designed for Unix environments, it now works with Windows, OpenVMS, and DOS systems. John looks for common hash-type passwords as well as more complex ciphers and encrypted logins. The Openware community continually provides updates and patches as password technology and security evolves. Users can access a standard wordlist for more than 20 languages that often appear in passwords, plus varieties that include words and letters in several languages.
+# 
+# Cain and Abel
+# Anyone working in network security will know that UNIX tends to lead the way in free security apps. Windows and Mac users get the ports late, if ever.
+# 
+# However, Cain and Abel is a Windows-only password recovery tool that leads the pack. Capable of recording VoIP conversations; it can decode scrambled passwords and analyze routing protocols. It uncovers cached passwords, reveals password boxes, cracks encryption with brute force style attacks and cryptanalysis, and on and on. Virtually a must-have starting point for packet sniffing routines.
+# 
+# Tcpdump
+# A Mac, Windows, and Linux app predating market leader Wireshark. Although Tcpdump is not the newest packet sniffer available,  it set the standard in the field. Tcpdump remains a favorite network sniffer with ongoing active development and fresh approach. The tool uses fewer system resources than competing options and opens little security risk.
+# 
+# Wireshark
+# Ethereal was the name that Wireshark debuted under. Modeled mainly after Tcpdump, the console-based tool is an excellent protocol analyzer.
+# 
+# Wireshark offers real-time network analysis. It allows users to view reconstructed TCP session streams. Many prefer Tcpdump for security and system-resource reasons, but Wireshark remains the most popular packet sniffer. The software receives regular updates to outfit its robust packet-sniffing capabilities. Wireshark is an essential tool, even if it’s not every security pro’s first choice.
+# 
+# I would say every IT and Cybersecurity Networking Professional should be using Kali Linux. Some say this is a hacking only tool. I beg to differ.
+# 
+# Kali Linux (historically called Backtrack) is a freely available collection of tools that offers everyone, (network, applications security, information security) something. There are about 100 or more tools in there, and there is a tool for every capability and intention.
+# 
+# You can download the ISO image, burn it on to a CD or put it in a USB flash drive and boot almost any computer into Kali Linux. The image is also bootable into a VM and works from a MAC.
+# 
+# Amar Singh, Founder,  Cyber Management Alliance Ltc
+# 
+# Network Defense Wireless Tools
+# Aircrack
+# A suite of WEP and WPA cracking tools. Aircrack features ideal internet security solutions for mobile devices. Aircrack is vital for cracking algorithms. The suite’s tools include airdecap for WEP/WPA capture file decryption and airplay for packet injection. Several other tools are included as well, creating a robust set of apps for InfoSec use. For many wireless security tasks, Aircrack is an all-in-one solution. The series of tools available within the suite allows for pros to handle an entire job at once. Some tasks may demand more than AirCrack has to offer. Many tasks can be accomplished only with AirCrack tools.
+# 
+# Netstumbler
+# Free security software for Windows users. A necessary tool for wardriving, finding open access points in a wireless network. The software is Windows only, and no source code is provided. This can make for a hard sell to some. Being able to edit open source code can be critical for security. NetStumbler’s active WAP-seeking approach makes it very popular nonetheless. NetStumbler is known for detecting vulnerabilities that other security scanner tools miss.
+# 
+# KisMAC
+# Free software for Mac with an attractive It is accessible even for less experienced users. The Mac OS X port of Kismet, with a very different codebase. KisMAC excels at mapping and penetration testing with deauthentication attacks.
+# 
+# Fognigma creates an encrypted security network by linking randomly leased virtual machines from multiple cloud providers, which then work as one network. Hidden inside this network are an organization’s fileshare, chat server, video conferencing, and more – all protected by the same two layers of AES encryption as every connection inside a Fognigma network.
+# 
+# The software is entirely under the control of the organization using it – so there isn’t any reliance on a third-party company for intervention or oversite (which is often where breaches occur).
+# 
+# All these features protect against external threats, but Fognigma can protect from internal threats as well. Fognigma gives network admins granular user controls to make Identity and Access Management oh-so-much easier. For each component (be it a fileshare, exit/entry point, files, etc.), groups are created. Put a user in a group, and the user can access that component. A few mouse clicks and precise access to organization resources is completely under control.
+# 
+# Chris Mindel, Dexter Edward
+# 
+# Network Intrusion & Detection
+# Snort
+# An enterprise-grade open-source IDS is compatible with any OS and hardware. The system performs protocol analysis, content searching/matching, and detection of various network security attacks (buffer overflow, stealth port scanner, CGI attacks, OS fingerprinting attempts to name a few).
+# 
+# Snort’s ease of configuration, rules’ flexibility, and raw packet analysis make it a powerful intrusion detection and prevention system.
+# 
+# Forcepoint
+# Forcepoint’s SD-WAN can be customized to keep users from accessing certain types of content, as well as blocking a variety of intrusion attempts and exploits.
+# 
+# Admins also can quickly see activity on all networks and can take action rapidly, instead of taking time to track down problems. The service is primarily for enterprise clients working in the cloud, including being able to block or provide warnings about risky cloud servers. It also can provide extra protection and higher levels of access for more critical areas.
+# 
+# GFI LanGuard
+# GFI LanGuard includes continuous monitoring, scanning, and patching.
+# 
+# The network security tool is so popular and useful that applying it through a network can help a company demonstrate security compliance. It also provides software and network auditing as needed for vulnerable areas in desktops or mobile devices, and automatically creates patches for Mac, Windows, and Linux systems.
+# 
+# Acunetix
+# There is always legitimate fear that hackers may attack your business directly through your firewall or via internal threat/social engineering.
+# 
+# Less attention is given to the security risks of web-based applications like shopping carts, login pages, or online forms. Acunetix helps businesses set up defenses for more than 4,500 threats to these types of applications and sites, such as SQL injections. It regularly crawls through your site architecture and performs conventional hacking methods to make sure your security defense respond appropriately. Manual testing is also available for specific areas of concern.
+# 
+# Musubu, R2i’s network intelligence service is my preferred tool. It includes open source threat detection engines such as Suricata or AlienVault. Musubu provides an enhanced set of data points. The user experience provides a real sense of the overall security posture of the network.
+# 
+# It focuses on the network of origin in context, as well as what threat is posed by the subnet, and the broader environment of origin. Musubu complements the open source threat detection engines by providing greater detailed business intelligence, including a unique threat score, threat classification, detailed location information, and reduction of false positives.
+# 
+# Bradford Lee, Director of Operations, Release 2 Innovation
+# 
+# In Closing, Information Security Tools
+# Good network security describes everything that potentially could impact your company’s systems and everything that helps keep those threats away.
+# 
+# Network security tools focus on hardware, software, even policies, and procedures to encourage everyone in an organization to practice smart approaches to keeping data safe. Network security also can include keeping up with global threats and making sure systems stay safe from everyone from individual hackers to larger organized breach attempts.
+
+
+
+
+
+
+# iftop
+# how21
+# how2
+# npm
+# crawl
+# crawl-tiles
+# lunar_lander
+# myman
+# pacman4console
+# greed
+# moon-buggy moon-lander
+# ninvaders nsnake nodoku
+# ninvaders nsnake
+# ninvaders nudoku
+# ninvaders sudoku
+# ninvaders bastet
+# sil
+# sil
+# moria
+# umoria
+# crossfire
+# crossfire-client
+# quickband
+# tinyband
+# df
+# dwarf-fortree
+# dwarf-fortrees
+# dwarf-fortress
+# brogue
+# xeyes
+# x11-apps
+# sublime-text
+# sublime
+# sublime-text
+# sublime
+# angband
+# zsh
+# Speedtest
+# Fast
+# Color Bandwidth Meter (CBM)
+# iPerf
+# nload
+# Tcptrack
+# Iftop
+# Wget
+# youtube-dl
+# Follow the instructions in this article to learn how to test network connection speed on Linux using the terminal. The steps work in both normal and headless mode.
+# 
+# How to test network speed on Linux.
+# Prerequisites
+# 
+# A machine running Linux
+# sudo / root permissions
+# Access to a terminal / command-prompt window
+# Test Network Speed on Linux Via Command Line
+# The tools in this guide help you check the Internet and LAN speed on a Linux machine. The article uses Ubuntu 20.04 for instructions, but the utilities work for any Linux distribution.
+# 
+# Note: Use the appropriate package manager for your Linux distribution, for example, yum for RHEL / CentOS, to install the apps.
+# 
+# Using speedtest-cli to Test Internet Speed
+# One of the most famous online internet connection test apps is speedtest.net. To install Speedtest on Linux via the terminal, use a package manager for your distro.
+# 
+# On Ubuntu, enter:
+# 
+# sudo apt install speedtest-cli
+# Install speedtest-cli on Ubuntu.
+# Optionally, use pip to install speedtest-cli in Python:
+# 
+# sudo pip install speedtest-cli
+# To run the test, type:
+# 
+# speedtest
+# Run speedtest on Linux.
+# The standard speedtest-cli output shows all steps, including selecting a server. To display a shorter output, enter:
+# 
+# speedtest -simple
+# The test is simple to use and provides multiple options. To view all of them, pass the -h flag to display the speedtest-cli help file.
+# 
+# Using fast-cli to Test Internet Speed
+# Fast is a lightweight CLI utility based on the web speed test fast.com. The test uses Netflix servers to provide results.
+# 
+# Fast-cli is simple to use, but you need the node package manager (NPM) on your machine. The package comes with Nodejs.
+# 
+# For example, to install Node.js version 15, enter these commands:
+# 
+# curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -
+# Then, run the install command:
+# 
+# sudo apt install -y nodejs
+# If needed, run the npm init command and then install Fast:
+# 
+# npm install --global fast-cli
+# Install Fast-cli on Linux. 
+# To test the download speed, enter:
+# 
+# fast
+# To show both the download and upload speed, add the -u option:
+# 
+# fast -u
+# Use the fast-cli test to show the download and upload speed.
+# This internet speed test aims to provide only the information about your connection speed, without any bells and whistles.
+# 
+# Note: Since NPM is a requirement, it can be a hassle to install fast-cli. If you need more help with NPM installation, see our guides How To Install Node.Js And NPM On CentOS or How To Install Node.Js & NPM On Ubuntu.
+# 
+# Using CMB to Show Network Speed
+# The Color Bandwidth Meter (CMB) is a Linux tool that displays activity on all network interfaces. After the installation, run the tool to see network speeds in color-coded columns.
+# 
+# To install CBM, run this command:
+# 
+# sudo apt install cbm
+# install CBM on Linux.
+# When the process finishes, run the tool:
+# 
+# cbm
+# The output displays the transmit, receive, and total speed. Use the arrows to switch between the interfaces.
+# 
+# Displays activity on all network interfaces with CBM test.
+# Using iperf to Measure Network Speed Between Two Devices
+# The iPerf tool provides many options for testing connection speed between a server and a client. Hence, to perform a test, you need to install the utility on both machines:
+# 
+# sudo apt install iperf
+# Install iPerf tool on Linux.
+# Make sure the client can reach the server. For quick confirmation, run a ping test.
+# 
+# If port 5001 is open, the connection works. So, on the server machine, enter:
+# 
+# iperf -s
+# The device starts listening for a connection request.
+# 
+# Use iPerf to run a ping test.
+# On the other machine, enter:
+# 
+# iperf -c [server_IP]
+# For example:
+# 
+# iperf -c 192.168.56.101
+# The output shows the transfer and bandwidth information:
+# 
+# Show the transfer and bandwidth information with iperf command.
+# Using nload to View Incoming and Outgoing Network Traffic
+# Nload is a tool that monitors incoming and outgoing activity on a network interface you specify. The application splits the traffic into two sections for easier data analysis.
+# 
+# To install the tool, enter:
+# 
+# sudo apt install nload
+# Install Nload on Linux.
+# To run the application, specify the network interface:
+# 
+# nload enp0s3
+# If there is activity on the selected interface, nload displays network speed details.
+# 
+# Displays network speed details with Nload.
+# Using tcptrack to Test Network Activity
+# TCPtrack shows the connection status for a network interface. When your machine’s network is active, run this tool to view and monitor bandwidth speed and usage.
+# 
+# To install tcptrack on Linux Ubuntu, enter:
+# 
+# sudo apt install tcptrack
+# Install TCPtrack on Linux.
+# To view network activity with TCPtrack, specify the network interface. To find the device name, use the ifconfig tool.
+# 
+# In our case, it is enp0s3
+# 
+# sudo tcptrack -i enp0s3
+# The terminal displays the network activity on the selected interface. The total network speed is at the bottom of the terminal:
+# 
+# Displays the network activity with TCPtrack test.
+# Note: Make sure you run tcptrack with sudo. Otherwise, this error pops up: pcap_open_live: enp0s3: You don’t have permission to capture on that device (socket: Operation not permitted)
+# 
+# TCPtrack is customizable and offers options to narrow down the test to specific ports, for example.
+# 
+# To do so, pass the port option and the port number:
+# 
+# sudo tcptrack -i enp0s3 port 443
+# If there is no activity on the port, the output is blank.
+# 
+# Using iftop to Test Speed on a Network Interface
+# Iftop lets you view network speed for a defined interface. The tool shows a similar output to what tcptrack provides.
+# 
+# To install iftop, run this command:
+# 
+# sudo apt install iftop
+# Install Iftop on Linux.
+# To launch the utility, use the -i flag and specify your network interface.
+# In our case:
+# 
+# sudo iftop -i enp0s3
+# The output shows the activity for the device. The bottom of the screen provides a traffic summary.
+# 
+# Show network activity for device with Iftop test.
+# If you do not specify a network interface, iftop selects the first available. Make sure you run the command with sudo to avoid any errors.
+# 
+# Using wget to Test Download Speed
+# Wget is a CLI tool for downloading content from web servers. Since the tool does not upload files, you can only test the download speed.
+# 
+# If you do not have wget on your Ubuntu machine, enter this command to install it:
+# 
+# sudo apt install wget
+# Now, choose a reliable server to download a file and test your internet speed. For example, use phoenixNAP’s 1GB test file from the list.
+# 
+# This example uses a server located in Phoenix:
+# 
+# wget -O /dev/null -q --show-progress http://174.138.175.114/PHX-1GB.test
+# Test the download speed with wget command.
+# Using youtube-dl to Test Internet Speed
+# An unconventional way to test your download speed is to use the youtube-dl CLI utility. The tool allows you to download YouTube videos and view the download speed.
+# 
+# To install youtube-dl, enter:
+# 
+# sudo apt install youtube-dl
+# The application takes around 268MB of space. While the installation is in progress, choose a video you want to download and save the URL.
+# 
+# When the process finishes, use this command but replace the URL with the one you selected:
+# 
+# youtube-dl -f best --no-part --no-cache-dir -o /dev/null --newline https://www.youtube.com/watch?v=8TLsqgLDMN4
+# The terminal shows the download progress, file size, download speed, and ETA.
+# 
+# Use youtube-dl to test internet speed.
+# The command above does not save the file to any filesystem, hence the /dev/null part.
+# 
+# This example used a short phoenixNAP BMC demo video of around 19MB. Choose a longer video for more precise results.
+# 
+# Conclusion
+# 
+# The article showed you nine ways to test network speed in Linux via CLI. Choose the tool depending on whether you want to test local network speed, internet speed, etc.
+# 
+# The tools work for all Linux distributions, so make sure you use the right package manager.
+# 
+# 
+# 
+# 
+# https://andrewhenke.com/how-to-use-wsl2-with-a-gui/
+# 
+# Installing systemd-genie
+# Now we will install systemd-genie which is responsible for turning the basic WSL2 framework into a more complete, comprehensive Linux kernel. This is necessary to run GDM (GNOME Display Manager) and/or LightDM properly, giving the user a full graphic interface experience, including the login page, and related features. Here are the install instructions. As of the publication of this article, the codebase currently supports Ubuntu Focal and Bionic, as well as Debian Buster, Bullseye, Bookworm, and sid. For other distros, you must check how to get the appropriate package for your system. The following commands will install systemd-genie on your system, as long as it is supported:
+# sudo apt-get install apt-transport-https -y
+# sudo wget -O /etc/apt/trusted.gpg.d/wsl-transdebian.gpg https://arkane-systems.github.io/wsl-transdebian/apt/wsl-transdebian.gpg
+# sudo chmod a+r /etc/apt/trusted.gpg.d/wsl-transdebian.gpg
+# source /etc/os-release
+# cat << EOF | sudo tee /etc/apt/sources.list.d/wsl-transdebian.list
+# deb https://arkane-systems.github.io/wsl-transdebian/apt/ $VERSION_CODENAME main
+# deb-src https://arkane-systems.github.io/wsl-transdebian/apt/ $VERSION_CODENAME main
+# EOF
+# sudo apt-get update
+# sudo apt-get install systemd-genie -y
+# 
+# Backups for WSL2
+# https://stephenreescarter.net/automatic-backups-for-wsl2/
+
+
+
+
+
+
+
+Speedtest
+Fast
+Color Bandwidth Meter (CBM)
+iPerf
+nload
+Tcptrack
+Iftop
+Wget
+youtube-dl
+Follow the instructions in this article to learn how to test network connection speed on Linux using the terminal. The steps work in both normal and headless mode.
+
+How to test network speed on Linux.
+Prerequisites
+
+A machine running Linux
+sudo / root permissions
+Access to a terminal / command-prompt window
+Test Network Speed on Linux Via Command Line
+The tools in this guide help you check the Internet and LAN speed on a Linux machine. The article uses Ubuntu 20.04 for instructions, but the utilities work for any Linux distribution.
+
+Note: Use the appropriate package manager for your Linux distribution, for example, yum for RHEL / CentOS, to install the apps.
+
+Using speedtest-cli to Test Internet Speed
+One of the most famous online internet connection test apps is speedtest.net. To install Speedtest on Linux via the terminal, use a package manager for your distro.
+
+On Ubuntu, enter:
+
+sudo apt install speedtest-cli
+Install speedtest-cli on Ubuntu.
+Optionally, use pip to install speedtest-cli in Python:
+
+sudo pip install speedtest-cli
+To run the test, type:
+
+speedtest
+Run speedtest on Linux.
+The standard speedtest-cli output shows all steps, including selecting a server. To display a shorter output, enter:
+
+speedtest -simple
+The test is simple to use and provides multiple options. To view all of them, pass the -h flag to display the speedtest-cli help file.
+
+Using fast-cli to Test Internet Speed
+Fast is a lightweight CLI utility based on the web speed test fast.com. The test uses Netflix servers to provide results.
+
+Fast-cli is simple to use, but you need the node package manager (NPM) on your machine. The package comes with Nodejs.
+
+For example, to install Node.js version 15, enter these commands:
+
+curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -
+Then, run the install command:
+
+sudo apt install -y nodejs
+If needed, run the npm init command and then install Fast:
+
+npm install --global fast-cli
+Install Fast-cli on Linux. 
+To test the download speed, enter:
+
+fast
+To show both the download and upload speed, add the -u option:
+
+fast -u
+Use the fast-cli test to show the download and upload speed.
+This internet speed test aims to provide only the information about your connection speed, without any bells and whistles.
+
+Note: Since NPM is a requirement, it can be a hassle to install fast-cli. If you need more help with NPM installation, see our guides How To Install Node.Js And NPM On CentOS or How To Install Node.Js & NPM On Ubuntu.
+
+Using CMB to Show Network Speed
+The Color Bandwidth Meter (CMB) is a Linux tool that displays activity on all network interfaces. After the installation, run the tool to see network speeds in color-coded columns.
+
+To install CBM, run this command:
+
+sudo apt install cbm
+install CBM on Linux.
+When the process finishes, run the tool:
+
+cbm
+The output displays the transmit, receive, and total speed. Use the arrows to switch between the interfaces.
+
+Displays activity on all network interfaces with CBM test.
+Using iperf to Measure Network Speed Between Two Devices
+The iPerf tool provides many options for testing connection speed between a server and a client. Hence, to perform a test, you need to install the utility on both machines:
+
+sudo apt install iperf
+Install iPerf tool on Linux.
+Make sure the client can reach the server. For quick confirmation, run a ping test.
+
+If port 5001 is open, the connection works. So, on the server machine, enter:
+
+iperf -s
+The device starts listening for a connection request.
+
+Use iPerf to run a ping test.
+On the other machine, enter:
+
+iperf -c [server_IP]
+For example:
+
+iperf -c 192.168.56.101
+The output shows the transfer and bandwidth information:
+
+Show the transfer and bandwidth information with iperf command.
+Using nload to View Incoming and Outgoing Network Traffic
+Nload is a tool that monitors incoming and outgoing activity on a network interface you specify. The application splits the traffic into two sections for easier data analysis.
+
+To install the tool, enter:
+
+sudo apt install nload
+Install Nload on Linux.
+To run the application, specify the network interface:
+
+nload enp0s3
+If there is activity on the selected interface, nload displays network speed details.
+
+Displays network speed details with Nload.
+Using tcptrack to Test Network Activity
+TCPtrack shows the connection status for a network interface. When your machine’s network is active, run this tool to view and monitor bandwidth speed and usage.
+
+To install tcptrack on Linux Ubuntu, enter:
+
+sudo apt install tcptrack
+Install TCPtrack on Linux.
+To view network activity with TCPtrack, specify the network interface. To find the device name, use the ifconfig tool.
+
+In our case, it is enp0s3
+
+sudo tcptrack -i enp0s3
+The terminal displays the network activity on the selected interface. The total network speed is at the bottom of the terminal:
+
+Displays the network activity with TCPtrack test.
+Note: Make sure you run tcptrack with sudo. Otherwise, this error pops up: pcap_open_live: enp0s3: You don’t have permission to capture on that device (socket: Operation not permitted)
+
+TCPtrack is customizable and offers options to narrow down the test to specific ports, for example.
+
+To do so, pass the port option and the port number:
+
+sudo tcptrack -i enp0s3 port 443
+If there is no activity on the port, the output is blank.
+
+Using iftop to Test Speed on a Network Interface
+Iftop lets you view network speed for a defined interface. The tool shows a similar output to what tcptrack provides.
+
+To install iftop, run this command:
+
+sudo apt install iftop
+Install Iftop on Linux.
+To launch the utility, use the -i flag and specify your network interface.
+In our case:
+
+sudo iftop -i enp0s3
+The output shows the activity for the device. The bottom of the screen provides a traffic summary.
+
+Show network activity for device with Iftop test.
+If you do not specify a network interface, iftop selects the first available. Make sure you run the command with sudo to avoid any errors.
+
+Using wget to Test Download Speed
+Wget is a CLI tool for downloading content from web servers. Since the tool does not upload files, you can only test the download speed.
+
+If you do not have wget on your Ubuntu machine, enter this command to install it:
+
+sudo apt install wget
+Now, choose a reliable server to download a file and test your internet speed. For example, use phoenixNAP’s 1GB test file from the list.
+
+This example uses a server located in Phoenix:
+
+wget -O /dev/null -q --show-progress http://174.138.175.114/PHX-1GB.test
+Test the download speed with wget command.
+Using youtube-dl to Test Internet Speed
+An unconventional way to test your download speed is to use the youtube-dl CLI utility. The tool allows you to download YouTube videos and view the download speed.
+
+To install youtube-dl, enter:
+
+sudo apt install youtube-dl
+The application takes around 268MB of space. While the installation is in progress, choose a video you want to download and save the URL.
+
+When the process finishes, use this command but replace the URL with the one you selected:
+
+youtube-dl -f best --no-part --no-cache-dir -o /dev/null --newline https://www.youtube.com/watch?v=8TLsqgLDMN4
+The terminal shows the download progress, file size, download speed, and ETA.
+
+Use youtube-dl to test internet speed.
+The command above does not save the file to any filesystem, hence the /dev/null part.
+
+This example used a short phoenixNAP BMC demo video of around 19MB. Choose a longer video for more precise results.
+
+Conclusion
+
+The article showed you nine ways to test network speed in Linux via CLI. Choose the tool depending on whether you want to test local network speed, internet speed, etc.
+
+The tools work for all Linux distributions, so make sure you use the right package manager.

@@ -12,6 +12,18 @@
 # alias d-im='docker images'; alias d-ps='docker ps -as'; alias d-run-it='docker run -it'; alias d-ex-it='docker exec -it'
 # alias d-unused='docker container ls -a --filter status=exited --filter status=created'
 
+# Some personal settings
+alias ab='docker run --rm piegsaj/ab'
+alias php='docker run --rm -it -v "$PWD":/opt -w /opt php php'
+alias java='docker run --rm -it -v "$PWD":/opt -w /opt java java'
+alias node='docker run --rm -it -v "$PWD":/opt -w /opt node node'
+alias ruby='docker run --rm -it -v "$PWD":/opt -w /opt ruby ruby'
+alias python='docker run --rm -it -v "$PWD":/opt -w /opt python python'
+alias htop='docker run --rm -it --pid host tehbilly/htop'
+alias mysql='docker run --rm -it imega/mysql-client mysql'
+alias pgsql='docker run --rm -it image/pgsql-client pgsql'
+
+# Main set of aliases and functions
 alias dm='docker-machine'
 alias dmssh='docker-machine ssh'
 alias dk='docker'

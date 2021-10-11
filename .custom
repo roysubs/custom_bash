@@ -112,18 +112,6 @@ alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintab
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
 alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
 alias bashrc='vim ~/.bashrc && source ~/.bashrc'             # Edit ~/.bashrc and then source it on finishing editing
-alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"'
-alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."; alias back='cd -'
-alias dfh="df -kh"
-alias fs="df . | awk 'NR==2{print \$1}'"         # Show current filesystem that I working in https://unix.stackexchange.com/q/164957/
-alias usagehuman="du -h | tail -1 | cut -d$'\t' -f1"  # Grabs the disk usage in the current directory, note $'\t' to get tab as a delimeter for cut
-alias usagebytes="du -c | tail -1 | cut -d$'\t' -f1"  # Just the value (human readable)
-alias usage1="du -h --max-depth=1 | sort -rh"    # Usage, 1 deep
-alias totalusage='df -hl --total | grep total'   # Gets the total disk usage on your machine
-alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs'   #Shows the individual partition usages without the temporary memory values
-alias most='du -hsx * | sort -rh | head -10'     # What is using the most space. Both directories and files. Varies on current directory
-alias ducks='du -ck | sort -nr | head'           # Another way to find bloat
-alias ducky='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # An even more complex way to find bloat
 alias ps2='ps -ef | grep -v $$ | grep -i'                # Search processes for a string
 alias psg='ps -Helf | grep -v $$ | grep -i -e WCHAN -e'  # Search processes for a string
 alias tree-all="find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'"
@@ -178,6 +166,9 @@ generaterandpasswd() {
     echo 
 }
 
+####################
+# ls, cd, mkdir, du, df, and permissions
+####################
 # Standardise 'ls' outputs (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
 # Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
 # Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
@@ -196,24 +187,47 @@ alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown,
 alias ldsd="ls -FlAh"               # Directory/Size/Date
 alias lld="ls -FlA | grep :*/"      # Directories only
 alias ldot="ls -ld .??*"            # Dotfiles only
-alias lsx="ls -FlA | grep *"        # Executable files only
-alias lsnonx="ls -FlA | grep -v *"  # Non-executable files only
-alias lsxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
+alias lnonx="ls -FlA | grep -v *"   # Non-executable files only
+alias lx="ls -FlA | grep *"         # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
+alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
+alias lext='ls -Fla | egrep "\."'         # Files without extensions only   ".|/"
+alias lnoext='ls -Fla | egrep -v "\."'    # Files without extensions only, 
 alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
 alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A almost all, except '.' and '..'
 alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
 alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
-alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, it gets boring
-alias ee='exa -lA'
-
-alias lext=
-alias lnoex='dsd | egrep -v ".|/"'
-# replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
+# replicate 'ls', but using 'stat' to show both normal 'ls' permission flags *and* octal.
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
 lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format).
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'l'ong 'l's with 's'ecurity
+alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
+alias ee='exa -lA'     # exa is a potential successor to 'ls', works very well with nice default colouring and multi-column options
+cl() { cd "$@" && ls; }        # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
+cll() { cd "$@" && ll; }       # 'cd+ll'
+md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
+du.t() { du -hsc . ; }         # 'total' Just return a total size for everything under '.' (PWD) (including hidden, i.e. dot config files).
+du.tsu() { sudo du -hsc . ; }  # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
+du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
+du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
+dus () { du --max-depth=0 -k * | sort -nr | awk '{ if($1>=1024*1024) {size=$1/1024/1024; unit="G"} else if($1>=1024) {size=$1/1024; unit="M"} else {size=$1; unit="K"}; if(size<10) format="%.1f%s"; else format="%.0f%s"; res=sprintf(format,size,unit); printf "%-4s %sn, ",res,$2 }'; echo; }
+alias duh='du -h --max-depth=1 | sort -h'
+alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"'
+alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'
+alias back='cd -'; alias cd-='cd -'; alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."
+alias most='du -hsx * | sort -rh | head -10'     # What is using the most space. Both directories and files. Varies on current directory
+alias ducks='du -ck | sort -nr | head'           # Another way to find bloat (people say this link is 'shooting ducks' to find large size, silly name)
+alias ducky='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # An even more complex way to find bloat
+alias usage1="du -h --max-depth=1 | sort -rh"    # Usage, 1 deep
+alias usagehuman="du -h | tail -1 | cut -d$'\t' -f1"  # Grabs the disk usage in the current directory, note $'\t' to get tab as a delimeter for cut
+alias usagebytes="du -c | tail -1 | cut -d$'\t' -f1"  # Just the value (human readable)
+alias totalusage='df -hl --total | grep total'   # Gets the total disk usage on your machine
+alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs'   #Shows the individual partition usages without the temporary memory values
+alias dfh="df -kh"
+alias fs="df . | awk 'NR==2{print \$1}'"         # Show current filesystem that I am working in https://unix.stackexchange.com/q/164957/
 alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
 alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
 alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
@@ -240,17 +254,6 @@ alias gp="git push origin master"
 alias gl="git pull origin master"
 alias gtl='git log'
 alias gts='git status'
-alias ab='docker run --rm piegsaj/ab'
-alias php='docker run --rm -it -v "$PWD":/opt -w /opt php php'
-alias java='docker run --rm -it -v "$PWD":/opt -w /opt java java'
-alias node='docker run --rm -it -v "$PWD":/opt -w /opt node node'
-alias ruby='docker run --rm -it -v "$PWD":/opt -w /opt ruby ruby'
-alias python='docker run --rm -it -v "$PWD":/opt -w /opt python python'
-alias htop='docker run --rm -it --pid host tehbilly/htop'
-alias mysql='docker run --rm -it imega/mysql-client mysql'
-alias pgsql='docker run --rm -it image/pgsql-client pgsql'
-
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
@@ -259,8 +262,6 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # ii (install/add), rr/uu (remove/uninstall/del), then use the prefix 'i' for other installer/package-management tasks:
 # is (search), accepts regex, so 'is ^zsh' vs 'is zsh' filter packages.   ishow/iview/iinfo, display package details.   iprovides, find what packages provide a given command.
 # isize (show package size), accepts regex, so 'isize zsh' shows *only* the exact package, but 'isize ^zsh' shows all packages starting 'zsh'
-
-isource='./configure; make; make install'      # tar zxvf [source_code.tar.gz]
 
 # The apt cache requires regular updating, so the upgrade subcommand is to upgrade existing installed applications. http://packages.debian.net/
 # By contrast, dnf updates metadata every time you use the command, so the update and upgrade subcommands are interchangeable
@@ -463,6 +464,7 @@ alias pc='python -ic "from __future__ import division; from math import *"'   # 
 type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav -f' && alias espeak-wav='espeak -s 150 -w voice.wav' && alias espeak-us='espeak -v en-us -s 150' && alias espeak-file='espeak -s 150 -f'   # Only created if espeak present
 type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # resize all PNG in current folder only if wider than 690px using ImageMagick
 alias tastatur="setxkbmap -model cherryblue -layout de -variant ,nodeadkeys"   # for changing keyboards, sample
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 extract () {   # Extract any archive type into a folder
     local x
@@ -531,7 +533,7 @@ ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return f
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
 # def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for outputs when scripting
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
 factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
@@ -540,22 +542,13 @@ color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
-cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
-cll() { cd "$@" && ll; }  # 'cd+ll'
-md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
-du.t() { du -hsc . ; }          # 'total' Just return a total size for everything under '.' (PWD) (including hidden, i.e. dot config files).
-du.tsu() { sudo du -hsc . ; }   # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
-du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
-du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
-du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
-du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
-dus () { du --max-depth=0 -k * | sort -nr | awk '{ if($1>=1024*1024) {size=$1/1024/1024; unit="G"} else if($1>=1024) {size=$1/1024; unit="M"} else {size=$1; unit="K"}; if(size<10) format="%.1f%s"; else format="%.0f%s"; res=sprintf(format,size,unit); printf "%-4s %sn, ",res,$2 }'; echo; }
-alias duh='du -h --max-depth=1 | sort -h'
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile ~/.bashrc ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file with sudo (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in vim\ /etc/profile vim\ /etc/bash.bashrc vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
 alias lvim="vim -c \"normal '0\""    # Open last file (even if you changed directory)
 :h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
+alias isource='./configure; make; make install'      # tar zxvf [source_code.tar.gz]
+
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
 # TOIlet stands for “The Other Implementation's letters", coined after FIGlet’s “Frank, Ian and Glen’s letters".
@@ -626,6 +619,8 @@ alias what-port='echo -e "See /etc/services for complete list\n20 FTP data trans
 alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
+alias cd2="cd ~/custom_tools; ls"      # Another peronal project location
+alias cd1edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
 alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT

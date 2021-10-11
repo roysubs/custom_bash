@@ -161,6 +161,12 @@ printf "> sudo $manager update -y\n> sudo $manager upgrade -y\n> sudo $manager d
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
 # Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
+# To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
+# sudo rpm -qa | grep epel                                                               # Check the epel version installed
+# sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
+# sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
+# yum repolist   # check if epel is installed
+# if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
 if type dnf &> /dev/null 2>&1; then
     if [[ $(rpm -qa | grep epel-release) ]]; then
         echo ""
@@ -176,16 +182,14 @@ if type dnf &> /dev/null 2>&1; then
     fi
 fi
 
-# To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
-# sudo rpm -qa | grep epel                                                               # Check the epel version installed
-# sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
-# sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
-# yum repolist   # check if epel is installed
-# if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
+# Make sure that 'needsrestarting' is present on CentOS for reboot checks
+type dnf &> /dev/null 2>&1 && type needsrestarting &> /dev/null || sudo dnf install yum-utils -y
 
-# I could 'source .custom' at the top of this script and then call 'updistro'.
-# Decided not to do this though, as if there is a bug in '.custom', then this script will fail, so just
-# keep a copy of the 'updistro' function in this script also.
+
+
+# I could 'source .custom' at the top of this script and then call 'updistro'. Does not work
+# well though; if there is a bug in '.custom', then this script will fail, and variables from
+# there might interfere here. Just keep a copy of the 'updistro' function in this script also.
 updistro() {
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"

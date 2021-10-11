@@ -40,11 +40,11 @@
 # For names found with the above, you can then use 'def' to output display the full definition of a single alias or function.
 # Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
 uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'fa' function below (and generally useful to remove control characters from files or pipeline output)
-fal() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
-ffn() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -f -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
+fal() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
+ffn() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
 ffa() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; ffn $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; fal $1; }   # Just show the names of functions that contain the search-string
 paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
-def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi }
+def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
 
 ####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
@@ -344,7 +344,7 @@ pt() {
 #        bat x.js -pp | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | jq
 # or     bat x.js -pp | uncolor | jq     # with:   uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }
 # It might be posible to do everything in 'bat' with 'less', possibly use this in future:   https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
-type bat >/dev/null 2>&1 && alias cat='bat -pp -f' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+type bat >/dev/null 2>&1 && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null   # Don't really need this, just how to remove if bat is uninstalled
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch to maintain colour syntax highlighting
 type less >/dev/null 2>&1 alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless
@@ -376,7 +376,7 @@ type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # res
 
 extract () {   # Extract any archive type into a folder
     local x
-    ee() { echo "$@"; $1 "$2"; }   # echo and execute
+    function ee() { echo "$@"; $1 "$2"; }   # echo and execute
     for x in "$@"; do
         [[ -f $x ]] || continue
         case "$x" in
@@ -435,7 +435,7 @@ s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # 
 ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
-# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -f -l bash; else command -V $1; fi; fi; }
+# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for scripting
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
@@ -494,6 +494,7 @@ alias ip.="[ type ifconfig &>/dev/null ] && ifconfig; ip addr show"
 alias r.="route"
 alias ip4="ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'
 alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
+ipup() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
 alias ping='ping -c 4'
 alias whois='whois -H'
 alias eth0down="sudo ifdown eth0"; alias eth0up="sudo ifup eth0"

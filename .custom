@@ -2,6 +2,7 @@
 ####################
 # git clone https://github.com/roysubs/custom_bash                          # cd into project: '. custom_loader.sh' to configure.
 # git clone https://roysubs:<ghp_xxxxxxxx>@github.com/roysubs/custom_bash   # To clone with token
+# . <(curl -sS https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom)   # To dotsource from github immediately
 # If working on a server, simply copy the contents of RAW .custom into a new file '.custom' in home folder then dotsource that
 # https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom
 # .custom is always compatible with Ubuntu/Debian, RedHat/Fedora/CentOS, and Alpine. WSL extensions only instll if WSL is detected and include many tools to help with that setup.
@@ -102,18 +103,82 @@ alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
 alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
-alias fhere="find . -name "             # Reminder for find syntax
+alias fhere="find . -name "             # Basic find syntax
+alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
+alias mountt='mount | columns -t'   # 'mount with tabs' to make mount readable
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
 alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file, strip unprintable from file:   tr -cd "[:print:]" < {{filename}}
 alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
 alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
-alias ducks='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # Browse system for heavy usage
+alias bashrc='vim ~/.bashrc && source ~/.bashrc'             # Edit ~/.bashrc and then source it on finishing editing
 alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ..; cd ..'; alias u3='cd ..; cd ..; cd ..'; alias u4='cd ..; cd ..; cd ..; cd ..'; alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"'
 alias ..="cd .."; alias ...="cd ../.."; alias ....="cd ../../.."; alias .....="cd ../../../.."; alias back='cd -'
 alias dfh="df -kh"
-alias fs="df . | awk 'NR==2{print \$1}'"  # Show current filesystem that I am on https://unix.stackexchange.com/q/164957/
-# Standardise 'ls' output (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
+alias fs="df . | awk 'NR==2{print \$1}'"         # Show current filesystem that I working in https://unix.stackexchange.com/q/164957/
+alias usagehuman="du -h | tail -1 | cut -d$'\t' -f1"  # Grabs the disk usage in the current directory, note $'\t' to get tab as a delimeter for cut
+alias usagebytes="du -c | tail -1 | cut -d$'\t' -f1"  # Just the value (human readable)
+alias usage1="du -h --max-depth=1 | sort -rh"    # Usage, 1 deep
+alias totalusage='df -hl --total | grep total'   # Gets the total disk usage on your machine
+alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs'   #Shows the individual partition usages without the temporary memory values
+alias most='du -hsx * | sort -rh | head -10'     # What is using the most space. Both directories and files. Varies on current directory
+alias ducks='du -ck | sort -nr | head'           # Another way to find bloat
+alias ducky='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # An even more complex way to find bloat
+alias ps2='ps -ef | grep -v $$ | grep -i'                # Search processes for a string
+alias psg='ps -Helf | grep -v $$ | grep -i -e WCHAN -e'  # Search processes for a string
+alias tree-all="find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'"
+alias tree-dir="ls -R | grep :*/ | grep ":$" | sed -e 's/:$//' -e 's/[^-][^/]*//--/g' -e 's/^/   /' -e 's/-/|/'"
+alias bigfiles="find . -type f 2>/dev/null | xargs du -a 2>/dev/null | awk '{ if ( \$1 > 5000) print \$0 }'"
+alias verybigfiles="find . -type f 2>/dev/null | xargs du -a 2>/dev/null | awk '{ if ( \$1 > 500000) print \$0 }'"
+alias watchtail='watch -n .5 tail -n 20'          # could use -f 'follow' but doesn't refresh like this
+alias watchdir='watch -n .5 ls -la'               # same for dir
+alias watchsize='watch -n .5 du -h –max-depth=1'  # same for size
+alias brokenlinks='find . -xtype l -printf "%p -> %ln"'   # Find broken symlinks
+ww() { if [[ ! -z $1 ]];then _f=$(which $1);echo $_f;less $_f;fi }   # which and less a script (ie. ww backup.ksh)
+alias vimother="vim -u /home/username/.vimrc"     # use the .vimrc from another location
+alias dmesg1='dmesg | perl -ne "BEGIN{$a= time()- qx:cat /proc/uptime:};s/[s*(d+).d+]/localtime($1 + $a)/e; print $_;" | sed -e "s|(^.*"`date +%Y`" )(.*)|x1b[0;34m1x1b[0m - 2|g"'
+alias meminfo='\egrep "Mem|Cache|Swap" /proc/meminfo'
+myusb() { usb_array=();while read -r -d $'n'; do usb_array+=("$REPLY"); done < <(find /dev/disk/by-path/ -type l -iname *usb*scsi* -not -iname *usb*scsi*part* -print0 | xargs -0 -iD readlink -f D | cut -c 8) && for usb in "${usb_array[@]}"; do echo "USB drive assigned to sd$usb"; done; }   # USB assigments
+alias top10="sort|uniq -c|sort -n -r|head -n 10"
+alias lu="awk -F: ‘{ print $1}’ /etc/passwd"
+# alias reboot='echo “Are you sure you want to reboot host `hostname` [y/N]?” && read reboot_answer && if [ “$reboot_answer” == y ]; then /sbin/reboot; fi'
+# alias shutdown='echo “Are you sure you want to shutdown host `hostname` [y/N]?” && read shutdown_answer && if [ “$shutdown_answer” == y ]; then /sbin/shutdown -h now; fi'
+alias tolowercase="pbpaste | tr "[:upper:]" "[:lower:]" | pbcopy"
+alias touppercase="pbpaste | tr "[:lower:]" "[:upper:]" | pbcopy"
+alias c='xsel --clipboard'   # Copy from cli to clipboard, use like:   cat somefile | c
+lsdu() { ls -l $* | sort --key=5.1 -n; };           # List by ascending size
+lsduf() { ls -l | egrep $* | sort --key=5.1 -n; };  # Accepts input to fileter/grep on
+alias hogs='ps uxga | sort --key=3.1 -n'
+alias sdiff='sdiff -w 240'
+pyloc() { egrep -v '^[ ]*(#|$dollar)' $* | wc; };     # count lines (python, sh)
+loc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; }; # count lines (c, c++)
+
+# Tab competion
+[ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
+complete -cf sudo # Tab complete for sudo
+generatessh() {
+    echo "What's the name of the Key (no spaced please) ? "; read name;
+    echo "What's the email associated with it? "; read email;
+    `ssh-keygen -t rsa -f ~/.ssh/id_rsa_$name -C "$email"`;
+    ssh-add ~/.ssh/id_rsa_$name; pbcopy < ~/.ssh/id_rsa_$name.pub;
+    echo "SSH Key copied in your clipboard";
+}
+generaterandpasswd() {
+    if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
+    array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
+             F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 
+    MODNUM=${#array1[*]};
+    pwd_len=0 
+    while [ $pwd_len -lt $MAXSIZE ] 
+    do 
+        index=$(($RANDOM%$MODNUM)) 
+        echo -n "${array1[$index]}" 
+        ((pwd_len++)) 
+    done 
+    echo 
+}
+
+# Standardise 'ls' outputs (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
 # Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
 # Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
 # color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
@@ -128,14 +193,23 @@ alias ll='ls -lAh'     # long format (-AFh and also -l)     # Note that the abov
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
 alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-alias lsx='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
+alias ldsd="ls -FlAh"               # Directory/Size/Date
+alias lld="ls -FlA | grep :*/"      # Directories only
+alias ldot="ls -ld .??*"            # Dotfiles only
+alias lsx="ls -FlA | grep *"        # Executable files only
+alias lsnonx="ls -FlA | grep -v *"  # Non-executable files only
+alias lsxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
 alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
 alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A almost all, except '.' and '..'
 alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
 alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
-alias sl='ls'          # Common typo
+alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, it gets boring
 alias ee='exa -lA'
+
+alias lext=
+alias lnoex='dsd | egrep -v ".|/"'
 # replicate ls, using stat and with both security types (show octal and normal permission flags). Does not accept target path; hard coded to only operate on everything in current directory due to stat syntax.
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
 lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format).
@@ -144,6 +218,7 @@ alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Rem
 alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
 alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
 alias mx='chmod a+x'   # Make Executable
+
 # git: g, gst, ga, gcm, gcl, gstash, glog, gcd0 gc, gcg, gcname, gadu, gall, gpull, gpush
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
 alias g='git'; alias gconf='git config'; alias gconfl='git config --list'; alias gconfgl='git config --global --list'
@@ -156,6 +231,26 @@ gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (n
 alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'
 alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these as use so much
 getgit() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
+parse_git_branch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'; }
+alias g="git"
+alias gs="git status"
+alias ga="g add"
+alias gc="git commit -m"
+alias gp="git push origin master"
+alias gl="git pull origin master"
+alias gtl='git log'
+alias gts='git status'
+alias ab='docker run --rm piegsaj/ab'
+alias php='docker run --rm -it -v "$PWD":/opt -w /opt php php'
+alias java='docker run --rm -it -v "$PWD":/opt -w /opt java java'
+alias node='docker run --rm -it -v "$PWD":/opt -w /opt node node'
+alias ruby='docker run --rm -it -v "$PWD":/opt -w /opt ruby ruby'
+alias python='docker run --rm -it -v "$PWD":/opt -w /opt python python'
+alias htop='docker run --rm -it --pid host tehbilly/htop'
+alias mysql='docker run --rm -it imega/mysql-client mysql'
+alias pgsql='docker run --rm -it image/pgsql-client pgsql'
+
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
@@ -352,7 +447,6 @@ type less >/dev/null 2>&1 alias less='less -R'; alias less0='\less'; alias more=
 type tree >/dev/null 2>&1 && alias tree='tree -C' && alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
 type pydf >/dev/null 2>&1 && alias df1='pydf'        # Use <cmd>1, <cmd>2, for variants, do this for other commands with alternatives
 type ncdu >/dev/null 2>&1 && alias du1='ncdu'        # Same for du1, we use <cmd>. for built-in functions in .custom (e.g. du. etc)
-alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 # Most systems have 'python2' and 'python3' defined. Debian/Ubuntu use python2 for underlying system functions
 # 'python' points to python2 in Debian/Ubuntu, but RHEL/CentOS8 does not have a copy of python2 at all
 # In the below, set 'python' to 'python3' by default, but remember that aliases/functions defined here only exist in the currect interative login
@@ -368,12 +462,7 @@ alias term-theregister='lynx https://theregister.com'; alias term-theregister0='
 alias pc='python -ic "from __future__ import division; from math import *"'   # 'Python calculator', opens python with settings useful for quick calculations (similar to bc, but also with correct calculations, i.e. 1/2 = 0.5 instead of 0).
 type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav -f' && alias espeak-wav='espeak -s 150 -w voice.wav' && alias espeak-us='espeak -v en-us -s 150' && alias espeak-file='espeak -s 150 -f'   # Only created if espeak present
 type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # resize all PNG in current folder only if wider than 690px using ImageMagick
-
-# alias df="df -Tha --total"   # We might as well add an alias for our preferred du output as well:
-# alias du="du -ach | sort -h" # Let’s keep going in the same direction by making our free output more human friendly:
-# alias free="free -mt"        # We can do a lot with our listing process table. Let’s start out by setting a default output:
-# alias ps="ps auxf"
-# alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"   # Search ps for a string
+alias tastatur="setxkbmap -model cherryblue -layout de -variant ,nodeadkeys"   # for changing keyboards, sample
 
 extract () {   # Extract any archive type into a folder
     local x
@@ -389,10 +478,11 @@ extract () {   # Extract any archive type into a folder
 }
 targz() { tar -zcvf $1.tar.gz $1; }   # Create $1.tar.gz from file/directory $1,  can optionally add '; rm -r $1;' at end to remove the original files
 untargz() { tar -zxvf $1; }           # Extract a .tar.gz,  can optionally add '; rm -r $1;' at end to remove the archive
-mktar() { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }     # Create tar from given directory
-mktgz() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }     # Create tar.gz
-mktbz() { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }     # Create tar.bz
-mkzip() { zip -r "${1%%/}.zip" "$1" ; }                # Create zip archive of a file or folder.
+mktar() { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }      # Create tar from given directory
+mktgz() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }      # Create tar.gz
+mktbz() { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }      # Create tar.bz
+mkzip() { zip -r "${1%%/}.zip" "$1" ; }                 # Create zip archive of a file or folder.
+gzipsize() { echo $((`gzip -c $1 | wc -c`/1024))"KB"; } # Calculates the gzip compression of a file
 # Bash profile loading is as follows: /etc/profile (which often calls /etc/bash.bashrc), then ~/.bash_profile, then ~/.bash_login, then ~/.profile (which often calls ~/.bashrc)
 backup_profile() {
     ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; 
@@ -402,9 +492,13 @@ backup_profile() {
     echo $FILES; [ "$1" = "-root" ] && echo "root files were backed up" || echo "root files were not backed up"
     exe $SUDOTHIS tar -czvf $ARCHIVE $FILES; echo "All backed up in $ARCHIVE"
 }
+bu() { cp "$1" "$1".backup-`date +%y%m%d-%H%M`; echo "`date +%Y-%m-%d %H-%M` backed up $PWD/$@" >> ~/.backups.log; }   # Create in place backup of a file and record that in ~/.backups.log
+json() { cat "$@" | /usr/bin/python -m json.tool; }    # supply a JSON, it will check it for consitency using python
 
 pswatch() { watch -n 1 'ps -eo pid,ppid,%mem,%cpu,cmd --sort=-%mem'; }   # A cut down 'top' using ps and watch
 psmemory() { ps aux | awk '{if ($5 != 0 ) print $2,$5,$6,$11}' | sort -k2n; }
+alias psg='ps aux | grep -v grep | grep -i -e VSZ -e'
+alias psme='ps -ef | grep $USER --color=always'               # Show only my procs
 myps() { ps $@ -u $USER -o pid,%cpu,%mem,bsdtime,command ; }  # 'my ps' ps for current user only
 mypf() { myps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }   # 'my ps forest', f = ASCII art process hierarchy (forest).
 mykill()   # Kill processes, but *only* from my process list (myps) for any matching name $1 (safety function to prevent killing critical processes by a typo on a PID)
@@ -445,7 +539,7 @@ split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
-sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1),$(uptime)\n"; }
+sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
 cl() { cd "$@" && ls; }   # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }  # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
@@ -455,13 +549,16 @@ du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc 
 du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
+dus () { du --max-depth=0 -k * | sort -nr | awk '{ if($1>=1024*1024) {size=$1/1024/1024; unit="G"} else if($1>=1024) {size=$1/1024; unit="M"} else {size=$1; unit="K"}; if(size<10) format="%.1f%s"; else format="%.0f%s"; res=sprintf(format,size,unit); printf "%-4s %sn, ",res,$2 }'; echo; }
+alias duh='du -h --max-depth=1 | sort -h'
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile ~/.bashrc ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file with sudo (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in vim\ /etc/profile vim\ /etc/bash.bashrc vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
+alias lvim="vim -c \"normal '0\""    # Open last file (even if you changed directory)
 :h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
 numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
-# TOIlet stands for “The Other Implementation's letters”, coined after FIGlet’s “Frank, Ian and Glen’s letters”.
+# TOIlet stands for “The Other Implementation's letters", coined after FIGlet’s “Frank, Ian and Glen’s letters".
 type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 type figlet  &> /dev/null && figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
 type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
@@ -493,10 +590,12 @@ alias n.info-gui='echo "pt monit nethogs monitorix vnstatphp nagios"'   # vnstat
 alias n.info-open-ports='echo -e "sudo lsof -i -P -n | grep LISTEN\nsudo netstat -tulpn | grep LISTEN\nsudo ss -tulpn | grep LISTEN\nsudo lsof -i:22 ## see a specific port such as 22 ##\nsudo nmap -sTU -O IP-address-Here"'
 alias r.="route"
 alias ip.="type ifconfig &>/dev/null && ifconfig; ip addr show -c"
-alias ip4="ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'
+alias ip4="ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'      ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"
 alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
+alias ipexternam='dig +short myip.opendns.com @resolver1.opendns.com'
 ipup-ping() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
 ipup-nmap() { nmap -n -sn 192.168.1.0/24 -oG - | awk '/Up$/{print $2}'; }   # Very fast # -n turns off reverse name resolution, as on local LAN this is probably the slowest step, -sn means "Don't do a port scan.", -oG - sends "grepable" output to stdout, which gets piped to awk.
+alias pong='ping -i 0.2 -s 2'
 alias nmap.='sudo nmap -sT -O localhost' # more here http://www.redhat.com/docs/manuals/linux/RHL-9-Manual/security-guide/s1-server-ports.html
 alias ping='ping -c 4'
 alias whois='whois -H'
@@ -505,6 +604,8 @@ get-domain-info() { domains=$@; if [[ $# -eq 0 ]]; then echo "Usage: $0 test.com
 alias iftop.="sudo iftop -Pp -i eth0"
 alias ipt.="sudo iptstate -l -1"
 alias ipt?="sudo iptstate -l -1 | grep"
+alias pingr="ping `netstat -nr| grep -m 1 -iE 'default|0.0.0.0' | awk '{print $2}'`"   # ping router
+export sn=`netstat -nr | grep -m 1 -iE 'default|0.0.0.0' | awk '{print $2}' | sed 's/.[0-9]*$//' `   # Can then do: ping $sn.31 for 192.168.1.31
 alias netstat1='sudo netstat -tulpan'
 alias netstat2='netstat -tua'
 alias netstat3="netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,21-94 | tail"
@@ -515,7 +616,9 @@ alias netstatw3='watch --interval=2 "sudo netstat -p -e --inet --numeric-hosts"'
 alias netstatw4='watch --interval=2 "sudo netstat -tulpan"'                      # netstat watch 4
 alias netstatw5='watch --interval=2 "sudo netstat -utapen"'                      # netstat watch 5
 alias netstatw6='watch --interval=2 "sudo netstat -ano -l -A inet"'              # netstat watch 6
+alias limpets='nmap -sP $(ip -o addr show | grep inet  | grep eth | cut -d  -f 7)'   # all IPs connected to my network
 alias lsof.='sudo lsof -i'
+alias iptlistfw='sudo /sbin/iptables -L FORWARD -n -v –line-numbers'   # iptables might be redundant
 alias what-port='echo -e "See /etc/services for complete list\n20 FTP data transfer\n21 FTP session\n22 SSH\n23 Telnet\n25 SMTP email\n43 WHOIS\n53 DNS\n67 DHCP server\n68 DHCP client\n80 HTTP\n110 POP3 email\n119 NNTP\n123 NTP\n137 NETBIOS nameservice\n138 NETBIOS datagram\n139 NETBIOS session\n143 IMAP email\n161 SNMP\n162 SNMP trap\n194 IRC\n443 HTTPS over TLS/SSL\n587 SMTP email\n873 rsync"'
 ####################
 # Personal Settings.   # Personal settings that will be overwritten by "~/.custom-me' is that file is present
@@ -526,6 +629,9 @@ alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (l
 alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
 alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
+alias play='nvlc /path/to/music/ -Z'   # Requires VLC, plays a random collection of music from your music library.
+alias weather-ams='curl -4 http://wttr.in/Amsterdam'
+alias weather-ny='curl -4 http://wttr.in/NewYork'
 # defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
 me="~/.customme"; [[ -f $me ]] && source $me   
@@ -599,6 +705,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
     alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'   # To update: use 'foreach i in arry-of-news-sites, prefix https://archive.ph/ and then open that'
     alias uknews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.spectator.co.uk/; chrome https://archive.ph/https://www.telegraph.co.uk/; chrome https://archive.ph/http://thetimes.co.uk/; chrome https://archive.ph/https://www.scotsman.com/; chrome https://archive.ph/https://www.newscientist.com/'
+    alias weatherxx="curl -s 'http://rss.accuweather.com/rss/liveweather_rss.asp?metric=1&locCode=en|nl|amsterdam|11215' | sed -n '/Currently:/ s/.*: \(.*\): \([0-9]*\)\([CF]\).*/\2°\3, \1/p'"   # might not work
 
     # Map common Windows locations to navigate to from within WSL. Use ':' on these mappings to identify as WSL mappings to Windows
     # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'

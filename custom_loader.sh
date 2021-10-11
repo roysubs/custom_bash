@@ -4,6 +4,7 @@
 # Always run the git config before cloning to fix potential line ending problems, especially on WSL
 # git config --global core.autocrlf input   
 # git clone https://github.com/roysubs/custom_bash
+# . <(curl -sS https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom)   # To dotsource from github immediately
 # 
 # This script performs some configuration options to make a consistent bash environemt, and then
 # installss .custom into the profile ready to be used in interactive shells.
@@ -31,10 +32,18 @@
 # https://dev.to/awwsmm/101-bash-commands-and-tips-for-beginners-to-experts-30je
 # https://www.addictivetips.com/ubuntu-linux-tips/edit-the-bashrc-file-on-linux/
 # https://crunchbang.org/forums/viewtopic.php?id=1093
+# https://wiki.linuxquestions.org/wiki/Scripts#Command_Line_Trash_Can  cli trash can function, large compressed files, Kerberos, JVMs
+# https://wiki.linuxquestions.org/wiki/Bash_tips
+# https://www.cyberciti.biz/tips/bash-aliases-mac-centos-linux-unix.html
+# http://philip.vanmontfort.be/bestanden/linux/bashrc
+# https://github.com/erwanjegouzo/dotfiles/blob/master/.bash_profile
 # https://serverfault.com/questions/3743/what-useful-things-can-one-add-to-ones-bashrc?page=1&tab=votes#tab-top
 # https://tldp.org/LDP/abs/html/testconstructs.html#DBLBRACKETS
+# https://github.com/algotech/dotaliases
+# https://github.com/dmeekabc/tagaProductized/tree/master/iboaUtils IBOA Utils, alias tools
 # https://www.grymoire.com/Unix/Sed.html  Excellent Sed Guide
 # https://blog.sanctum.geek.nz/series/unix-as-ide/  Excellent Guide on shell usage
+# https://www.cyberciti.biz/tips/bash-aliases-mac-centos-linux-unix.html
 # https://blog.ssdnodes.com/blog/13-smart-terminal-tools-to-level-up-your-linux-servers/ # Some very useful tools
 # tldr: Read simplified instructions on common terminal commands
 # how2: Get answers to your terminal questions
@@ -54,8 +63,8 @@
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
-
-
+# If you want to run apt-get without having to supply a sudo password, just edit the sudo config file to allow that. (Replace “jfb” in this example with your own login).
+# jfb ALL=(root) NOPASSWD: /usr/bin/apt-get
 
 ####################
 #
@@ -200,7 +209,7 @@ updistro() {
     function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
 
     printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
+    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, therefore,"
     echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
@@ -1374,6 +1383,8 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small bash Notes)\${NC}"
 exx ""
+exx "https://wiki.linuxquestions.org/wiki/Bash_tips"
+exx ""
 exx "\$EDITOR was originally for instruction-based editors like ed. When editors with GUIs (vim, emacs, etc), editing changed dramatically,"
 exx "so \$VISUAL came about. \$EDITOR is meant for a fundamentally different workflow, but nobody uses 'ed' any more. Just setting \$EDITOR"
 exx "is not enough e.g. git on Ubuntu ignores EDITOR and just uses nano (the compiled in default, I guess), so always set \$EDITOR and \$VISUAL."
@@ -2478,6 +2489,27 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "sed Notes (show with 'help-sed')"
+#
+####################
+# https://linuxhint.com/newline_replace_sed/
+HELPFILE=$hh/help-sed.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small sed Notes)\${NC}"
+exx ""
+exx "\${BYELLOW}***** Useful AWK One-Liners to Keep Handy, work in progress\${NC}"
+exx "Excellent sed tutorial https://linuxhint.com/newline_replace_sed/"
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "Python Server Example on port 8001"
 #
 ####################
@@ -2874,7 +2906,7 @@ if [ "$manager" = "apt" ]; then
 fi
 if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then
     echo ">>>>>>>>  sudo $manager repolist   (straight print of the repolist from $manager)"
-    sudo $manager repolist | lcat
+    sudo $manager repolist | cat
     echo ""
 fi
 

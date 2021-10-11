@@ -33,9 +33,12 @@
 # Suspend/resume (Ctrl-s and Ctrl-q) can be useful when paging lots of info and you don't want to press Ctrl-c to read the output, but can be disabled with this if required (can be confusing when people accidentally press Ctrl-s and think the system has hung). It can be disabled with: stty -ixon / stty ixon to re-enable.
 # Ctrl-r is quite specific; use only in one of two ways. 1. Type part of a command, then Ctrl-r, then Ctrl-p (previous) or Ctrl-n (next/forward), *or* PgUp/PgDn (additional option set by custom_loader.sh in .inputrc)
 #    *or* 2. Press Ctrl-r on an *empty* line, (reverse-i-search)`' will appear, then type part of a command (the `' will populate), after this, only Ctrl-r or Ctrl-? will work (Ctrl-p/n or PgUp/PgDn do not seem to work in this mode).
+# Some shell details:     https://devhints.io/bash
+# https://unix.stackexchange.com/questions/159513/what-are-the-shells-control-and-redirection-operators
+# https://unix.stackexchange.com/questions/230330/what-does-do                 bash -xl (what does it do?)
 
 ####################
-# Function and Alias discovery: Find definitions of functions and aliases
+# Finding Aliases and Functions loaded in memory: Tools to search for then, then to show the full definitions of any alias or function
 ####################
 # 'ffa <string>' 'find functions/aliases, 'fal <string>' 'find aliases', 'ffn <string>' 'find functions'.
 # e.g. 'ffa grep' show every function and alias containing the term 'grep'. There is limited regex support, 'fal ^t' works, but '*' in the body of the search do not.
@@ -47,6 +50,8 @@ ffn() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='
 ffa() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; ffn $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; fal $1; }   # Just show the names of functions that contain the search-string
 paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
+# Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
+# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
 
 ####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
@@ -93,24 +98,26 @@ BBlack='\e[1;30m'; BRed='\e[1;31m'; BGreen='\e[1;32m'; BYellow='\e[1;33m'; BBlue
 On_Black='\e[40m'; On_Red='\e[41m'; On_Green='\e[42m'; On_Yellow='\e[43m'; On_Blue='\e[44m'; On_Purple='\e[45m'; On_Cyan='\e[46m'; On_White='\e[47m'    # Background
 NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold White on red background.
 
+s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # sudo, *or* sudo the previous command if no argument is given (e.g. handy when do 'vim /etc/bashrc')
 alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
+complete -cf sudo    # Tab complete for commands that come after sudo
+
 alias v='vim'                           # Quick vim access
 alias b='byobu'                         # Quick byobu access
 alias t='tmux'                          # Quick tmux access
+type code && alias c='code'
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
 alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
 alias fhere="find . -name "             # Basic find syntax
+ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
+fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them, note that if $2 is not ther, 'file' will be the default
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
 alias mountt='mount | columns -t'   # 'mount with tabs' to make mount readable
-alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
-alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file, strip unprintable from file:   tr -cd "[:print:]" < {{filename}}
-alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
-alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
 alias bashrc='vim ~/.bashrc && source ~/.bashrc'             # Edit ~/.bashrc and then source it on finishing editing
 alias ps2='ps -ef | grep -v $$ | grep -i'                # Search processes for a string
 alias psg='ps -Helf | grep -v $$ | grep -i -e WCHAN -e'  # Search processes for a string
@@ -143,15 +150,14 @@ loc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; }; # count lines (c, c++)
 
 # Tab competion
 [ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
-complete -cf sudo # Tab complete for sudo
-generatessh() {
-    echo "What's the name of the Key (no spaced please) ? "; read name;
-    echo "What's the email associated with it? "; read email;
+generatesshkey() {
+    echo "What is the name of the Key (no spaces please) ? "; read name;
+    echo "What is the email associated with it ? "; read email;
     `ssh-keygen -t rsa -f ~/.ssh/id_rsa_$name -C "$email"`;
-    ssh-add ~/.ssh/id_rsa_$name; pbcopy < ~/.ssh/id_rsa_$name.pub;
+    ssh-add ~/.ssh/id_rsa_$name;    pbcopy < ~/.ssh/id_rsa_$name.pub   # pbcopy will copy into GUI clipboard if available
     echo "SSH Key copied in your clipboard";
 }
-generaterandpasswd() {
+generaterandompasswd() {
     if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
     array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
              F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 
@@ -170,12 +176,12 @@ generaterandpasswd() {
 # ls, cd, mkdir, du, df, and permissions
 ####################
 # Standardise 'ls' outputs (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
+# Note [] character set wildcards: ls name[03][17].c, would match name01.c, name07.c, name31.c, name37.c, ranges are also allowed: ls name[07][1-9].c
 # Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
-# Final setup: ls shows *all* files (including .*), l does not show .*, ll shows -l long format, l. / ll. show .* files only
 # color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
-# Remember that ls is quite awkward with respect to recurisou, as an 'ls *' will look into every subfolder, or 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
-# To get around this, use the -d switch, but do not hardcode -d into aliases. Also, never use the output of an 'ls' in a 'for i in `ls`' as that can be unpredictable.
-# Don't want to do anything obscure with aliases, so follow good general standards for ls, ll, l, noting -A show everything except . and .. and -h for human readable sizes
+# Remember that ls is quite awkward with respect to recursion, as an 'ls *' will look into every subfolder, or 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
+# Never use the output of an 'ls' in a 'for i in `ls`' as that can be unpredictable.
+# Don't want to do anything obscure with aliases, follow widely used settings for ls, ll, l, then have additional aliases for other tasks.
 if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi      # Don't need this, but it will remove an existing alias for ls if created in .bashrc / .bash_profile etc
 alias ls='\ls --color=always --group-directories-first'   # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
@@ -201,6 +207,11 @@ alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # so
 # replicate 'ls', but using 'stat' to show both normal 'ls' permission flags *and* octal.
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
 lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format).
+sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights the same
+alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
+alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
+alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
+alias mx='chmod a+x'   # Make Executable
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'l'ong 'l's with 's'ecurity
 alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
 alias ee='exa -lA'     # exa is a potential successor to 'ls', works very well with nice default colouring and multi-column options
@@ -228,10 +239,6 @@ alias totalusage='df -hl --total | grep total'   # Gets the total disk usage on 
 alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs'   #Shows the individual partition usages without the temporary memory values
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"         # Show current filesystem that I am working in https://unix.stackexchange.com/q/164957/
-alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
-alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
-alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
-alias mx='chmod a+x'   # Make Executable
 
 # git: g, gst, ga, gcm, gcl, gstash, glog, gcd0 gc, gcg, gcname, gadu, gall, gpull, gpush
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
@@ -275,6 +282,7 @@ if type apt &> /dev/null 2>&1; then
     alias iprovides='sudo apt-file search';      alias purge='sudo apt purge';   # iprovides here requires apt-file, but define this anyway (will result in error if not there, but then it's clear to install it). Note that apt-file is more accurate if you use the command's expected path
     isize() { apt-cache --no-all-versions show $1 | grep -e '^Package' -e '^Version' -e '^Size:'; }
     debgraph() { debtree $1 | dot -Tpng > $1.png; }   # Create dependency graph for a given package
+    alias irepos='sudo grep -rhE ^deb /etc/apt/sources.list*; echo -e "\nsudo grep -rhE ^deb /etc/apt/sources.list*\nsudo apt-cache policy\n"'
 fi
 
 # YUM 'Yellowdog Updater Modified' (front-end tool for RPM), DNF 'Dandified YUM', both mostly written in Python
@@ -287,6 +295,7 @@ if type yum &> /dev/null 2>&1; then
     alias is='yum search';           alias igl='yum group list -v';       alias ishow='yum info'; alias iinfo='yum info'; alias iview='yum info';
     alias iprovides='sudo yum provides';      alias purge='sudo yum purge';
     isize() { yum info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; };
+    alias irepos='yum repolist; echo -e "\nyum repolist\nyum repolist all\nyum repolist enabled\nyum repolist disabled\nyum repolist available\n"'
     iirpm='sudo rpm -i';     rrrpm='sudo rpm -e';
 fi
 if type dnf &> /dev/null 2>&1; then
@@ -294,12 +303,14 @@ if type dnf &> /dev/null 2>&1; then
     alias is='dnf search';           alias igl='dnf group list -v';       alias ishow='dnf info'; alias iinfo='dnf info'; alias iview='dnf info';
     alias iprovides='sudo dnf provides';      alias purge='sudo dnf purge';
     isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; };
+    alias irepos='dnf repolist; echo -e "\ndnf repolist\ndnf repolist all\ndnf repolist enabled\ndnf repolist disabled\ndnf repolist available\n"'
 fi
 
 # Include further distros here ...
 # APK on Alpine/Busybox, # apk, does not require 'sudo' as root in alpine
 if type apk &> /dev/null 2>&1; then
     alias ii='apk add'; alias rr='apk del'; alias uu='apk del'
+    alias irepos='vi /etc/apk/repositories'
 fi   
 
 # Create some additional aliases based on the above:
@@ -390,6 +401,7 @@ pt() {
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
     type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
     type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
     # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
@@ -527,27 +539,27 @@ ask()       # See 'killps' for example of use.
         *) return 1 ;;
     esac
 }
-# Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
-s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # sudo, *or* sudo the previous command if no argument is given (e.g. handy when do 'vim /etc/bashrc')
-ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
-fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them
-sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights sane.
-# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
-exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }   # Show the command to be run before running, useful for outputs when scripting
-square() { v1=$1; n=$(($v1*$v1)); echo $n; }         # Maths function
-expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }   # Maths function
+exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }  # Show the command to be run before running, useful for outputs when scripting
+square() { v1=$1; n=$(($v1*$v1)); echo $n; }          # Maths function
+expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }    # Maths function, also note the built in 'factor' what a number is divisible by
 factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
 split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter; array=(); while [[ $s ]]; do array+=( "${s%%"$delimiter"*}" ); s=${s#*"$delimiter"}; done; declare -p array; echo $array; }
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
+
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
-sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
+sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
+type apk 2> /dev/null && sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
+
+# Vim and useful text file discovery tools
+alias lvim="vim -c \"normal '0\""    # Open last file (even if you changed directory)
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile ~/.bashrc ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file with sudo (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in vim\ /etc/profile vim\ /etc/bash.bashrc vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
-alias lvim="vim -c \"normal '0\""    # Open last file (even if you changed directory)
-:h() { vim --cmd ":silent help $@" --cmd "only"; }   # Access help for a vim command from the console
-numfiles() { N="$(ls $1 | wc -l)"; echo "$N files in $1"; }   # Count files in current directory
-alias isource='./configure; make; make install'      # tar zxvf [source_code.tar.gz]
+alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
+alias unprintable='grep --color="auto" -P -n "[\x00-\x1E]" ' # Display unprintable control characters in a file, strip unprintable from file:   tr -cd "[:print:]" < {{filename}}
+alias expletives='grep --color="auto" -P -n "[^\x00-\x7E]" ' # Display chars above ASCII 127, which include curly brackets from web pages or Word documents
+alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-Min-Sec format, synta for when need to add a datestring to a filename output
+:h() { vim --cmd ":silent help $@" --cmd "only"; }           # Access help for a vim command from the console
 
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 # figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }

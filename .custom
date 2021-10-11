@@ -13,6 +13,13 @@
 # Various links to discussions use short notation, e.g. https://stackoverflow.com/q/7812324 is the same as https://stackoverflow.com/questions/7812324/finding-executable-files-using-ls-and-grep
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+    xterm*|rxvt*|screen*)    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'    ;;
+esac
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
 ####################
 # Usage:
 ####################
@@ -583,6 +590,12 @@ type lolcat  &> /dev/null && alias lcat='lolcat' && alias lcata='lolcat -a -d 9'
 artscene() { curl -s http://artscene.textfiles.com/vt100/$1.vt --limit-rate 9600; echo -e "\n\n\nAvailable art-files at http://artscene.textfiles.com/vt100/:\n"; lynx -dump http://artscene.textfiles.com/vt100/ | cut -d'.' -f4 | cut -d'/' -f3 | grep -v -e '^ ' -e 'References' -e '^[[:space:]]*$' | tr '\n' ','; }   #  Alternative way to slow rate:  | pv -q -L 9600
 knights() { URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=$(wget $URL -q -O -); lynx -dump $URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50; }
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
+colortail() { tail -F $*|ccze -A; }
+alias ct='colortail'
+alias userinfo='getent passwd|column  -t -s: -n'
+alias groupinfo='getent group|column  -t -s: -n'
+alias rsync.='rsync -ravz'
+alias rsync.ssh='rsync -e ssh'
 setup-starship-prompt() { sh -c "$(curl -fsSL https://starship.rs/install.sh)"; }   # https://github.com/starship/starship
 setup-angel-PS1-prompt() { wget https://github.com/dolmen/angel-PS1/raw/release/angel-PS1; eval `./angel-PS1`; }
 # https://github.com/chris-marsh/pureline   https://github.com/powerline/powerline   https://github.com/dolmen/angel-PS1

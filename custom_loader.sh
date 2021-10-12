@@ -169,28 +169,6 @@ echo ""
 printf "> sudo $manager update -y\n> sudo $manager upgrade -y\n> sudo $manager dist-upgrade -y\n> sudo $manager install ca-certificates -y\n> sudo $manager autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
 
-# Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
-# To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
-# sudo rpm -qa | grep epel                                                               # Check the epel version installed
-# sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
-# sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
-# yum repolist   # check if epel is installed
-# if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
-if type dnf &> /dev/null 2>&1; then
-    if [[ $(rpm -qa | grep epel-release) ]]; then
-        echo ""
-        echo "$DISTRO : EPEL Repository is already installed"
-    else
-        sudo dnf install epel-release
-    fi
-    if [[ $(dnf repolist | grep powertools) ]]; then
-        echo "$DISTRO : PowerTools Repository is already installed"
-    else
-        sudo dnf -y install dnf-plugins-core
-        sudo dnf config-manager --set-enabled powertools   # Note that this must be lowercase, 'PowerTools' fails
-    fi
-fi
-
 # Need to make sure that 'needsrestarting' is present on CentOS to check if a reboot is required, or we find another tool
 if type dnf &> /dev/null 2>&1; then
     type needsrestarting &> /dev/null || sudo dnf install yum-utils -y
@@ -256,6 +234,28 @@ function runDistroUpdate()
     if [[ "${lastUpdate}" -gt "${updateInterval}" ]]   # only update if $updateInterval is more than 24 hours
     then
         print_header "apt updates will run as last update was more than ${updateIntervalReadable} ago"
+
+        # Handle EPEL (Extra Packages for Enterprise Linux) and PowerTools, fairly essential for hundreds of packages like htop, lynx, etc
+        # To remove EPEL (normally only do this if upgrading to a new distro of CentOS, e.g. from 7 to 8)
+        # sudo rpm -qa | grep epel                                                               # Check the epel version installed
+        # sudo rpm -e epel-release-x-x.noarch                                                    # Remove the installed epel, x-x is the version
+        # sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm   # Install the latest epel
+        # yum repolist   # check if epel is installed
+        # if type dnf &> /dev/null 2>&1; then exe sudo $manager -y upgrade https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm; fi
+        if type dnf &> /dev/null 2>&1; then
+            if [[ $(rpm -qa | grep epel-release) ]]; then
+                echo ""
+                echo "$DISTRO : EPEL Repository is already installed"
+            else
+                sudo dnf install epel-release
+            fi
+            if [[ $(dnf repolist | grep powertools) ]]; then
+                echo "$DISTRO : PowerTools Repository is already installed"
+            else
+                sudo dnf -y install dnf-plugins-core
+                sudo dnf config-manager --set-enabled powertools   # Note that this must be lowercase, 'PowerTools' fails
+            fi
+        fi
 
         updistro
 

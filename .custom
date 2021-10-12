@@ -190,7 +190,7 @@ generaterandompasswd() {
 # 'ls' is quite awkward with respect to recursion, e.g. 'ls *' will look into every subfolder even without the -R flag, and 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
 # Never use the output of an 'ls' in a 'for i in `ls`' as that can be unpredictable.
 # Don't want to do anything obscure with aliases, follow widely used settings for ls, ll, l, then have additional aliases for other tasks.
-[[ $(type ls) == *"aliased"* ]] && then unalias ls          # Don't need this, but in general on testing for type 'alias' to act upon them
+[[ $(type ls) == *"aliased"* ]] && unalias ls               # Just a general way to testing for commands that are type 'alias' and so to act upon them if aliased
 alias ls='\ls --color=always --group-directories-first'     # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
 alias la='ls -Ah'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)

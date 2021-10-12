@@ -49,8 +49,8 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance. [WSL1 vs WSL2](https://docs.microsoft.com/en-us/windows/wsl/compare-versions#understanding-wsl-2-uses-a-vhd-and-what-to-do-if-you-reach-its-max-size), [Docker with WSL2 Backend](https://docs.docker.com/desktop/windows/wsl/)  
   
 # Install WSL using DISM  
-Note: As of Wind 10 (2004 or later), WSL can now be setup with a single command:
-`wsl --install              # Just installs WSL`
+Note: As of Wind 10 (2004 or later), WSL can now be setup with a single command:  
+`wsl --install              # Just installs WSL` 
 `wsl --install -d Ubuntu    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --install -d Debian    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --list --online        # Show compact and friendly names for available distributions`  

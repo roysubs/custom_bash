@@ -5,7 +5,6 @@
 `git clone https://github.com/roysubs/custom_bash`  
 
 # Bash custom configuration & WSL Integration  
-
 Auto-configure common settings to be cross-platform for most Linux distros (CentOS/Ubuntu/Debian etc). Specific tools for WSL are included but that only load if WSL is detected. By sourcing a single script `custom_loader.sh`, this sets everything up and puts the `.custom` script into `~` which is then invoked by `~/.bashrc` at shell startup.  
 
 Goal was to keep all modifications outside of main bash configuration files, so that the changes do not pollute main configuration files to create a hard to maintain environment. Removal is then as simple as removing the two lines added at the end of `~/.bashrc` where it calls `~/.custom`.  
@@ -49,10 +48,9 @@ This is very easily done as the only main change are the lines in `~/.bashrc` to
 
 The following is the full syntax for all steps for an Ubuntu distro (Ubuntu partnered with Microsoft for the WSL project so their images are probably the most stable). Note that each distro is an independent VM (running on Hyper-V), but they are completely managed by the OS and so have almost instant start times. WSL VM folders (before making changes and installing software) are usually around 1 GB per instance. [WSL1 vs WSL2](https://docs.microsoft.com/en-us/windows/wsl/compare-versions#understanding-wsl-2-uses-a-vhd-and-what-to-do-if-you-reach-its-max-size), [Docker with WSL2 Backend](https://docs.docker.com/desktop/windows/wsl/)  
   
-\# Install WSL using DISM  
-Note: If you're running version 2004 of Windows 10 or later with all the latest optional updates,  
-WSL can now be setup with a single command. Inside a PowerShell window simply type:
-`wsl --install              # Just install WSL`  
+# Install WSL using DISM  
+Note: As of Wind 10 (2004 or later), WSL can now be setup with a single command:
+`wsl --install              # Just installs WSL`
 `wsl --install -d Ubuntu    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --install -d Debian    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --list --online        # Show compact and friendly names for available distributions`  

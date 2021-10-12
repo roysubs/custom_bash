@@ -191,25 +191,27 @@ if type dnf &> /dev/null 2>&1; then
     fi
 fi
 
-# Make sure that 'needsrestarting' is present on CentOS for reboot checks
-type dnf &> /dev/null 2>&1 && type needsrestarting &> /dev/null || sudo dnf install yum-utils -y
+# Need to make sure that 'needsrestarting' is present on CentOS to check if a reboot is required, or we find another tool
+if type dnf &> /dev/null 2>&1; then
+    type needsrestarting &> /dev/null || sudo dnf install yum-utils -y
+fi
 
 
 
 # I could 'source .custom' at the top of this script and then call 'updistro'. Does not work
 # well though; if there is a bug in '.custom', then this script will fail, and variables from
 # there might interfere here. Just keep a copy of the 'updistro' function in this script also.
-updistro() {
+updistro() {    # Self-contained function, no arguments, perform all update/upgrade functions for the current distro
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
     type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager should be dnf if both dnf and yum are present
     type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
     type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
     function separator() { echo -e "\n>>>>>>>>\n"; }
-    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
+    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }          # Show a command to run, and then run it, useful for showing progress during scripts
 
     printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, therefore,"
+    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
     echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
@@ -219,7 +221,7 @@ updistro() {
         separator; displayandrun apk update; separator; displayandrun apk upgrade
     else
         separator; displayandrun sudo $manager update
-        separator; displayandrun sudo $manager upgrade
+        separator; displayandrun sudo $manager upgrade      # Note that on dnf, update/upgrade are the same command
         separator; displayandrun sudo $manager install ca-certificates -y   # To allow SSL-based applications to check for the authenticity of SSL connections
         separator; displayandrun sudo $manager autoremove
     fi

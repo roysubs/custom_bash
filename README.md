@@ -50,7 +50,7 @@ The following is the full syntax for all steps for an Ubuntu distro (Ubuntu part
   
 # Install WSL using DISM  
 Note: As of Wind 10 (2004 or later), WSL can now be setup with a single command:  
-`wsl --install              # Just installs WSL` 
+`wsl --install              # Just installs WSL`  
 `wsl --install -d Ubuntu    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --install -d Debian    # Install WSL and a named distribution (-d = --distribution)`  
 `wsl --list --online        # Show compact and friendly names for available distributions`  

@@ -182,46 +182,47 @@ generaterandompasswd() {
 ####################
 # ls, cd, mkdir, du, df, and permissions
 ####################
-# Standardise 'ls' outputs (as it's generally different between distros). Add -A by default as linux hides '.*' files by default, but this is ridiculous as so much is dependent upon seeing these files.
-# Note [] character set wildcards: ls name[03][17].c, would match name01.c, name07.c, name31.c, name37.c, ranges are also allowed: ls name[07][1-9].c
-# Group directories first, -F append indicator (one of */=>@|) to entries, suppress ./ and ../  (-A is 'almost everything' and excludes ./ and ../)
+# Attempt to have a standard set of 'ls' outputs (as are often setup differently on each distribution).
+# The [] 'character set wildcards'. e.g. ls name[03][17].c, would match name01.c, name07.c, name31.c, name37.c, and [] also allows ranges: ls name[07][1-9].c
+# Note the use of '\ls' to run the bare command, ignoring an alias.
+# The -F flag appends an indicator (one of */=>@|) to entries
 # color=always vs color=auto: https://unix.stackexchange.com/questions/19317/can-less-retain-colored-output/19320#19320
-# Remember that ls is quite awkward with respect to recursion, as an 'ls *' will look into every subfolder, or 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
+# 'ls' is quite awkward with respect to recursion, e.g. 'ls *' will look into every subfolder even without the -R flag, and 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
 # Never use the output of an 'ls' in a 'for i in `ls`' as that can be unpredictable.
 # Don't want to do anything obscure with aliases, follow widely used settings for ls, ll, l, then have additional aliases for other tasks.
-if [[ $(type ls) == *"aliased"* ]]; then unalias ls; fi      # Don't need this, but it will remove an existing alias for ls if created in .bashrc / .bash_profile etc
-alias ls='\ls --color=always --group-directories-first'   # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
+[[ $(type ls) == *"aliased"* ]] && then unalias ls          # Don't need this, but in general on testing for type 'alias' to act upon them
+alias ls='\ls --color=always --group-directories-first'     # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
 alias la='ls -Ah'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias ll='ls -lAh'     # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
 alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-alias ldsd="ls -FlAh"               # Directory/Size/Date
-alias lld="ls -FlA | grep :*/"      # Directories only
+alias lld='ls -FlA | grep :*/'      # Directories only
+alias llf='ls -FlA | grep -v "/"'   # Files only (no directories)
 alias ldot="ls -ld .??*"            # Dotfiles only
-alias lnonx="ls -FlA | grep -v *"   # Non-executable files only
-alias lx="ls -FlA | grep *"         # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
-alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'; alias lx='lxe'  # List executables and scripts by extensions, discarding error output, i.e. 2>
-alias lext='ls -Fla | egrep "\."'         # Files without extensions only   ".|/"
-alias lnoext='ls -Fla | egrep -v "\."'    # Files without extensions only, 
+alias lx="find . -maxdepth 1 -executable -type f"        # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
+alias lnox="find . -maxdepth 1 -type f ! -executable"    # Everything except executable files   # alias lx="ls -FlA | grep *"; alias lnox="ls -FlA | grep -v *"
+alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'  # List possible executables and scripts by extensions, discarding error output (as will generate for every type that is not there)
+alias lext='ls -Fla | egrep "\."'                        # Files without extensions only   ".|/"
+alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions only
 alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
-alias lm='ls -Am'; alias lcsv='lm'         # -m 'comma' comma separated list, -A almost all, except '.' and '..'
+alias lm='ls -Am'; alias lcsv='lm'         # comma separated view (-m), -A almost all, except '.' and '..'
 alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
 alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
 # replicate 'ls', but using 'stat' to show both normal 'ls' permission flags *and* octal.
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
-lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format).
-sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make your directories and files access rights the same
+lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format) and names
+sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
 alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
 alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
 alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
 alias mx='chmod a+x'   # Make Executable
-alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'l'ong 'l's with 's'ecurity
+alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'long listing with ecurity'
 alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
-alias ee='exa -lA'     # exa is a potential successor to 'ls', works very well with nice default colouring and multi-column options
+alias lg='exa -lG'     # 'ls grid', exa is an interesting potential successor to 'ls', in Ubuntu 20.10 repo by default, colours each permission item and -lG is a useful 2x column long view.
 cl() { cd "$@" && ls; }        # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }       # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
@@ -371,7 +372,7 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
     type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
     type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
     function separator() { echo -e "\n>>>>>>>>\n"; }
-    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }     # Show the command to be run before running, to show output from scripts
+    function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }          # Show a command to run, and then run it, useful for showing progress during scripts
 
     printf "\nCheck updates:"
     echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
@@ -645,6 +646,7 @@ alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
 alias cd2="cd ~/custom_tools; ls"      # Another peronal project location
+alias cd0edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias cd1edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems
 alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
@@ -730,7 +732,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     # Map common Windows locations to navigate to from within WSL. Use ':' on these mappings to identify as WSL mappings to Windows
     # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
     for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done         #  "d:" => cd to /mnt/d
-    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "l$(basename ${d})"="cd $d && ll"; done   # "ld:" => cd to and list d:""
+    for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "l$(basename ${d}):"="cd $d && ll"; done   # "ld:" => cd to and list d:""
     [ -d /mnt/c/Windows/System32 ] && alias sys32:='cd /mnt/c/Windows/System32 && sudo ls'
     [ -d /mnt/c/Program\ Files ] && alias pf:='cd /mnt/c/Program\ Files && ls' && alias pf64:='cd /mnt/c/Program\ Files && ls'
     [ -d /mnt/c/Program\ Files\ \(x86\) ] && alias pf32:='cd /mnt/c/Program\ Files\ \(x86\) && ls' && alias pf86:='cd /mnt/c/Program\ Files\ \(x86\) && ls'

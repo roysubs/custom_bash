@@ -1,7 +1,7 @@
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
 # Quick Install
-`git config --global core.autocrlf input`  # Make sure to do this to prevent runtime errors
+`git config --global core.autocrlf input`  # Make sure to do this to prevent runtime errors  
 `git clone https://github.com/roysubs/custom_bash`  
 
 # Bash custom configuration & WSL Integration  

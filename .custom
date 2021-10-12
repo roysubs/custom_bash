@@ -14,10 +14,11 @@
 # curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/custom_loader.sh | bash   # Alternative one-line installation.
 
 # If this is an xterm set the title to user@host:dir
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then . /etc/bash_completion; fi
 case "$TERM" in
     xterm*|rxvt*|screen*)    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'    ;;
 esac
-# make less more friendly for non-text input files, see lesspipe(1)
+# make less more friendly for non-text input files, see lesspipe(1), i.e. man 1 lesspipe
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 ####################
@@ -110,10 +111,10 @@ alias sudo='sudo '                      # Allows alias expansion even when using
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 complete -cf sudo    # Tab complete for commands that come after sudo
 
-alias v='vim'                           # Quick vim access
-alias b='byobu'                         # Quick byobu access
-alias t='tmux'                          # Quick tmux access
-type code && alias c='code'
+alias v='vim'                               # Quick vim access
+type code &> /dev/null && alias c='code'    # Quick VS Code access
+type byobu &> /dev/null && alias b='byobu'  # Quick byobu access
+type tmux &> /dev/null && alias t='tmux'    # Quick tmux access
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
@@ -124,8 +125,8 @@ ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return f
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them, note that if $2 is not ther, 'file' will be the default
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
-alias mountt='mount | columns -t'   # 'mount with tabs' to make mount readable
-alias bashrc='vim ~/.bashrc && source ~/.bashrc'             # Edit ~/.bashrc and then source it on finishing editing
+alias mountt='mount | columns -t'                        # 'mount with tabs' to make mount readable
+alias bashrc='vim ~/.bashrc && source ~/.bashrc'         # Edit ~/.bashrc and then source it on finishing editing
 alias ps2='ps -ef | grep -v $$ | grep -i'                # Search processes for a string
 alias psg='ps -Helf | grep -v $$ | grep -i -e WCHAN -e'  # Search processes for a string
 alias tree-all="find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'"
@@ -143,10 +144,10 @@ alias meminfo='\egrep "Mem|Cache|Swap" /proc/meminfo'
 myusb() { usb_array=();while read -r -d $'n'; do usb_array+=("$REPLY"); done < <(find /dev/disk/by-path/ -type l -iname *usb*scsi* -not -iname *usb*scsi*part* -print0 | xargs -0 -iD readlink -f D | cut -c 8) && for usb in "${usb_array[@]}"; do echo "USB drive assigned to sd$usb"; done; }   # USB assigments
 alias top10="sort|uniq -c|sort -n -r|head -n 10"
 alias lu="awk -F: ‘{ print $1}’ /etc/passwd"
-# alias reboot='echo “Are you sure you want to reboot host `hostname` [y/N]?” && read reboot_answer && if [ “$reboot_answer” == y ]; then /sbin/reboot; fi'
-# alias shutdown='echo “Are you sure you want to shutdown host `hostname` [y/N]?” && read shutdown_answer && if [ “$shutdown_answer” == y ]; then /sbin/shutdown -h now; fi'
-alias tolowercase="pbpaste | tr "[:upper:]" "[:lower:]" | pbcopy"
-alias touppercase="pbpaste | tr "[:lower:]" "[:upper:]" | pbcopy"
+alias reboot1='echo "Are you sure you want to reboot \"`hostname`\" [y/N]?" && read reboot_answer && if [ "$reboot_answer" == y ]; then /sbin/reboot; fi'
+alias shutdown1='echo "Are you sure you want to shutdown host \"`hostname`\" [y/N]?" && read shutdown_answer && if [ "$shutdown_answer" == y ]; then /sbin/shutdown -h now; fi'
+alias tolowercase='pbpaste | tr "[:upper:]" "[:lower:]" | pbcopy'
+alias touppercase='pbpaste | tr "[:lower:]" "[:upper:]" | pbcopy'
 alias c='xsel --clipboard'   # Copy from cli to clipboard, use like:   cat somefile | c
 lsdu() { ls -l $* | sort --key=5.1 -n; };           # List by ascending size
 lsduf() { ls -l | egrep $* | sort --key=5.1 -n; };  # Accepts input to fileter/grep on
@@ -157,13 +158,20 @@ loc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; }; # count lines (c, c++)
 
 # Tab competion
 [ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
-generatesshkey() {
+generatesshkey() {    # generatesshkey ansible
     echo "What is the name of the Key (no spaces please) ? "; read name;
     echo "What is the email associated with it ? "; read email;
-    `ssh-keygen -t rsa -f ~/.ssh/id_rsa_$name -C "$email"`;
+    echo "Creating 4096 bit rsa"
+    `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_$name -C "$email"`;
     ssh-add ~/.ssh/id_rsa_$name;    pbcopy < ~/.ssh/id_rsa_$name.pub   # pbcopy will copy into GUI clipboard if available
-    echo "SSH Key copied in your clipboard";
+    echo "SSH Key copied to clipboard by pbcopy";
+    echo "ssh-keygen -t rsa -b 4096  ,  ssh-keygen -t dsa  ,  ssh-keygen -t ecdsa -b 521  ,  ssh-keygen -t ed25519"
+    echo "ssh-copy-id - ~/.ssh/id_rsa_$name 192.168.1.11   # To send to other hosts"
+    read
+    cat ~/.ssh/authorized_keys
 }
+alias sshcache='eval $(ssh-agent) && ssh-add'
+
 generaterandompasswd() {
     if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
     array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
@@ -474,9 +482,9 @@ type ncdu >/dev/null 2>&1 && alias du1='ncdu'        # Same for du1, we use <cmd
 # Note: 'python3.8' / 'python3.9' to start those versions, and 'pip2' does not exist on Ubuntu20+ or RHEL/CentOS8+ by default (note that the package is called 'python3-pip' on both distros)
 alias python='python3'; alias p='python3'; alias pip='pip3'; alias p2='python2'; alias p3='python3'; alias p36='python3'; alias p38='python3.8'; alias p39='python3.9'
 # Terminal Web tools, limited usefulness, test elinks, links2, w3m also, ideally would like to return various information to terminal if possible
-py2web() { [ -z "$1" ] && echo "No port specified, defaulting to port 8000"; python2 -m SimpleHTTPServer $1 & echo "Python Web Server started as background job with PID $!"; }   # https://serverfault.com/questions/205498/how-to-get-pid-of-just-started-process
-py3web() { if [ -z "$1" ]; then echo "No port specified, defaulting to port 8000"; port=8000; else port=$1; fi; python3 -m http.server $1      & echo -e "\nnetstat -tulpn $(netstat -tulpn)\nss -tulw $(ss -tulw)\n\n\nPython Web Server started sharing the contents of\n'$(pwd)' as a background job on port $1 with PID $!\n"; }
-py3web-example() { py=py3web-example.py; [ ! -f "~/$py" ] && [ -f /tmp/.custom/$py ] && cp /tmp/.custom/$py ~/; [ -f ~/$py ] && python3 ~/$py || echo "Python Server Example ($py) was not found"; }
+py2web() { [ -z "$1" ] && echo "No port specified, defaulting to port 8000"; python2 -m SimpleHTTPServer $1; echo "Python Web Server started as background job with PID $!"; }   # https://serverfault.com/questions/205498/how-to-get-pid-of-just-started-process
+py3web() { if [ -z "$1" ]; then echo "No port specified, defaulting to port 8000"; port=8000; else port=$1; fi; python3 -m http.server $1; echo -e "\nnetstat -tulpn $(netstat -tulpn)\nss -tulw $(ss -tulw)\n"; }
+py3web-example() { py=py3web-example.py; [ ! -f "~/$py" ] && [ -f /tmp/.custom/$py ] && cp /tmp/.custom/$py ~/; [ -f ~/$py ] && python3 ~/$py $1 || echo "Python Server Example ($py) was not found"; }
 alias term-google='lynx http://google.co.uk'; alias term-google0='lynx -term=vt100 http://google.co.uk'   # --term=vt100 = black and white
 alias term-bbc='lynx https://news.bbc.co.uk/text_only.stm'; alias term-bbc0='lynx -term=vt100 https://news.bbc.co.uk/text_only.stm'
 alias term-theregister='lynx https://theregister.com'; alias term-theregister0='lynx -term=vt100 https://theregister.com'
@@ -484,7 +492,7 @@ alias pc='python -ic "from __future__ import division; from math import *"'   # 
 type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav -f' && alias espeak-wav='espeak -s 150 -w voice.wav' && alias espeak-us='espeak -v en-us -s 150' && alias espeak-file='espeak -s 150 -f'   # Only created if espeak present
 type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # resize all PNG in current folder only if wider than 690px using ImageMagick
 alias tastatur="setxkbmap -model cherryblue -layout de -variant ,nodeadkeys"   # for changing keyboards, sample
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+type notify-send >/dev/null 2>&1 && alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 extract () {   # Extract any archive type into a folder
     local x
@@ -551,7 +559,6 @@ exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }  # Show the command to be r
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }          # Maths function
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }    # Maths function, also note the built in 'factor' what a number is divisible by
 factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
-split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter; array=(); while [[ $s ]]; do array+=( "${s%%"$delimiter"*}" ); s=${s#*"$delimiter"}; done; declare -p array; echo $array; }
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
 runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; then cat "./$1"; fi; if [ $3 = "run" ]; then exec "./$1"; fi; }
 
@@ -560,7 +567,7 @@ sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {
 type apk 2> /dev/null && sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
 
 # Vim and useful text file discovery tools
-alias lvim="vim -c \"normal '0\""    # Open last file (even if you changed directory)
+alias vimlast="vim -c \"normal '0\""    # Open last file (even if you changed directory)
 vi.() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in ~/.bash_profile ~/.bash_login ~/.bash_logout ~/.profile ~/.bashrc ~/.custom ~/.inputrc ~/.vimrc; do vim $x; break; done; }   # Edit dot conf files
 vi.su() { COLUMNS=12; printf -v PS3 '\n%s ' 'Select option: '; printf "Edit config file with sudo (note interactive: /etc/profile, then .bash_profile or .bash_login or .profile, https://tinyurl.com/startuporder):\n\n"; select x in vim\ /etc/profile vim\ /etc/bash.bashrc vim\ /etc/bashrc vim\ /etc/inputrc vim\ /etc/vimrc vim\ /etc/hosts vim\ /etc/samba/smb.conf visudo; do sudo $x; break; done; }   # Edit system dot conf files
 alias decomment='egrep -v "^[[:space:]]*((#|;|//).*)?$" '    # Display a file, but stripped of all comments
@@ -639,8 +646,9 @@ alias limpets='nmap -sP $(ip -o addr show | grep inet  | grep eth | cut -d  -f 7
 alias lsof.='sudo lsof -i'
 alias iptlistfw='sudo /sbin/iptables -L FORWARD -n -v –line-numbers'   # iptables might be redundant
 alias what-port='echo -e "See /etc/services for complete list\n20 FTP data transfer\n21 FTP session\n22 SSH\n23 Telnet\n25 SMTP email\n43 WHOIS\n53 DNS\n67 DHCP server\n68 DHCP client\n80 HTTP\n110 POP3 email\n119 NNTP\n123 NTP\n137 NETBIOS nameservice\n138 NETBIOS datagram\n139 NETBIOS session\n143 IMAP email\n161 SNMP\n162 SNMP trap\n194 IRC\n443 HTTPS over TLS/SSL\n587 SMTP email\n873 rsync"'
+
 ####################
-# Personal Settings.   # Personal settings that will be overwritten by "~/.custom-me' is that file is present
+# Personal Settings:   # Personal settings that will be overwritten by "~/.custom-me' if that file is present
 ####################
 alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
@@ -656,7 +664,7 @@ alias weather-ams='curl -4 http://wttr.in/Amsterdam'
 alias weather-ny='curl -4 http://wttr.in/NewYork'
 # defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
-me="~/.customme"; [[ -f $me ]] && source $me   
+me="~/.custom-me"; [[ -f $me ]] && source $me   
 
 ####################
 # Help Topics:   Created at /tmp/.custom by custom_loader.sh and then aliased
@@ -671,10 +679,10 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 
 hhliq="$hhtmp/liquid.sh"; [[ -f $hhliq ]] && alias liquid="source $hhliq"   # Can source a script from an alias/function created during .bashrc
-hh="$hhdk/.customdk"; [[ -f $hhdk ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hhdk\n$(type docker)'; source $hhdk; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
+hh="$hhdk/.custom-dk"; [[ -f $hhdk ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hhdk\n$(type docker)'; source $hhdk; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .customdk aliases/functions, including re-aliasing itself as dk => docker
 # Trivial but can be nice to have (on Ubuntu these are already available in repository)
 type dnf &>/dev/null && install-all-toys() { sudo dnf install ruby install gcc make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-devel rubygems; sudo gem install lolcat; } # https://gist.github.com/mtaziz/d5b2f9ef46b06f04fbbd   g++ ruby-rdoc
-type dnf &>/dev/null && install-acquarium() { echo "run script from /tmp/1"; }
+type dnf &>/dev/null && install-acquarium() { echo "run script from /tmp/.custom"; }
 
 ####################
 # WSL:   These will only activate if this session is in WSL, i.e. if /proc/version contains "Microsoft" or "WSL". https://stackoverflow.com/q/38086185/   https://meta.stackexchange.com/q/164194/
@@ -743,10 +751,10 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
 
     # Microsoft already provides a "code" shell script to call from WSL, so do not use code.exe from a full installation or from chocolatey
     # shim at /mnt/c/ProgramData/chocolatey/bin/code.exe, as these will cause errors inside WSL. Only use one of the official "code" shell script.
+    # Below checks might be redundant; does WSL come up in a state that it can see VS Code already?
     # [ -f /mnt/c/tools/vscode/bin/code ] && alias code='/mnt/c/tools/vscode/bin/code'   # Default Portable Edition location with Chocolatey package
     # [ -f /mnt/c/Program\ Files/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Program Files/Microsoft\ VS\ Code/bin/code"   # Default System install location
     # [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
-    alias c='code'   # Also alias 'c' to point at VS Code
 
     # Demonstrate using Windows clip.exe within WSL to get a string into the clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
     alias get-ip='ip4 | clip.exe'   # Could also use   IP=`hostname -I`   just to get the IP into a variable
@@ -765,9 +773,6 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias xsu='xterm -fn 7x14 -bg DarkOrange4 -fg white -e su &'
 fi
 
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
-    . /etc/bash_completion
-fi
 ####################
 # Display login banner, except for when starting a new tmux/byobu session)
 ####################

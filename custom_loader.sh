@@ -951,11 +951,11 @@ print_header "HELP FILES : Create various help scripts for notes and tips and al
 
 ####################
 #
-echo "Copy Docker Aliases '.customdk' into the helper folder"
+echo "Copy Docker Aliases '.custom-dk' into the helper folder"
 #
 ####################
-if [ -f ./.customdk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    cp ./.customdk $hh/
+if [ -f ./.custom-dk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
+    cp ./.custo-mdk $hh/
 fi
 
 
@@ -1417,21 +1417,16 @@ exx "wc !?torn?:2   would also work, selecting argument 2 from the found command
 exx ""
 exx "\${BYELLOW}***** Linux Keyboard Shortcuts\${NC}"
 exx "https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/"
-exx "Ctrl-C   Kill process in the terminal  /  Ctrl-Z    =>  Stop current process (fg / bg / jobs)"
-exx "Ctrl+R   'Recall', search history of used commands  =>  Ctrl-O Open/run command,  Ctrl-G Do not run"
+exx "Ctrl-C      Kill process in the terminal  /  Ctrl-Z    Stop current process   =>   (fg / bg / jobs)"
+exx "Ctrl+R      'Recall', search history of used commands  =>  Ctrl-O Run found command,  Ctrl-G Do not run found command"
 exx "Ctrl+A (or Home) / E (or End)  Move to start / end of current line"
 exx "Alt +F / B  Move forward / backwards one word"
 exx "Ctrl+F / B  Move forward / backwards one character"
 exx "Ctrl-U / K  Cut all line *before* (U) or after (K) cursor into clipboard"
-exx "Ctrl-Y     # Paste from clipboard"
-exx "Ctrl+W   Cut the word on the left side of the cursor"
-exx "Ctrl+D   Logout of Terminal or ssh (or tmux) session"
-exx "Ctrl+L   Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
-exx ""
-exx "Some structures (split this off to a different file):"
-exx "  for i in {7..18}; do echo \\\$i; done        # Arbitrary numbers"
-exx "  for i in \\\`seq 1 9\\\`; do echo \\\$i; done      # Another way"
-exx "  [[ \\\"\\\$(read -e -p 'A ask a question? [y/N]> '; echo \\\$REPLY)\\\" == [Yy]* ]]   # One-liner to get input"
+exx "Ctrl-Y      Paste from clipboard"
+exx "Ctrl+W      Cut the word on the left side of the cursor"
+exx "Ctrl+D      Logout of Terminal or ssh (or tmux) session"
+exx "Ctrl+L      Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
 exx ""
 exx "grep \\\`whoami\\\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
@@ -1484,6 +1479,40 @@ exx ""
 exx "Also note 'skill' and 'killall' (though 'killall' is quite dangerous)."
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Bash Tips  (show with 'help-bash-tips')"
+#
+####################
+# When using printf, remember that "%" has to be escaped as "%%" or "\045", but
+# this is much easier than 'echo -e' where almost everything has to be escaped.
+# % => %%
+# Inside ''  :  $ => \$, " => \\", ' is impossible, () => \(\)
+# For awk lines, put inside "", then ' is literal, ()) are literal, " => \\\\\" (5x \)
+# Inside ""  :  $() => \\$, but variables are handled differently, $3 => \\\\\$3 (5x \)
+# \b => \\\\\\b (6x \) to prevent \b being intpreted as a 'backspace'
+# $ => \$ , " => \\" , % => %%%% , %% => %%%%%%%% (will fold to %%%% then down to %% at final print )
+HELPFILE=$hh/help-bash-tips.sh
+zzz() { printf "$1\n" >> $HELPFILE; }   # echo without '-e'
+printf "#!/bin/bash\n" > $HELPFILE
+zzz "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+zzz 'HELPNOTES="'
+zzz '${BCYAN}$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Bash Tips)${NC}'
+zzz ''
+zzz '${YELLOW}Example of splitting a string by another string (quite tricky in Bash):${NC}'
+#    split() { str="LearnABCtoABCSplitABCaABCString"; delimiter=ABC; s=$str$delimiter; array=(); while [[ $s ]]; do array+=( "${s%%"$delimiter"*}" ); s=${s#*"$delimiter"}; done; declare -p array; echo $array; }
+zzz '''split() { str=\\"LearnABCtoABCSplitABCaABCString\\"; delimiter=ABC; s=\$str\$delimiter; array=(); while [[ \$s ]]; do array+=( \\"\${s%%%%%%%%\\"\$delimiter\\"*}\\" ); s=\${s#*\\"\$delimiter\\"}; done; declare -p array; echo \$array; }'
+zzz ''
+zzz '${YELLOW}Some structures (split this off to a different file):${NC}'
+zzz '  [[ \\"\$(read -e -p \\"A ask a question? [y/N]> \\"; echo $REPLY)\\" == [Yy]*: ]]   # One-liner to get input'
+zzz '  for i in {7..18}; do echo \$i; done     # Arbitrary numbers'
+zzz '  for i in \`seq 1 9\`; do echo \$i; done   # Another way'
+zzz '"'   # require final line with a single " to end the multi-line text variable
+zzz 'printf "$HELPNOTES"'
 chmod 755 $HELPFILE
 
 
@@ -2747,7 +2776,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz 'If you want to remove this service at some point:   C:\pulse\nssm.exe remove PulseAudio'
     zzz 'PulseAudio is installed as a service (in Windows), so once started, it will start at every login, so need to start manually again.'
     zzz '"'   # require final line with a single " to end the multi-line text variable
-    zzz 'printf "$HELPNOTES\n"'
+    zzz 'printf "$HELPNOTES"'
     chmod 755 $HELPFILE
 
     ### This is the old version using echo -e
@@ -2916,7 +2945,12 @@ print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .cu
 #
 ####################
 
-if . .custom; then echo -e ">>>>> .custom was sourced successfully <<<<<\n"; fi
+if . .custom; then
+    echo -e ">>>>> '.custom' was sourced successfully <<<<<\n"
+else
+    echo -e "!!!!! '.custom' failed to load (check for errors above) !!!!!\n"
+
+fi
 
 # The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
 echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory."

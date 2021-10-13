@@ -18,13 +18,23 @@
 # Simple abbreviations/mnemonics for most aliases, ai='sudo apt install -y, tn='t'mux 'n'ew -s <session>, myip, etc
 # Many aliases will not be created if the component that they rely upon is missing (i.e. standalone, can drop into a server and will work).
 
-# If this is an xterm set the title to user@host:dir
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then . /etc/bash_completion; fi
-case "$TERM" in
-    xterm*|rxvt*|screen*)    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'    ;;
-esac
-# make less more friendly for non-text input files, see lesspipe(1), i.e. man 1 lesspipe
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+####################
+# Using .custom tools: search for and show full definitions of any alias or function
+####################
+# 'aaff <string>' 'find functions/aliases, 'aaa <string>' 'find aliases', 'fff <string>' 'find functions'.
+# e.g. 'aaff git', 'aaff netstat' show every function/alias containing 'git' or 'netstat'. Limited regex support, 'aaff ^g' works, but '*' in the body of a search does not.
+# To get more detailed info on a function, use 'def <fnname>' to display the full definition of that function (or alias, but mostly use this for functions).
+# Also remember just using 'grep netstat .custom' to view information, and the grep -A (after) / -B (before) to get context around the search results.
+# Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
+uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'fff' function below (and generally useful to remove control characters from files or pipeline output)
+aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
+fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
+aaff() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; aaa $1; }   # Just show the names of functions that contain the search-string
+alias ffaa='aaff'
+def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
+# ToDo: Parse script for aliases and functions'  :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
+# Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
+# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
 
 ####################
 # Key Bindings: A good read here https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/
@@ -42,25 +52,15 @@ esac
 # https://unix.stackexchange.com/questions/230330/what-does-do                 bash -xl (what does it do?)
 
 ####################
-# Finding Aliases and Functions loaded in memory: Tools to search for then, then to show the full definitions of any alias or function
-####################
-# 'aaff <string>' 'find functions/aliases, 'aaa <string>' 'find aliases', 'fff <string>' 'find functions'.
-# e.g. 'aaff git', 'aaff netstat' show every function/alias containing 'git' or 'netstat'. Limited regex support, 'aaff ^g' works, but '*' in the body of a search does not.
-# To get more detailed info on a function, use 'def <fnname>' to display the full definition of that function (or alias, but mostly use this for functions).
-# Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
-uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'fa' function below (and generally useful to remove control characters from files or pipeline output)
-aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
-fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
-aaff() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; aaa $1; }   # Just show the names of functions that contain the search-string
-alias ffaa='aaff'
-def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
-# ToDo: Parse script for aliases and functions'  :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
-# Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
-# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
-
-####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
+# If this is an xterm set the title to user@host:dir
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then . /etc/bash_completion; fi
+case "$TERM" in
+    xterm*|rxvt*|screen*)    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'    ;;
+esac
+# make less more friendly for non-text input files, see lesspipe(1), i.e. man 1 lesspipe
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion   # Required by exa and various other tools. 
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
 [ $SHELL == "/bin/bash" ] && [ ${BASH_VERSINFO[0]} -ge 4 ] && shopt -s autocd   # Add shell test as otherwise /bin/ash breaks on the ${} construct
@@ -557,7 +557,7 @@ runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; the
 
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
-type apk 2> /dev/null && sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
+type apk &> /dev/null && sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
 
 # Vim and useful text file discovery tools
 alias vimlast="vim -c \"normal '0\""    # Open last file (even if you changed directory)
@@ -574,7 +574,7 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 # TOIlet stands for “The Other Implementation's letters", coined after FIGlet’s “Frank, Ian and Glen’s letters".
 type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 type figlet  &> /dev/null && figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
-type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f small $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
+type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f /usr/share/figlet/small.flf $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f /usr/share/figlet/univers.flf" || local opts="-f /usr/share/figlet/big.flf"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
 type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 type cowsay  &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay  &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617

@@ -176,9 +176,63 @@ fi
 
 
 
-# I could 'source .custom' at the top of this script and then call 'updistro'. Does not work
-# well though; if there is a bug in '.custom', then this script will fail, and variables from
+# I could 'source .custom' at the top of this script and then call 'pt' and 'updistro'. This is
+# not good though; if there is a bug in '.custom', then this script will fail, and variables from
 # there might interfere here. Just keep a copy of the 'updistro' function in this script also.
+pt() {
+    # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
+    # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
+    # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
+    # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
+    arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0;
+    [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
+    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')     # must do '--auto' before '-auto' or will be left with a '-' fragment
+    mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
+    # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
+    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
+    # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
+    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
+    notinrepo+=(`echo ${mylist[@]} ${isinrepo[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays, jave have to consider the right arrays to use here # different answer here: https://stackoverflow.com/a/2315459/524587
+    echo ""
+    [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
+    [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
+    [[ ${notinrepo[@]} != "" ]]   && echo "These packages do not exist in the repository:         ${notinrepo[@]}"     # $(for x in ${isinstalled[@]}
+
+    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays (use "${}" if spaces in array elements) # https://stackoverflow.com/a/28161520/524587
+    if [ $packauto = 1 ]; then
+        if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
+        else echo -e "\nNo selected packages can be installed. Exiting ...\n"
+        fi
+        return
+    fi
+    
+    while [ $endloop = 0 ]; do
+        caninstall=(Install-and-Exit)
+        caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
+        if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
+        COLUMNS=12
+        [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
+        echo -e "\n\nSelect a package number to add to the install list.\nTo install the selected packages and exit the tool, select '1'.\n"
+        printf -v PS3 '\n%s ' 'Enter number of package to install: '
+        select x in ${caninstall[@]}; do
+            toinstall+=" $x "
+            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
+            if [ $x == "Install-and-Exit" ]; then endloop=1; fi
+            break
+        done
+    done
+    if [[ $toinstall = *[!\ ]* ]]; then    # https://unix.stackexchange.com/a/147109/441685
+        echo -e "\n\n\nAbout to run:   sudo $manager install $toinstall\n\n"
+        read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
+        sudo $manager install -y $toinstall
+    else
+        echo -e "\nNo selected packages can be installed. Exiting ...\n"
+    fi
+}
+
 updistro() {    # Self-contained function, no arguments, perform all update/upgrade functions for the current distro
     type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
     type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"

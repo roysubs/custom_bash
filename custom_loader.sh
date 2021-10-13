@@ -243,7 +243,7 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
     function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }          # Show a command to run, and then run it, useful for showing progress during scripts
 
     printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    A '$DISTRO' package manager was found, therefore,"
+    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, therefore,"
     echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi

@@ -65,6 +65,7 @@
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 # If you want to run apt-get without having to supply a sudo password, just edit the sudo config file to allow that. (Replace “jfb” in this example with your own login).
 # jfb ALL=(root) NOPASSWD: /usr/bin/apt-get
+# https://www.cyberciti.biz/open-source/30-cool-best-open-source-softwares-of-2013/
 
 ####################
 #
@@ -864,32 +865,57 @@ addToFile '"\C-n": history-search-forward # After Ctrl-r, Ctrl-n to go forward (
 
 
 
+
+
 ####################
 #
-print_header "Common changes to /etc/sudoers"
+print_header "Common changes to /etc/sudoers (/etc/sudoers.d/custom-rules)"
 #
 ####################
 
-echo "ToDo: This part is tricky to automate as mistakes in /etc/sudoers can make a system unbootable."
-echo "There is a fix for this in some distros, you can run:   pkexec visudo"
-echo "Then, fix any issues, or add contents from a backed up /etc/sudoers"
-echo "   sudo visudo --file=/etc/sudoers.d/arash-extra-rules"
-echo ""
-echo "The goal is to add a 10 hr timeout for sudo passwords to be re-entered as it gets annoying to"
-echo "have to continually retype this on a home system (i.e. not advised on a production system)."
-echo "See all options with 'man sudoers'. To manually make this change:"
-echo ""
-echo "sudo visudo   # To open /etc/sudoers safely (will not permit saving unless syntax is correct)"
-echo "Add ',timestamp_timeout=600' to the 'Defaults env_reset' line, or just ad an extra Defaults line:"
-echo "Defaults    timestamp_timeout=600   # For 600 minutes, or set to whatever you prefer"
-echo ""
-echo "Automating this change will look something like the following, but do not do this as it will"
-echo "break /etc/sudoers in this format (so don't do this!):"
-echo "   # sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers"
-echo ""
+# First, make sure that /etc/sudoers.d is enabled
+custom_rules=/etc/sudoers.d/custom-rules
 
-echo "Create Backup : $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh"
-sudo cp /etc/sudoers $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
+if ! sudo grep -q '^[@#]includedir /etc/sudoers.d$' /etc/sudoers; then
+    sudo sed '$a\\n@includedir /etc/sudoers.d' /etc/sudoers > /etc/sudoers.new
+    [ ! -d /etc/sudoers.d ] && sudo mkdir /etc/sudoers.d
+    sudo visudo -c -f /etc/sudoers.new && sudo mv /etc/sudoers{.new,}
+    echo "Create Backup : $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+    sudo cp /etc/sudoers $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
+fi
+
+if [ -f $custom_rules ]; then
+    echo "Create Backup : $hh/sudoers.d/custom_rules_$(date +"%Y-%m-%d__%H-%M-%S").sh"
+    sudo cp $custom_rules $hh/custom_rules_$(date +"%Y-%m-%d__%H-%M-%S").sh
+fi
+
+# echo "   sudo visudo --file=/etc/sudoers.d/arash-extra-rules"
+# echo "Automating this change will look something like the following, but do not do this as it will"
+# echo "break /etc/sudoers in this format (so don't do this!):"
+# echo "   # sed 's/env_reset$/env_reset,timestamp_timeout=600/g' /etc/sudoers \| sudo tee /etc/sudoers"
+if ! [ -f /etc/sudoers.d/customrules ]; then
+
+    echo "Automating changes to /etc/sudoers can make a system unbootable so we will"
+    echo "only change a file under /etc/sudoers.d"
+    echo "Note that if sudo breaks, you can run 'pkexec visudo' on some distros."
+    echo "In pkexec visudo, fix any issues, copy in from a backup of /etc/sudoers"
+    echo "See all options with 'man sudoers'"
+    echo ""
+    echo "Add a 10 hr timeout for sudo passwords to be re-entered for home systems:"
+    echo "Add 'Defaults timestamp_timeout=600' to '/etc/sudoers.d/timeout'"
+    echo "Note that mutiple Default statements on different lines/files will all be added."
+    if [ ! -f $custom_rules ]; then
+        sudo touch $custom_rules
+        sudo chmod 0440 $custom_rules
+    else
+        if ! sudo grep -q '^Defaults timestamp_timeout=600' $custom_rules; then
+            echo 'Defaults timestamp_timeout=600' | sudo tee --append $custom_rules
+        fi
+    fi
+    echo ""
+fi
+
+sudo visudo -c -f /etc/sudoers   # Will check all sudoer files
 
 # timestamp_timeout
 #     Number of minutes that can elapse before sudo will ask for a passwd again.  The timeout may include a fractional component if
@@ -922,44 +948,6 @@ sudo cp /etc/sudoers $hh/sudoers_$(date +"%Y-%m-%d__%H-%M-%S").sh
 # Require "sudo tee" as /etc/sudoers does not even have 'read' permissiong so "> sudoers.1" would not work
 # Can also use "--append" to tee, useful to adding to end of a file, but in this case we do not need
 # Add option to view the sudoers file in case it is broken to offer to copy the backup back in
-
-
-
-####################
-#
-print_header "Configure Locale"
-#
-####################
-
-# exe locale
-# Following are usual defaults
-# LANG=en_US.UTF-8
-# LANGUAGE=
-# LC_CTYPE="en_US.UTF-8"
-# LC_NUMERIC=nl_NL.UTF-8
-# LC_TIME=nl_NL.UTF-8
-# LC_COLLATE="en_US.UTF-8"
-# LC_MONETARY=nl_NL.UTF-8
-# LC_MESSAGES="en_US.UTF-8"
-# LC_PAPER=nl_NL.UTF-8
-# LC_NAME=nl_NL.UTF-8
-# LC_ADDRESS=nl_NL.UTF-8
-# LC_TELEPHONE=nl_NL.UTF-8
-# LC_MEASUREMENT=nl_NL.UTF-8
-# LC_IDENTIFICATION=nl_NL.UTF-8
-# LC_ALL=
-echo "To change locale for language and keyboard settings (e.g. GB, FR, NL, etc)"
-echo "we have to set LANG, LANGUAGE, and all LC variables (via LC_ALL):"
-echo '   # sudo update-locale LANG="en_GB.UTF-8" LANGUAGE="en_GB"   # for GB'
-echo '   # sudo update-locale LANG="nl_NL.UTF-8" LANGUAGE="nl_NL"   # for NL'
-echo '   # sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR"   # for FR'
-echo "   # sudo localectl set-locale LANG=en_GB.UTF-8"
-echo "   # sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
-echo ""
-echo "For Ubuntu, just need to run the folloing and choose the UTF-8 option:"
-echo "   # sudo dpkg-reconfigure locales"
-echo ""
-echo "Run 'locale' to view the current settings before changing."
 
 
 
@@ -1001,7 +989,14 @@ print_header "HELP FILES : Create various help scripts for notes and tips and al
 # Both printf and echo -e have issues, but printf overall is probably better.
 # Note escaping \$ \\, and " is little awkward, as requires \\\" (\\ => \ and \" => ").
 
-
+#  ####################
+#  # Quick help topics that can be defined in one-liners, basic syntax reminders for various tasks
+#  ####################
+#  # printf requires "\% characters to to be escaped as \" , \\ , %%. To get ' inside aliases use \" to open printf, e.g. alias x="printf \"stuff about 'vim'\n\""
+#  # Bash designers seem to encourage not using aliases and only using functions, which eliminates this problem. https://stackoverflow.com/questions/67194736
+#  # Example of using aliases for this:   alias help-listdirs="printf \"Several ways to list only directories:\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -daifl   # -d (dirs only), -a (all, including hidden), -i (don't show tree structure), -f (full path), -l (don't follow symbolic links), -p (permissions), -u (user/UID), --du (disk usage)\n\""
+#  # https://phoenixnap.com/kb/how-to-list-installed-packages-on-ubuntu   # https://phoenixnap.com/kb/uninstall-packages-programs-ubuntu
+#  help-packages_apt() { fn-help "apt package management:" "info dir / info ls / def dir / def ls # Basic information on commands\napt show vim         # show details on the 'vim' package\napt list --installed   | less\napt list --upgradeable | less\napt remove vim       # uninstall a package (note --purge will also remove all config files)\n\napt-file searches packages for specific files (both local and from repos).\nUnlike 'dpkg -L', it can search also remote repos. It uses a local cache of package contents 'sudo apt-file update'\napt-file list vim    # (or 'apt-file show') the exact contents of the 'vim' package\napt-file search vim  # (or 'apt-file find') search every reference to 'vim' across all packages"; }
 
 ####################
 #
@@ -1130,6 +1125,7 @@ exx "8	info:       displays summary information about a page   info:www.example.
 exx ""
 exx "for i in {1..12}; do for j in \\\$(seq 1 \\\$i); do echo -ne \\\$iÃ—\\\$j=$((i*j))\\t;done; echo; done   # Multiplication tables"
 exx "for i in {0..600}; do echo \\\$i; sleep 1; done | dialog --guage 'Installing Patches….' 6 40exx"
+exx ""
 exx "# AsciiAquarium   # Might also need: perl -MCPAN -e shell ; install Term::Animation"
 exx "pt tar wget make libcurses-perl   # using 'package tool'"
 exx "cd /tmp"
@@ -1454,6 +1450,7 @@ exx ""
 exx "-   e.g.  cd -      Last Working Directory"
 exx "!!  e.g.  sudo !!   Last executed command"
 exx "!$  e.g.  ls !$     Arguments of the last executed command"
+exx "echo !?             Show error message of last run command"
 exx ""
 exx "touch a.txt b.txt c.txt"
 exx "echo !^ –> display first parameter"
@@ -2708,6 +2705,9 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "https://powershellone.wordpress.com/2021/04/06/control-split-panes-in-windows-terminal-through-powershell/"
     exx "To make bash launch in ~ instead of /mnt/c/Users in wt, open the wt Settings, find WSL2 profile, add \\\"commandline\\\": \\\"bash.exe ~\\\" (remember a comma after the previous line to make consistent), or \\\"startingDirectory\\\": \\\"//wsl$/Ubuntu/home/\\\"."
     exx ""
+    exx "\${BYELLOW}***** Important Docker tips for WSL\${NC}"
+    exx "https://abdus.dev/posts/fixing-wsl2-localhost-access-issue/"
+    exx ""
     exx "\${BYELLOW}***** To enable 'root'\${NC}"
     exx "By default on Ubuntu, root has no password and 'su -' will not work."
     exx "https://msdn.microsoft.com/en-us/commandline/wsl/user_support"
@@ -3008,7 +3008,7 @@ fi
 
 ####################
 #
-print_header "Copy ./.custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
+print_header "Copy .custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
 #
 ####################
 
@@ -3030,16 +3030,6 @@ elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
-# ####################
-# #
-# print_header "Run 'source ~/.custom' to load '.custom' into this current session"
-# #
-# ####################
-# # echo "Press 'Enter' to dotsource .custom into running session (or CTRL+C to skip)."
-# # read -e -p "Note that this will run automatically if invoked from Github via curl."; "$@"
-# # echo ""
-# # echo ""
-# # [ -f ~/.custom ] && [[ $- == *"i"* ]] && . ~/.custom
 echo "Note the above configuration details for any useful additional manual actions."
 echo "'updistro' to run through all update/upgrade actions (use 'def updistro' to see commands)."
 echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"
@@ -3070,6 +3060,51 @@ if [ "$manager" == "dnf" ] || [ "$manager" == "yum" ]; then
         return   # Script will exit here if a reboot is required 
     fi
 fi
+
+
+
+# ####################
+# #
+# print_header "Configure Locale"
+# #
+# ####################
+# # https://askubuntu.com/questions/683406/how-to-automate-dpkg-reconfigure-locales-with-one-command
+# # Must do this as very last step, as it will be the only interactive part
+# # This required setting should be saved so that this section will be skipped in future
+# # Three ways to automate in Ubuntu:
+# # 1:  sudo update-locale "LANG=en_GB.UTF-8"; sudo locale-gen --purge "en_GB.UTF-8"; sudo dpkg-reconfigure --frontend noninteractive locales
+# # 2:  echo "en_GB.UTF-8" | sudo tee -a /etc/locale.gen; sudo locale-gen
+# # 3:  sudo update-locale LANG=en_GB.UTF-8
+# 
+# # Following are usual defaults
+# # LANG=en_US.UTF-8
+# # LANGUAGE=
+# # LC_CTYPE="en_US.UTF-8"
+# # LC_NUMERIC=nl_NL.UTF-8
+# # LC_TIME=nl_NL.UTF-8
+# # LC_COLLATE="en_US.UTF-8"
+# # LC_MONETARY=nl_NL.UTF-8
+# # LC_MESSAGES="en_US.UTF-8"
+# # LC_PAPER=nl_NL.UTF-8
+# # LC_NAME=nl_NL.UTF-8
+# # LC_ADDRESS=nl_NL.UTF-8
+# # LC_TELEPHONE=nl_NL.UTF-8
+# # LC_MEASUREMENT=nl_NL.UTF-8
+# # LC_IDENTIFICATION=nl_NL.UTF-8
+# # LC_ALL=
+# 
+# echo "To change locale for language and keyboard settings (e.g. GB, FR, NL, etc)"
+# echo "we have to set LANG, LANGUAGE, and all LC variables (via LC_ALL):"
+# echo '   # sudo update-locale LANG="en_GB.UTF-8" LANGUAGE="en_GB"   # for GB'
+# echo '   # sudo update-locale LANG="nl_NL.UTF-8" LANGUAGE="nl_NL"   # for NL'
+# echo '   # sudo update-locale LANG="fr_FR.UTF-8" LANGUAGE="fr_FR"   # for FR'
+# echo "   # sudo localectl set-locale LANG=en_GB.UTF-8"
+# echo "   # sudo update-locale LC_ALL=en_GB.UTF-8 LANGUAGE"
+# echo ""
+# echo "For Ubuntu, just need to run the folloing and choose the UTF-8 option:"
+# echo "   # sudo dpkg-reconfigure locales"
+# echo ""
+# echo "Run 'locale' to view the current settings before changing."
 
 
 

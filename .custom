@@ -30,7 +30,7 @@ uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Us
 aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
 fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
 aaff() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; aaa $1; }   # Just show the names of functions that contain the search-string
-alias ffaa='aaff'
+alias ffaa='aaff'; alias afaf='aaff'; alias fafa='aaff'; alias faaf='aaff'; alias affa='aaff'
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
 # ToDo: Parse script for aliases and functions'  :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 # Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
@@ -77,7 +77,7 @@ export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HIS
 # Word Designatores: ls /etc/, cd !!:1 (:0 is the initial word), !!:1*, !!:1-$, !!:*     'cat /etc/hosst', then type '^hosst^hosts^' will immediately run the fixed command.
 # Modifiers: 'cat /etc/hosts', cd !!:$:h (will cd into /etc/ as :h chops the 'head' off, :t, 'tail' will remove 'cat /etc/', :r to remove trailing extension, :r:r to remove .tar.gz, :p is just to 'print', 'find ~ -name "file1"', try !119:0:p / !119:2*:p
 alias h='history'   # Note: 'h 7' to show last 7 lines
-alias ho='HISTTIMEFORMAT= history'   # 'history original', can also use constructs like:  ho() { history "$@" | awk '{$2=$3=""; print}'; }   # for i in $(seq 1 9); do alias "h.${i}"="h. | tail -${i}0"; done   # Replicate original history (i.e. without date/time), and h.1 to h.9 for multiples of 10 lines
+alias h0='HISTTIMEFORMAT= history'; alias ho='h0'   # 'history original' or '0', denoting go back to original form, can also use constructs like:  ho() { history "$@" | awk '{$2=$3=""; print}'; }   # for i in $(seq 1 9); do alias "h.${i}"="h. | tail -${i}0"; done   # Replicate original history (i.e. without date/time), and h.1 to h.9 for multiples of 10 lines
 hh() { history "$@" | awk '{$1=$2=$3=""; print $0}' | sed 's/^[ \t]*/# /;s/[ \t]*$//'; }     # 'hash history', output preformated for documentation etc   
 hx() { hh | sed 's/^#\ //'; }   # 'history executable', this variant is just the raw and executable (hence 'x') commands; be careful as easy to copy and run these
 alias hs='history | grep'; alias hs1='history | grep -A 1 -B 1'; alias hs2='history | grep -A 2 -B 2'    # Search history, optionally hs1/hs2 with 1/2 line 'A'bove and 1/2 line 'B'elow each match (for context of the command
@@ -108,21 +108,23 @@ alias sudo='sudo '                      # Allows alias expansion even when using
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 complete -cf sudo    # Tab complete for commands that come after sudo
 
-alias v='vim'                               # Quick vim access
-type code &> /dev/null && alias c='code'    # Quick VS Code access
-type byobu &> /dev/null && alias b='byobu'  # Quick byobu access
-type tmux &> /dev/null && alias t='tmux'    # Quick tmux access
+alias m='man'                                # Some people alias m to 'more', I think 'man' is much more useful
+alias v='vim'                                # Quick vim access
+type code  &> /dev/null && alias c='code'    # Quick VS Code access
+type byobu &> /dev/null && alias b='byobu'   # Quick byobu access
+type tmux  &> /dev/null && alias t='tmux'    # Quick tmux access
 alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
 alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
 alias fhere="find . -name "             # Basic find syntax
-ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in gilename', return files with pattern in the filename
+ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return files with pattern in the filename
 fe() { find . -type f -iname '*'"${1:-}"'*' -exec ${2:-file} {} \;  ; }   # 'Find and Execute', find files with pattern $1 in name and execute $2 on them, note that if $2 is not ther, 'file' will be the default
 alias folders='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'  # find in 1 deep, sort by size
 alias mnt="mount | awk -F' ' '{ printf \"%s\t%s\n\",\$1,\$3; }' | column -t | egrep ^/dev/ | sort"   # Show only mounted drives
-alias mountt='mount | columns -t'                        # 'mount with tabs' to make mount readable
+alias mountt='mount | column -t'                        # 'mount with tabs' to make mount readable
+help-mount() { echo -e "Connect to CIFS/SAMBA shares on a Windows system:\n\nmkdir <local-mount-path>   # Create a path to mount the share in\nsudo mount.cifs //<ip>/<sharename> ~/winpc -o user=<winusername>\nsudo mount -t cifs -o ip=<ip>, username=<winusername> //<hostname-or-ip>/<sharename> /<local-mount-path   # Alternate syntax"; }
 alias bashrc='vim ~/.bashrc && source ~/.bashrc'         # Edit ~/.bashrc and then source it on finishing editing
 alias ps2='ps -ef | grep -v $$ | grep -i'                # Search processes for a string
 alias psg='ps -Helf | grep -v $$ | grep -i -e WCHAN -e'  # Search processes for a string
@@ -138,7 +140,7 @@ ww() { if [[ ! -z $1 ]];then _f=$(which $1);echo $_f;less $_f;fi }   # which and
 alias vimother="vim -u /home/username/.vimrc"     # use the .vimrc from another location
 alias dmesg1='dmesg | perl -ne "BEGIN{$a= time()- qx:cat /proc/uptime:};s/[s*(d+).d+]/localtime($1 + $a)/e; print $_;" | sed -e "s|(^.*"`date +%Y`" )(.*)|x1b[0;34m1x1b[0m - 2|g"'
 alias meminfo='\egrep "Mem|Cache|Swap" /proc/meminfo'
-myusb() { usb_array=();while read -r -d $'n'; do usb_array+=("$REPLY"); done < <(find /dev/disk/by-path/ -type l -iname *usb*scsi* -not -iname *usb*scsi*part* -print0 | xargs -0 -iD readlink -f D | cut -c 8) && for usb in "${usb_array[@]}"; do echo "USB drive assigned to sd$usb"; done; }   # USB assigments
+myusb() { usb_array=(); while read -r -d $'n'; do usb_array+=("$REPLY"); done < <(find /dev/disk/by-path/ -type l -iname *usb*scsi* -not -iname *usb*scsi*part* -print0 | xargs -0 -iD readlink -f D | cut -c 8) && for usb in "${usb_array[@]}"; do echo "USB drive assigned to sd$usb"; done; }   # USB assigments
 alias top10="sort|uniq -c|sort -n -r|head -n 10"
 alias lu="awk -F: ‘{ print $1}’ /etc/passwd"
 alias reboot1='echo "Are you sure you want to reboot \"`hostname`\" [y/N]?" && read reboot_answer && if [ "$reboot_answer" == y ]; then /sbin/reboot; fi'
@@ -156,35 +158,6 @@ alias sdiff='sdiff -w 240'
 pyloc() { egrep -v '^[ ]*(#|$dollar)' $* | wc; };     # count lines in python / shell / powershell files
 loc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; }; # count lines in c, c++ files
 
-# Tab competion
-[ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
-alias sshcachingagent='eval $(ssh-agent) && ssh-add'     # Make sure ssh-agent is running and then add a remote host
-generatesshkey() {    # generatesshkey ansible
-    echo -e "ssh-keygen Setup (rsa 4096 bit)\n\nssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_<name>\n( ssh-keygen -t dsa  ,  ssh-keygen -t ecdsa -b 521  ,  ssh-keygen -t ed25519 )\nssh-copy-id - ~/.ssh/id_rsa_$name 192.168.1.11   # To send to other hosts"
-    echo "Enter the name of the Key (no spaces) ? "; read name
-    echo "Enter the email associated with it ? "; read email
-    echo "Creating 4096 bit rsa ..."
-    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_$name -C "$email"
-    type pbcopy &> /dev/null && pbcopy < ~/.ssh/id_rsa_$name.pub && echo "SSH Key copied to clipboard by pbcopy" # pbcopy will copy into GUI clipboard if available (name comes from MacOS tool)
-    eval $(ssh-agent)
-    cat ~/.ssh/authorized_keys
-}
-
-generaterandompasswd() {
-    if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
-    array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
-             F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 
-    MODNUM=${#array1[*]};
-    pwd_len=0 
-    while [ $pwd_len -lt $MAXSIZE ] 
-    do 
-        index=$(($RANDOM%$MODNUM)) 
-        echo -n "${array1[$index]}" 
-        ((pwd_len++)) 
-    done 
-    echo 
-}
-
 ####################
 # ls, cd, mkdir, du, df, and permissions
 ####################
@@ -196,6 +169,8 @@ generaterandompasswd() {
 # 'ls' is quite awkward with respect to recursion, e.g. 'ls *' will look into every subfolder even without the -R flag, and 'ls c*' would look through every folder starting 'c': https://unix.stackexchange.com/questions/179327/how-to-ls-without-recursive 
 # Never use the output of an 'ls' in a 'for i in `ls`' as that can be unpredictable.
 # Don't want to do anything obscure with aliases, follow widely used settings for ls, ll, l, then have additional aliases for other tasks.
+# Expand help-ls to a full file in /tmp/.custom
+help-ls() { echo -e "Several ways to list directories only (but no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, incl hidden), -i (don't show tree), -l (don't follow symbolic links).\nShow additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable)\ntree . -fail --du -h\nlr  # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/"; }
 [[ $(type ls) == *"aliased"* ]] && unalias ls               # Just a general way to testing for commands that are type 'alias' and so to act upon them if aliased
 alias ls='\ls --color=always --group-directories-first'     # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
 alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
@@ -204,14 +179,18 @@ alias ll='ls -lAh'     # long format (-AFh and also -l)     # Note that the abov
 alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
 alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
 alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-alias lld='ls -FlA | grep :*/'      # Directories only
-alias llf='ls -FlA | grep -v "/"'   # Files only (no directories)
-alias ldot="ls -ld .??*"            # Dotfiles only
-alias lx="find . -maxdepth 1 -executable -type f"        # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
-alias lnox="find . -maxdepth 1 -type f ! -executable"    # Everything except executable files   # alias lx="ls -FlA | grep *"; alias lnox="ls -FlA | grep -v *"
+alias lld='ls -FlAd | grep /$'     # Directories only with ls, bad practice to do this, but keep as usually fine for 99% of console work (but don't use in a script)
+alias llfd='find \\. -maxdepth 1 -type d'  # 'long listing, find directories', For any scripting, always use find instead of ls as more reliable (use ls for console, use find for scripting)
+alias lldt='tree . -faild -L 1'    # Directories only, max depth 1
+alias llt='tree . -fail --du -h'   # All files and directories, recurse by default, with a summary of size in human readable units
+alias llf='ls -FlA | grep -v "/"'  # Files only (no directories)
+alias llv='vdir'                   # From info dir: dir is equivalent to ls -C -b, From info vdir: vdir is equivalent to ls -l -b
+alias ldot="ls -ld .??*"           # Dotfiles only
+alias lnox="find . -maxdepth 1 -type f ! -executable"    # Everything except executable files, increase -maxdepth to search for more   # alias lx="ls -FlA | grep *"; alias lnox="ls -FlA | grep -v *"
+alias lx="find . -maxdepth 1 -type f -executable"        # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
 alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'  # List possible executables and scripts by extensions, discarding error output (as will generate for every type that is not there)
-alias lext='ls -Fla | egrep "\."'                        # Files without extensions only   ".|/"
-alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions only
+alias lext='ls -Fla | egrep "\."'                        # Files with extensions only   ".|/"
+alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions
 alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
 alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
 alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
@@ -225,7 +204,7 @@ sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access r
 alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
 alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
 alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
-alias mx='chmod a+x'   # Make Executable
+alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so: all users, add 'x' (executable)
 alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'long listing with ecurity'
 alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
 alias lg='exa -lG'     # 'ls grid', exa is an interesting potential successor to 'ls', in Ubuntu 20.10 repo by default, colours each permission item and -lG is a useful 2x column long view.
@@ -256,7 +235,7 @@ alias partusage='df -hlT --exclude-type=tmpfs --exclude-type=devtmpfs'   #Shows 
 alias dfh="df -kh"
 alias fs="df . | awk 'NR==2{print \$1}'"         # Show current filesystem that I am working in https://unix.stackexchange.com/q/164957/
  
-# Be careful about defining single character aliases and functions, g=git could conflict with g=chrome etc
+# Be careful about defining single character aliases and functions, g=git could conflict with g=chrome or something else, git is important though, so will reserve g for git
 type git &> /dev/null && git config --global color.ui always && git config --global core.pager 'less -R'   # Enable git colour and to use less -R as pager https://unix.stackexchange.com/a/62850/441685
 ghub="https://github.com"   # Usage:   gclone1 $ghub/roysubs/custom_bash
 alias g='git'; alias gconf='git config'; alias gconfl='git config --list'; alias gconfgl='git config --global --list';
@@ -461,12 +440,15 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
 # e.g.   bat x.js -pp | jq   will hit a problem. Fix that using   | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b   to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
 #        bat x.js -pp | perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b | jq
 # or     bat x.js -pp | uncolor | jq     # with:   uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }
+# Pros and cons of using bat, get fully coloured syntax highlighting (easier to read code), but there is a performance hit, e.g. 'time \cat .custom' => 0.03s, 'time bat .custom' > 0.180'
+# i.e. \cat is a *lot* faster, but in real world usage it usually doesn't matter. By default, bat is on, bat-off to go back to GNU cat, bat-on to enable bat.
 # It might be posible to do everything in 'bat' with 'less', possibly use this in future:   https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
 type bat >/dev/null 2>&1 && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+alias bat-off='unalias cat'; alias bat-on='alias cat="bat -pp"'
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null   # Don't really need this, just how to remove if bat is uninstalled
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch to maintain colour syntax highlighting
 type less >/dev/null 2>&1 alias less='less -R'; alias less0='\less'; alias more='less'   # Colour always supported, even through pipe. Also alias 'more' to 'less', as 'more' is pretty useless
-type tree >/dev/null 2>&1 && alias tree='tree -C' && alias tree0='\tree'                      # Colour always, and so piping to less -R will retain color output
+type tree >/dev/null 2>&1 && alias tree='tree -C' && alias tree0='\tree'                 # Colour always, and so piping to less -R will retain color output
 type pydf >/dev/null 2>&1 && alias df1='pydf'        # Use <cmd>1, <cmd>2, for variants, do this for other commands with alternatives
 type ncdu >/dev/null 2>&1 && alias du1='ncdu'        # Same for du1, we use <cmd>. for built-in functions in .custom (e.g. du. etc)
 # Most systems have 'python2' and 'python3' defined. Debian/Ubuntu use python2 for underlying system functions
@@ -506,6 +488,8 @@ mktgz() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }      # Create tar.gz
 mktbz() { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }      # Create tar.bz
 mkzip() { zip -r "${1%%/}.zip" "$1" ; }                 # Create zip archive of a file or folder.
 gzipsize() { echo $((`gzip -c $1 | wc -c`/1024))"KB"; } # Calculates the gzip compression of a file
+help-zip() { echo -e "Common 'zip and '7z/7za' archive examples:\n\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
+
 # Bash profile loading is as follows: /etc/profile (which often calls /etc/bash.bashrc), then ~/.bash_profile, then ~/.bash_login, then ~/.profile (which often calls ~/.bashrc)
 backup_profile() {
     ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; 
@@ -547,6 +531,32 @@ ask()       # See 'killps' for example of use.
         y*|Y*) return 0 ;;
         *) return 1 ;;
     esac
+}
+[ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
+newkey() {    # generatesshkey ansible
+    echo -e "ssh-keygen Setup (rsa 4096 bit)\n\nssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_<name>\n( ssh-keygen -t dsa  ,  ssh-keygen -t ecdsa -b 521  ,  ssh-keygen -t ed25519 )\nssh-copy-id - ~/.ssh/id_rsa_$name 192.168.1.11   # To send to other hosts"
+    echo "Enter the name of the Key (no spaces) ? "; read name
+    echo "Enter the email associated with it ? "; read email
+    echo "Creating 4096 bit rsa ..."
+    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_$name -C "$email"
+    type pbcopy &> /dev/null && pbcopy < ~/.ssh/id_rsa_$name.pub && echo "SSH Key copied to clipboard by pbcopy" # pbcopy will copy into GUI clipboard if available (name comes from MacOS tool)
+    [ ! $(pgrep ssh-agent) ] && eval $(ssh-agent)   # Make sure that ssh-agent is running in this login session
+    [ -f ~/.ssh/authorized_keys ] && cat ~/.ssh/authorized_keys || echo "~/.ssh/authorized_keys does not exist on this system."
+}
+alias addkey='[ ! $(pgrep ssh-agent) ] && eval $(ssh-agent); ssh-add'   # Only run ssh-add if ssh-agent is running. Using pgrep to test for ssh-agent
+newpassword() {
+    if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
+    array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
+             F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 
+    MODNUM=${#array1[*]};
+    pwd_len=0 
+    while [ $pwd_len -lt $MAXSIZE ] 
+    do 
+        index=$(($RANDOM%$MODNUM)) 
+        echo -n "${array1[$index]}" 
+        ((pwd_len++)) 
+    done 
+    echo 
 }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }  # Show the command to be run before running, useful for outputs when scripting
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }          # Maths function
@@ -647,6 +657,7 @@ alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
 alias cd2="cd ~/custom_tools; ls"      # Another peronal project location
+alias cdssh="cd ~/.ssh; ls"            # Another peronal project location
 alias cd0edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias cd1edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick links, and setup .ssh/config and ssh keys to make it easy to hop between systems

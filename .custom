@@ -713,7 +713,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias firefox="'C:\Program Files\Mozilla Firefox\firefox.exe'"
     alias opera="'C:\Program Files\Opera\opera.exe'"
     # Can do a lot with 'gg' or 'ddg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
-    # However, some useful speific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
+    # However, some useful specific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
     urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/\?/%3F/g' | sed 's/[ ][ ]*/\+/g'); }
     gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; }
     ddg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.duckduckgo.com/?q=${phrase}"; echo $url; chrome $url; }
@@ -761,13 +761,13 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     # [ -f /mnt/c/Users/$USER/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code ] && alias code="/mnt/c/Users/${USER}/AppData/Local/Programs/Microsoft\ VS\ Code/bin/code"   # Default User install location
 
     # Demonstrate Windows clip.exe and Get-Clipboard within WSL to send to or get from the Windows clipboard (remember Ctrl-Shift-V to paste the clipboard back onto WSL console)
-    alias cliptowindows='clip.exe'   # Usage:   hostname -I | cliptowindows     to send the IP address into the clipboard
-    alias pastefromwindows='powershell.exe -noprofile Get-Clipboard'   # Note '.exe' in powershell.exe. Usage:   pastefromwindows | grep 'word'
+    alias cliptowindows='clip.exe'    # Note '.exe' in clip.exe / powershell.exe   # Usage: hostname -I | cliptowindows     to send the IP address into the clipboard
+    alias pastefromwindows='powershell.exe -noprofile Get-Clipboard'               # Usage: pastefromwindows | grep 'word'
 
-    # Run a CMD script in WSL; *must* use the Windows path, so run-cmd D:\test.cmd, and not run-cmd /mnt/d/test.cmd   https://github.com/microsoft/WSL/issues/4547
+    # run-cmd and run-ps are for running Windows scripts from the WSL console   https://github.com/microsoft/WSL/issues/4547
+    # Use Windows path, run-cmd D:\test.cmd (not run-cmd /mnt/d/test.cmd) as cmd.exe / powershell.exe open a shell in the Windows filesystem
     run-cmd() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; cmd.exe /c "pushd ${WIN_PWD} && ${CMD} ${ARGS}"; }
-    # Run a PS script in WSL; *must* use the Windows path, so run-ps D:\test.ps1, and not run-ps /mnt/d/test.ps1
-    run-ps() { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
+    run-ps()  { CMD=$1; shift; ARGS=$@; WIN_PWD=`wslpath -w "$(pwd)"`; powershell.exe /c "pushd ${WIN_PWD}; ${CMD} ${ARGS}"; }
 
     # X Window GUI support. As with all of this section, will *only* set if WSL is detected (so will not affect a non-WSL install).
     # https://sourceforge.net/projects/vcxsrv/. During VcXsrv setup, leave DISPLAY as "-1" (for autodetect) and it will see WSL2.

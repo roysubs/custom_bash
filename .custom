@@ -714,7 +714,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     # Can do a lot with 'gg' or 'ddg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
     # However, some useful specific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
     removealias() { [[ $(type $1) == *"aliased"* ]] && unalias $1; }
-    for i in (gg ddg tt ttnl tten dic syn yy ym); do removealias $i; done
+    for i in gg ddg tt ttnl tten dic syn yy ym; do removealias $i; done
     urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/\?/%3F/g' | sed 's/[ ][ ]*/\+/g'); }
     gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; }
     ddg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.duckduckgo.com/?q=${phrase}"; echo $url; chrome $url; }

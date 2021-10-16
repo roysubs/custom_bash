@@ -1066,15 +1066,15 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "GitHub / Gem, etc (call with 'help-useful-apps')"
+echo "GitHub, npm, gem, etc (call with 'help-apps-assorted')"
 #
 ####################
-HELPFILE=$hh/help-useful-apps.sh
+HELPFILE=$hh/help-apps-assorted.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GitHub / Gem, etc)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GitHub, npm, gem, etc)\${NC}"
 exx ""
 exx "npm i -g movie-cli    # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies"
 exx "npm install -g mediumcli   # djadmin/medium-cli, a cli for reading Medium stories, 'medium -h'"

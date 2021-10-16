@@ -695,7 +695,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     # Shutting down or rebooting WSL https://stackoverflow.com/questions/66375364/shutdown-or-reboot-a-wsl-session-from-inside-the-wsl-session/67090137#67090137
     # 1. There is no systemd in WSL, so distros cannot use standard shutdown/reboot or any other actions dependent upon systemd.
     # 2. Closing a WSL window will *not* shutdown the WSL engine. The WSL instance and any services continues to run in the background.
-    # 3. There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the following commands:
+    #    There are times when it is important to shutdown or reboot the full WSL instance for configuration changes, hence the need for these.
     alias x='explorer.exe'
     alias x.='explorer.exe .'
     alias xcloud='explorer.exe "D:\0 Cloud"'

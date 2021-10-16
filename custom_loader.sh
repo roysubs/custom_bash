@@ -1025,7 +1025,7 @@ echo "Copy Docker Aliases '.custom-dk' into the helper folder"
 #
 ####################
 if [ -f ./.custom-dk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    cp ./.custo-mdk $hh/
+    cp ./.custo-dk $hh/
 fi
 
 

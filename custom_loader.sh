@@ -1076,25 +1076,24 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GitHub / Gem, etc)\${NC}"
 exx ""
-npm i -g movie-cli    # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies
-npm install -g mediumcli   # djadmin/medium-cli, a cli for reading Medium stories, 'medium -h'
-npm install hget --save    # bevacqua/hget, A CLI and an API to convert HTML into plain text. npm install hget -g   (to install globally)
-    # hget ponyfoo.com, hget file.html, cat file.html | hget,   hget echojs.com --root #newslist --ignore "article>:not(h2)"
-npm install -g moro        # getmoro/moro, A command line tool for tracking work hours, as simple as it can get. https://asciinema.org/a/106792 https://github.com/getmoro/moro/blob/master/DOCUMENTATION.md
-git clone git://github.com/VitaliyRodnenko/geeknote.git   # Evernote cli client
-gem install doing          # ToDo tool
-git clone git://github.com/wting/autojump.git  # cd autojump, ./install.py or ./uninstall.py, j foo, jc foo, jo foo, jco foo
-sudo apt install ranger   # console file manager with VI key bindings
-sudo apt install taskwarrior   # 'task' to start, ToDo list https://taskwarrior.org/docs/
-npm install battery-level   # https://github.com/gillstrom/battery-level
-npm install --global brightness-cli   # https://github.com/kevva/brightness-cli
-https://github.com/yudai/gotty   # publish console as a web application (written in Go)
-https://github.com/cmus/cmus     # cli music player
-npm i -g mdlt               # Metadelta CLI, advanced math utility, https://github.com/metadelta/mdlt
-sudo apt install hub        # Better GitHub integration than git, https://hub.github.com/   hub clone github/hub
-go get -v github.com/zquestz/s; cd $GOPATH/src/github.com/zquestz/s; make; make install   # Advanced web search, https://github.com/zquestz/s
-
-
+exx "npm i -g movie-cli    # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies"
+exx "npm install -g mediumcli   # djadmin/medium-cli, a cli for reading Medium stories, 'medium -h'"
+exx "npm install hget --save    # bevacqua/hget, A CLI and an API to convert HTML into plain text. npm install hget -g   (to install globally)"
+exx "    # hget ponyfoo.com, hget file.html, cat file.html | hget,   hget echojs.com --root #newslist --ignore \\\"article>:not(h2)\\\""
+exx "npm install -g moro        # getmoro/moro, A command line tool for tracking work hours, as simple as it can get. https://asciinema.org/a/106792 https://github.com/getmoro/moro/blob/master/DOCUMENTATION.md"
+exx "git clone git://github.com/VitaliyRodnenko/geeknote.git   # Evernote cli client"
+exx "gem install doing          # ToDo tool"
+exx "git clone git://github.com/wting/autojump.git  # cd autojump, ./install.py or ./uninstall.py, j foo, jc foo, jo foo, jco foo"
+exx "sudo apt install ranger   # console file manager with VI key bindings"
+exx "sudo apt install taskwarrior   # 'task' to start, ToDo list https://taskwarrior.org/docs/"
+exx "npm install battery-level   # https://github.com/gillstrom/battery-level"
+exx "npm install --global brightness-cli   # https://github.com/kevva/brightness-cli"
+exx "https://github.com/yudai/gotty   # publish console as a web application (written in Go)"
+exx "https://github.com/cmus/cmus     # cli music player"
+exx "npm i -g mdlt               # Metadelta CLI, advanced math utility, https://github.com/metadelta/mdlt"
+exx "sudo apt install hub        # Better GitHub integration than git, https://hub.github.com/   hub clone github/hub"
+exx "go get -v github.com/zquestz/s; cd $GOPATH/src/github.com/zquestz/s; make; make install   # Advanced web search, https://github.com/zquestz/s"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE

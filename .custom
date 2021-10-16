@@ -531,7 +531,7 @@ ask()       # See 'killps' for example of use.
     esac
 }
 [ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
-newkey() {    # generatesshkey ansible
+generate-sshkey() {    # generatesshkey ansible
     echo -e "ssh-keygen Setup (rsa 4096 bit)\n\nssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_<name>\n( ssh-keygen -t dsa  ,  ssh-keygen -t ecdsa -b 521  ,  ssh-keygen -t ed25519 )\nssh-copy-id - ~/.ssh/id_rsa_$name 192.168.1.11   # To send to other hosts"
     echo "Enter the name of the Key (no spaces) ? "; read name
     echo "Enter the email associated with it ? "; read email
@@ -542,7 +542,7 @@ newkey() {    # generatesshkey ansible
     [ -f ~/.ssh/authorized_keys ] && cat ~/.ssh/authorized_keys || echo "~/.ssh/authorized_keys does not exist on this system."
 }
 alias addkey='[ ! $(pgrep ssh-agent) ] && eval $(ssh-agent); ssh-add'   # Only run ssh-add if ssh-agent is running. Using pgrep to test for ssh-agent
-newpassword() {
+generate-password() {
     if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
     array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
              F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 

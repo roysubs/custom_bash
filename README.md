@@ -3,6 +3,8 @@
 # Quick Install
 `git config --global core.autocrlf input`  # Make sure to do this to prevent runtime errors  
 `git clone https://github.com/roysubs/custom_bash`  
+`cd custom_bash`  
+`. ./custom_loader.sh`  
 
 # Bash custom configuration & WSL Integration  
 Auto-configure common settings to be cross-platform for most Linux distros (CentOS/Ubuntu/Debian etc). Specific tools for WSL are included but that only load if WSL is detected. By sourcing a single script `custom_loader.sh`, this sets everything up and puts the `.custom` script into `~` which is then invoked by `~/.bashrc` at shell startup.  

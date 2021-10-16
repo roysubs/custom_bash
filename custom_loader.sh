@@ -60,12 +60,16 @@
 # mackup: Sync and restore your application settings
 # transfer.sh: Share files directly from the command line
 # https://www.tecmint.com/12-top-command-examples-in-linux/
+# https://www.dedoimedo.com/computers/new-cool-list-linux.html
+# https://www.xmodulo.com/useful-cli-tools-linux-system-admins.html
 # The [[ ]] construct is the more versatile Bash version of [ ]. This is the extended test command, adopted from ksh88.
 # Using the [[ ... ]] test construct, rather than [ ... ] can prevent many logic errors in scripts. For example, the &&, ||, <, and > operators work within a [[ ]] test, despite giving an error within a [ ] construct.
 # Problem with 'set -e', so have removed. It should stop on first error, but instead it kills the WSL client completely https://stackoverflow.com/q/3474526/
 # If you want to run apt-get without having to supply a sudo password, just edit the sudo config file to allow that. (Replace “jfb” in this example with your own login).
 # jfb ALL=(root) NOPASSWD: /usr/bin/apt-get
 # https://www.cyberciti.biz/open-source/30-cool-best-open-source-softwares-of-2013/
+# alias gitupdate='(for l in `find . -name .git | xargs -i dirname {}` ; do cd $l; pwd; git pull; cd -; done)'   # https://stackoverflow.com/questions/4083834/what-are-some-interesting-shell-scripts
+# alias backup='rsync -av ~/Documents user@domain.com: --delete --delete-excluded --exclude-from=/Users/myusername/.rsync/exclude --rsh="ssh"'
 
 ####################
 #
@@ -78,13 +82,13 @@ hh=/tmp/.custom   # This is the location of all helper scripts, could change thi
 
 ### print_header() will display up to 3 arguments as a simple banner
 print_header() {
-    printf "\n\n\n####################\n"
+    printf "\n\n####################\n"
     printf "#\n"
     if [ "$1" != "" ]; then printf "# $1\n"; fi
     if [ "$2" != "" ]; then printf "# $2\n"; fi
     if [ "$3" != "" ]; then printf "# $3\n"; fi
     printf "#\n"
-    printf "####################\n\n"
+    printf "####################\n"
 }
 
 ### exe() will display a command and then run that same command, so you can see what is about to be run
@@ -104,6 +108,11 @@ print_header "Start common cross-distro configuration steps" "and setup common t
 #
 ####################
 
+####################
+#
+print_header "Also configure some basic useful settings in" ".inputrc / .vimrc / and etc/sudoers.d/custom_rules"
+#
+####################
 [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g')"   # Debian / Ubuntu and variants
 [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release);   # RedHat / Fedora / CentOS, contains "generic release" information
 [ -f /etc/os-release ] && RELEASE="$(cat /etc/os-release | grep ^NAME= | sed 's/^.*=//g' | sed 's/\"//g')"   # This now contains the release name
@@ -951,6 +960,18 @@ sudo visudo -c -f /etc/sudoers   # Will check all sudoer files
 
 
 
+####################
+#
+print_header "nnn -aA and cd on quit"
+#
+####################
+# https://bleepcoder.com/nnn/631249390/conflicting-alias-and-cd-on-quit
+# https://github.com/jarun/nnn/issues/689
+# Vim provides built-in commands to print or change the current working directory without needing to exit vim. For example, you can run :cd ~ to change to your home directory or :pwd to print the current working directory. The nnn (n)vim plugin could serve as a much faster alternative to change the current working directory without needing to exit vim. In my case, I want to take advantage of nnn's fzz plugin to quickly change directories within vim. Somebody else raised an issue with the same interest: mcchrish/nnn.vim#57. Why would you want to change directories within vim? Well, there are many reasons. One might be that you want to run vim's builtin :make command, which invokes the Makefile on the current working directory.
+# 
+# I already have a working version. I had to modify both your nnn source code and the nnn vim plugin. @mcchrish agrees that this would be a neat feature to add (mcchrish/nnn.vim#57).
+
+
 ### ####################
 ### #
 ### print_header "Dotfile management"
@@ -1045,16 +1066,58 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Fun Tools and Toys (call with 'help-toys')"
+echo "GitHub / Gem, etc (call with 'help-useful-apps')"
 #
 ####################
-HELPFILE=$hh/help-toys.sh
+HELPFILE=$hh/help-useful-apps.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
-exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Toys)\${NC}"
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GitHub / Gem, etc)\${NC}"
 exx ""
+npm i -g movie-cli    # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies
+npm install -g mediumcli   # djadmin/medium-cli, a cli for reading Medium stories, 'medium -h'
+npm install hget --save    # bevacqua/hget, A CLI and an API to convert HTML into plain text. npm install hget -g   (to install globally)
+    # hget ponyfoo.com, hget file.html, cat file.html | hget,   hget echojs.com --root #newslist --ignore "article>:not(h2)"
+npm install -g moro        # getmoro/moro, A command line tool for tracking work hours, as simple as it can get. https://asciinema.org/a/106792 https://github.com/getmoro/moro/blob/master/DOCUMENTATION.md
+git clone git://github.com/VitaliyRodnenko/geeknote.git   # Evernote cli client
+gem install doing          # ToDo tool
+git clone git://github.com/wting/autojump.git  # cd autojump, ./install.py or ./uninstall.py, j foo, jc foo, jo foo, jco foo
+sudo apt install ranger   # console file manager with VI key bindings
+sudo apt install taskwarrior   # 'task' to start, ToDo list https://taskwarrior.org/docs/
+npm install battery-level   # https://github.com/gillstrom/battery-level
+npm install --global brightness-cli   # https://github.com/kevva/brightness-cli
+https://github.com/yudai/gotty   # publish console as a web application (written in Go)
+https://github.com/cmus/cmus     # cli music player
+npm i -g mdlt               # Metadelta CLI, advanced math utility, https://github.com/metadelta/mdlt
+sudo apt install hub        # Better GitHub integration than git, https://hub.github.com/   hub clone github/hub
+go get -v github.com/zquestz/s; cd $GOPATH/src/github.com/zquestz/s; make; make install   # Advanced web search, https://github.com/zquestz/s
+
+
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "Fun Tools and Toys (call with 'help-toys-cli')"
+#
+####################
+HELPFILE=$hh/help-toys-cli.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Console Toys)\${NC}"
+exx ""
+exx "git clone https://github.com/pipeseroni/maze.py    # Simple curses pipes written in Python"
+exx "git clone https://github.com/pipeseroni/pipes.sh   # pipes.sh, a pipe screensaver for cli (bash)"
+exx "git clone https://github.com/pipeseroni/pipesX.sh  # Animated pipes terminal screensaver at an angle (bash)"
+exx "git clone https://github.com/pipeseroni/snakes.pl  # Pipes written in Perl"
+exx "git clone https://github.com/pipeseroni/weave.sh   # Weaving in terminal (bash)"
 exx "https://www.tecmint.com/cool-linux-commandline-tools-for-terminal/"
 exx "sudo $manager install cowsay xcowsay ponysay lolcat toilet   # https://www.asciiart.eu/faq"
 exx "# Random Animal Effect"
@@ -1413,6 +1476,52 @@ chmod 755 $HELPFILE
 
 ####################
 #
+echo "RHEL WSL2 Setup (call with 'help-wsl2redhat')"
+#
+####################
+
+HELPFILE=$hh/help-wsl2-redhat.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small WSL2 RedHat Setup)\${NC}"
+exx ""
+exx "https://access.redhat.com/discussions/5398621"
+exx "https://www.zdnet.com/article/red-hat-introduces-free-rhel-for-small-production-workloads-development-teams/"
+exx "https://wsl.dev/mobyrhel8/"
+exx ""
+exx "1) Install RHEL in a Virtual Machine. Doesn't matter which. I used the boot iso as it is small, and you want to keep the install as minimal as possible to save time. You can always add any package later using dnf"
+exx ""
+exx "2) When installed, reboot into RHEL and login as root."
+exx ""
+exx "3) Create a tarball of the file system:"
+exx ""
+exx "cd /"
+exx ""
+exx "tar cvfzp rhel8.tar.gz bin dev etc home lib lib64 media opt run root sbin srv usr var"
+exx ""
+exx "Note: these are not all directories under / and are intentionally excluded"
+exx ""
+exx "4) transfer the file rhel8.tar.gz to host system; for easy, I use scp to copy to my server so I can grab it from any workstation"
+exx ""
+exx "5) Create the WSL instance by importing: wsl.exe --import RHEL rhel8.tar.gz --version 2"
+exx ""
+exx "6) create a shortcut to wsl -d rhel to start, or start manually."
+exx ""
+exx "After first start (it will start with user root) you can go to HKLU\Software\Microsoft\Windows\CurrentVersion\Lxss and change the defaultuid for your distro to whatever you want; typically this would be 1000 for the first user created."
+exx ""
+exx "Enjoy your new RHEL8 under WSL2 and install whatever software you need."
+exx ""
+exx "See: https://www.sport-touring.eu/old/stuff/rhel83-2.png"
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
 echo "Bash shell notes (call with 'help-bash')"
 #
 ####################
@@ -1561,7 +1670,18 @@ zzz ''
 zzz '${BYELLOW}Some structures to remember:${NC}'
 zzz '[[ \\"\$(read -e -p \\"A ask a question? [y/N]> \\"; echo $REPLY)\\" == [Yy]*: ]]   # One-liner to get input'
 zzz 'for i in {7..18}; do echo \$i; done     # Arbitrary numbers'
+zzz 'for (( counter=1; counter<=10; counter++ )); do echo -n \\"\$counter \\"; done'
 zzz 'for i in \`seq 1 9\`; do echo \$i; done   # Another way'
+zzz 'i=0; while [ \$i -le 2 ]; do echo Number: \$i; ((i++)); done'
+zzz 'if [[ ( $num -lt 10 ) && ( $num%2 -eq 0 ) ]]; then echo \\"Even Number\\"; else echo \\"Odd Number\\"; fi'
+
+# BACKUPFILE=backup-$(date +%m-%d-%Y)
+# archive=${1:-$BACKUPFILE}
+# 
+# find . -mtime -1 -type f -print0 | xargs -0 tar rvf "$archive.tar"
+# echo "Directory $PWD backed up in archive file \"$archive.tar.gz\"."
+# exit 0
+
 zzz ''
 zzz '${BYELLOW}Using ls or other commands inside for-loops:${NC}'
 zzz 'It is bad practice to use ls as part of a for-loop, because the output can be uncertain.'
@@ -1967,6 +2087,7 @@ echo "Vim Notes (call with 'help-vim')"
 # https://vi.stackexchange.com/questions/358/how-to-full-screen-browse-vim-help
 # https://phoenixnap.com/kb/vim-color-schemes https://vimcolorschemes.com/sainnhe/sonokai
 # https://stackoverflow.com/questions/28958713/vim-how-to-stay-in-visual-mode-after-fixing-indentation-with
+# https://www.ubuntupit.com/100-useful-vim-commands-that-youll-need-every-day/
 
 # [ -f /tmp/help-vim.sh ] && alias help-vim='/tmp/help-vim.sh' && alias help-vi='/tmp/help-vim.sh' && alias help-v='/tmp/help-vim.sh'   # for .custom
 HELPFILE=$hh/help-vim.sh

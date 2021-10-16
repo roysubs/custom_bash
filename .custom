@@ -15,7 +15,7 @@
 # Avoid using aliases/functions that override other packages, unless those packages are redundant (e.g. 'ii' overrides an 'ii' IRC client which is of no use).
 # Almost every function and alias is standalone; try not to build complex relationships (exception: 'ask' function used by 'mykill' as a demonstration)
 # Do not replace built-in commands as would impact expected output in pipeline and scripts. Exceptions: 'cat' and 'more' in the below).
-# Simple abbreviations/mnemonics for most aliases, ai='sudo apt install -y, tn='t'mux 'n'ew -s <session>, myip, etc
+# Simple abbreviations/mnemonics for most aliases, ii => 'sudo apt install' / 'sudo dnf install' depending on environment, tn='t'mux 'n'ew -s <session>, myip, etc
 # Many aliases will not be created if the component that they rely upon is missing (i.e. standalone, can drop into a server and will work).
 
 ####################
@@ -24,17 +24,15 @@
 # 'aaff <string>' 'find functions/aliases, 'aaa <string>' 'find aliases', 'fff <string>' 'find functions'.
 # e.g. 'aaff git', 'aaff netstat' show every function/alias containing 'git' or 'netstat'. Limited regex support, 'aaff ^g' works, but '*' in the body of a search does not.
 # To get more detailed info on a function, use 'def <fnname>' to display the full definition of that function (or alias, but mostly use this for functions).
-# Also remember just using 'grep netstat .custom' to view information, and the grep -A (after) / -B (before) to get context around the search results.
+# Also remember just using command -v, type <aliasname>, grep netstat .custom' to view information, and the grep -A (after) / -B (before) to get context around the search results, bash -xl (load)
 # Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
 uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'fff' function below (and generally useful to remove control characters from files or pipeline output)
 aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'.\n"; }
 fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAll functions that contain a match for '$1'.\n"; }
 aaff() { echo -e "\e[1;37m\nFunctions that contain '$1':\n____________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAliases that contain '$1':\n____________________\n"; aaa $1; }   # Just show the names of functions that contain the search-string
-alias ffaa='aaff'; alias afaf='aaff'; alias fafa='aaff'; alias faaf='aaff'; alias affa='aaff'
+alias ffaa='aaff'; alias afaf='aaff'; alias fafa='aaff'; alias faaf='aaff'; alias affa='aaff'   # Just alias all variants of ffaa combinations, lol.
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
-# ToDo: Parse script for aliases and functions'  :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
-# Show the definition of a command/function/alias. Also note: command -v, type <aliasname>, bash -xl^C
-# def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi; fi; }
+# ToDo: Parse any script for aliases and functions (not possible in general, but could get 80%/90%) :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 
 ####################
 # Key Bindings: A good read here https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/
@@ -110,12 +108,12 @@ complete -cf sudo    # Tab complete for commands that come after sudo
 
 alias m='man'                                # Some people alias m to 'more', I think 'man' is much more useful
 alias v='vim'                                # Quick vim access
-type code  &> /dev/null && alias c='code'    # Quick VS Code access
-type byobu &> /dev/null && alias b='byobu'   # Quick byobu access
 type tmux  &> /dev/null && alias t='tmux'    # Quick tmux access
-alias tn='echo "# tmux new -s <name>"; tmux new'   # Syntax reminder for the -s (short for -session_name)
-alias ta='echo "# tmux a -t <name>"; tmux a'       # Syntax reminder, using -t (for -target_session)
-alias td='echo "# tmux d or detach"; tmux detach'  # Syntax reminder for the -t (short for -target_session)
+type byobu &> /dev/null && alias b='byobu'   # Quick byobu access
+type code  &> /dev/null && alias c='code'    # Quick VS Code access
+alias tn='echo "# tmux new -s <name>"; tmux new -s' # Syntax reminder for the -s (short for -session_name)
+alias ta='echo "# tmux a -t <name>"; tmux a -t'     # Syntax reminder, using -t (for -target_session)
+alias td='echo "# tmux d or detach"; tmux detach'   # Syntax reminder for the -t (short for -target_session)
 alias cls='clear'                       # DOS equivalent
 alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
 alias fhere="find . -name "             # Basic find syntax
@@ -712,8 +710,11 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     alias chrome="'/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'"  # This alias will work with any URL:  chrome www.google.com
     alias firefox="'C:\Program Files\Mozilla Firefox\firefox.exe'"
     alias opera="'C:\Program Files\Opera\opera.exe'"
+    # Main .custom should define 'gg', 'ddg', (also firefox etc) for X. Only if running in WSL should these overwrite those
     # Can do a lot with 'gg' or 'ddg', e.g. 'gg weather amsterdam', 'gg 5/5!' 'gg 5 log 2' (very advanced scientific calculator, will handle almost any freeform calculation)
     # However, some useful specific use cases for youtube (yy), translation (tt), and dictionary use (dic / syn) can be handy.
+    removealias() { [[ $(type $1) == *"aliased"* ]] && unalias $1; }
+    for i in (gg ddg tt ttnl tten dic syn yy ym); do removealias $i; done
     urlfix() { echo $(echo "$@" | sed 's/\+/%2B/g' | sed 's/\!/%21/g' | sed 's/\?/%3F/g' | sed 's/[ ][ ]*/\+/g'); }
     gg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.google.co.uk/search?q=${phrase}"; echo $url; chrome $url; }
     ddg() { phrase=$(urlfix "$@"); echo $phrase; url="https://www.duckduckgo.com/?q=${phrase}"; echo $url; chrome $url; }

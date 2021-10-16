@@ -1021,11 +1021,11 @@ print_header "HELP FILES : Create various help scripts for notes and tips and al
 
 ####################
 #
-echo "Copy Docker Aliases '.custom-dk' into the helper folder"
+echo "Copy Docker Aliases '.custom-dk' into the helper folder if this is an interactive session"
 #
 ####################
 if [ -f ./.custom-dk ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    cp ./.custo-dk $hh/
+    cp ./.custom-dk $hh/
 fi
 
 

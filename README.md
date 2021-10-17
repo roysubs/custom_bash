@@ -1,10 +1,14 @@
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
 # Quick Install
-`git config --global core.autocrlf input`  # Do this to prevent any CR/LF line-ending errors  
-`git clone https://github.com/roysubs/custom_bash`  
-`cd custom_bash`  
-`. ./custom_loader.sh`  
+The core.autocrlf setting is to prevent any CR/LF line-ending errors.  
+Note that there is no need to `chmod` the scripts, they should only be run dot-sourced so do not require to be executable.  
+```
+git config --global core.autocrlf input
+git clone https://github.com/roysubs/custom_bash
+cd custom_bash
+. ./custom_loader.sh
+```
 
 # Bash custom configuration & WSL Integration  
 Auto-configure common settings to be cross-platform for most Linux distros (CentOS/Ubuntu/Debian etc). Specific tools for WSL are included but that only load if WSL is detected. By sourcing a single script `custom_loader.sh`, this sets everything up and puts the `.custom` script into `~` which is then invoked by `~/.bashrc` at shell startup.  

@@ -113,6 +113,7 @@ print_header "Start common cross-distro configuration steps" "and setup common t
 print_header "Also configure some basic useful settings in" ".inputrc / .vimrc / and etc/sudoers.d/custom_rules"
 #
 ####################
+
 [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g')"   # Debian / Ubuntu and variants
 [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release);   # RedHat / Fedora / CentOS, contains "generic release" information
 [ -f /etc/os-release ] && RELEASE="$(cat /etc/os-release | grep ^NAME= | sed 's/^.*=//g' | sed 's/\"//g')"   # This now contains the release name
@@ -121,6 +122,7 @@ if grep -qEi "WSL2" /proc/version &> /dev/null ; then printf " (Running in WSL2)
 elif grep -qEi "Microsoft" /proc/version &> /dev/null ; then printf " (Running in WSL)"   # Other distros don't list WSL version but do have "Microsoft" in the string
 fi
 printf "\n\n"
+
 # Dotsourcing custom_loader.sh is required to update the running environment, but causes
 # problems with exiting scripts, since exit 0 / exit 1 will quit the bash shell since that
 # is what you are running when you are dotsourcing. e.g. This will close the whole shell:
@@ -143,6 +145,13 @@ if [ ! -f "./custom_loader.sh" ]; then read -e -p "Script should only be run whe
 # pwd_last= ${pwd_arr[-1]}                       # get the last element of the array
 
 echo "Default is to skip confirmation, but may require a sudo password"
+
+# if [ -f ~/.config/.custom-locale ];
+#     echo "Input locale to set for this system (this will be saved in ~/.config/.custom-locale)"
+#     echo "Possible locales are: EN, GB, US, NL, FR, IT, etc"
+#     [[ "$(read -e -p 'Input locale code to set for this system? > '; echo $REPLY)" == []* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; } 
+# fi
+
 [[ "$(read -e -p 'Confirm each configutation step? [y/N]> '; echo $REPLY)" == [Yy]* ]] && exe() { printf "\n\n"; echo "\$ ${@/eval/}"; read -e -p "Press 'Enter' to continue..."; "$@"; } 
 
 
@@ -1794,7 +1803,7 @@ exx "# bro ...no  2     # downvote example 2"
 exx "# bro add find     # add an entry for 'find'"
 exx ""
 exx "\${BYELLOW}***** cheat\${NC}"
-exx "sudo pip install cheat   # or sudo snap install cheat, but snap does not work on WSL yet"
+exx "sudo pip install cheat   # or: go get -u github.com/cheat/cheat/cmd/cheat, (or sudo snap install cheat, but snap does not work on WSL yet)"
 exx "cheat find"
 exx "# cheat --list     # list all entries"
 exx "# cheat -h         # help"
@@ -1805,6 +1814,8 @@ exx "# manly dpkg"
 exx "# manly dpkg -i -R"
 exx "manly --help       # help"
 exx ""
+exx "\${BYELLOW}***** kb\${NC}"
+exx "pip install -U kb-manager"
 exx "\${BYELLOW}***** tldr\${NC}"
 exx "sudo $manager install tldr   # Works on CentOS, but might not on Ubuntu"
 exx "sudo $manager install npm"
@@ -2869,20 +2880,21 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "GUI apps that run in WSL:"
     exx "gnome-system-monitor"
     exx ""
-    exx "\${BYELLOW}***** Run X-Display GUI from WSL\${NC}"   # https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376
-    exx "Can use for various login apps (aws-azure-login) from WSL - Unable to Open X-Display"
-    exx "Since WSL distro does not come with GUI, we need to install a X-Server on our Windows Host and Connect to it from WSL."
+    exx "\${BYELLOW}***** Run X-Display GUI from WSL\${NC}"
+    exx "https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376"
+    exx "https://github.com/microsoft/WSL/issues/4793#issuecomment-577232999"
+    exx "Can use for various login apps (aws-azure-login) from WSL"
+    exx "Since WSL distro does not come with GUI, we need to install an X-Server on Windows."
     exx "1. Install VcXsrv Windows X Server from https://sourceforge.net/projects/vcxsrv/"
     exx "2. Configure: Multiple Windows, Start no client, Clipboard, Primary Selection, Native OpenGL, Disable access control"
     exx "3. Enable Outgoing Connection from Windows Firewall:"
-    exx "Windows Security -> Firewall & network protection -> Allow an app through firewall -> make sure VcXsrv has both public and private checked."
+    exx "   Windows Security -> Firewall & network protection -> Allow an app through firewall -> make sure VcXsrv has both public and private checked."
     exx "4. Configure WSL to use the X-Server, you can put that at the end of ~/.bashrc to load it every log in"
-    exx "export DISPLAY=127.0.0.1:0.0   # For WSL 1"
-    exx "export DISPLAY=<windows_host_ip>:0.0   # For WSL 2, replace <windows_host_ip> with windows host real ip."
+    exx "   export DISPLAY=\\\"\$(/sbin/ip route \| awk '/default/ { print \$3 }'):0\\\""
     exx "5. Create a .xsession file in the user home directory e.g."
-    exx "echo xfce4-session > ~/.xsession"
+    exx "   echo xfce4-session > ~/.xsession"
     exx "6. Test by running xeyes"
-    exx "sudo apt install x11-apps"
+    exx "   sudo apt install x11-apps"
     exx "Now run 'xeyes' and you should be able to see the the xeyes application"
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""

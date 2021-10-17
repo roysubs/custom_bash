@@ -107,12 +107,13 @@ alias sudo='sudo '                      # Allows alias expansion even when using
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
 complete -cf sudo    # Tab complete for commands that come after sudo
 
-alias m='man'                                # Some people alias m to 'more', I think 'man' is much more useful
-alias v='vim'                                # Quick vim access
-type tmux  &> /dev/null && alias t='tmux'    # Quick tmux access
-type byobu &> /dev/null && alias b='byobu'   # Quick byobu access
-type nnn   &> /dev/null && alias n='nnn'     # Quick nnn access
-type code  &> /dev/null && alias c='code'    # Quick VS Code access
+alias m='man'                                  # Some people alias m to 'more', I think 'man' is much more useful
+alias v='vim'                                  # Quick vim access
+type tmux  &> /dev/null && alias t='tmux'      # Quick tmux access
+type byobu &> /dev/null && alias b='byobu'     # Quick byobu access
+type nnn   &> /dev/null && alias n='nnn -Rd'   # Quick nnn access -R stop rollover at bottom/top, -d detail
+type nnn   &> /dev/null && alias ndu='n -RdS'  # Add 'du mode' to calculate sizes of every folder, slower, but useful
+type code  &> /dev/null && alias c='code'      # Quick VS Code access
 alias tn='echo "# tmux new -s <name>"; tmux new -s' # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a -t'     # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'   # Syntax reminder for the -t (short for -target_session)

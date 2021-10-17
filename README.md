@@ -1,7 +1,7 @@
 [//]: <> (This is how to do a comment in Markdown that will not be visible in HTML.)  
 
 # Quick Install
-The core.autocrlf setting is to prevent any CR/LF line-ending errors.  
+The core.autocrlf setting is to prevent any line-end CR/LF related errors.  
 Note that there is no need to `chmod` the scripts, they should only be run dot-sourced so do not require to be executable.  
 ```
 git config --global core.autocrlf input

@@ -111,6 +111,7 @@ alias m='man'                                # Some people alias m to 'more', I 
 alias v='vim'                                # Quick vim access
 type tmux  &> /dev/null && alias t='tmux'    # Quick tmux access
 type byobu &> /dev/null && alias b='byobu'   # Quick byobu access
+type nnn   &> /dev/null && alias n='nnn'     # Quick nnn access
 type code  &> /dev/null && alias c='code'    # Quick VS Code access
 alias tn='echo "# tmux new -s <name>"; tmux new -s' # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a -t'     # Syntax reminder, using -t (for -target_session)
@@ -284,6 +285,8 @@ if type yum &> /dev/null 2>&1; then
     isize() { yum info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; };
     alias irepos='yum repolist; echo -e "\nyum repolist\nyum repolist all\nyum repolist enabled\nyum repolist disabled\nyum repolist available\n"'
     iirpm='sudo rpm -i';     rrrpm='sudo rpm -e';
+    alias iupdate='sudo yum update'   # Quick update, though updistro is more comprehensive
+    # alias iclean='sudo yum autoclean && sudo yum autoremove && sudo deborphan -Z && sudo apt clean'   # Get yum equivalents
 fi
 if type dnf &> /dev/null 2>&1; then
     alias ii='sudo dnf install';     alias ig='sudo dnf group install';   alias rr='sudo dnf remove';  alias uu='sudo dnf remove';
@@ -291,18 +294,17 @@ if type dnf &> /dev/null 2>&1; then
     alias iprovides='sudo dnf provides';      alias purge='sudo dnf purge';
     isize() { dnf info $1 | grep -e '^Package' -e '^Version' -e '^Size:'; };
     alias irepos='dnf repolist; echo -e "\ndnf repolist\ndnf repolist all\ndnf repolist enabled\ndnf repolist disabled\ndnf repolist available\n"'
+    alias iupdate='sudo dnf update'   # Quick update (upgrade is identical to update for dnf), though updistro is more comprehensive
 fi
-
-# Include further distros here ...
 # APK on Alpine/Busybox, # apk, does not require 'sudo' as root in alpine
 if type apk &> /dev/null 2>&1; then
     alias ii='apk add'; alias rr='apk del'; alias uu='apk del'
     alias irepos='vi /etc/apk/repositories'
 fi   
+# ToDo: Alpine is incomplete, also have to do further distros (mainly SLES and Alpine to complete, possibly others)
 
-# Create some additional aliases based on the above:
-# install, inst, setup => ii     uninstall, uninst, remove, delete => rr   (don't use 'del' as it maps to a Windows command)
-
+# Create some additional generic aliases that are variations on the above:
+# install, inst, setup => ii     uninstall, uninst, remove, delete => rr   (don't use 'del' as it maps to a Windows command, bad when using WSL)
 if type ii > /dev/null 2>&1; then alias install='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
 if type rr > /dev/null 2>&1; then uninstall='rr'; alias uninst='rr'; alias remove='rr'; alias delete='rr'; fi   # map remove / del to rr, but only if ii already exists
 
@@ -335,12 +337,6 @@ if type apt-history >/dev/null 2>&1; then     # Only create aliases if apt-cache
     alias apthu='apt-history upgrade';                  alias apthr='apt-history remove';
     alias apthback='apt-history rollback'
 fi    
-if type apt >/dev/null 2>&1; then             # Only create aliases if apt is present (but see 'updistro' below)
-    alias aupdate='sudo apt update && sudo apt upgrade'
-fi
-if type apt >/dev/null 2>&1 && type deborphan >/dev/null 2>&1; then
-    alias aclean='sudo apt autoclean && sudo apt autoremove && sudo deborphan -Z && sudo apt clean'
-fi
 
 pt() {
     # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
@@ -541,19 +537,12 @@ generate-sshkey() {    # generatesshkey ansible
     [ -f ~/.ssh/authorized_keys ] && cat ~/.ssh/authorized_keys || echo "~/.ssh/authorized_keys does not exist on this system."
 }
 alias addkey='[ ! $(pgrep ssh-agent) ] && eval $(ssh-agent); ssh-add'   # Only run ssh-add if ssh-agent is running. Using pgrep to test for ssh-agent
-generate-password() {
-    if [ -z $1 ]; then MAXSIZE=10; else MAXSIZE=$1; fi
-    array1=( q w e r t y u i o p a s d f g h j k l z x c v b n m Q W E R T Y U I O P A S D 
-             F G H J K L Z X C V B N M 1 2 3 4 5 6 7 8 9 0 \! \@ \$ \% \^ \& \* \! \@ \$ \% \^ \& \* \@ \$ \% \^ \& \* ) 
-    MODNUM=${#array1[*]};
-    pwd_len=0 
-    while [ $pwd_len -lt $MAXSIZE ] 
-    do 
-        index=$(($RANDOM%$MODNUM)) 
-        echo -n "${array1[$index]}" 
-        ((pwd_len++)) 
-    done 
-    echo 
+generate-password() {   # With ability to choose required character sets   # https://www.tecmint.com/generate-pre-shared-key-in-linux/
+    < /dev/urandom tr -dc a-zA-Z0-9 | head -c64; echo -e "   A 64 character alphanumeric PSK\n"   # Replace a-zA-Z0-9 as required
+    < /dev/urandom tr -dc a-z | head -c$1      ; echo -e "   Lower-case letters\n"
+    < /dev/urandom tr -dc a-jmnoqrtyA-HJLMNQRTY2-9 | head -c$1 ; echo -e "   Handwriting-unambiguous alphanumeric characters\n"
+    < /dev/urandom tr -dc \!-~ | head -c$1     ; echo -e "   Alphanumeric characters and all non-space printable ascii symbols (\! escapes ! to allow it for the shell)\n"
+    < /dev/urandom tr -dc a-zA-Z0-9-._~\(\)\'\!\*:@,\; | head -c$1 ; echo -e "   URL-safe characters (\ escapes the ()'!*; for the shell)\n"
 }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }  # Show the command to be run before running, useful for outputs when scripting
 square() { v1=$1; n=$(($v1*$v1)); echo $n; }          # Maths function

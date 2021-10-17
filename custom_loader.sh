@@ -2713,7 +2713,8 @@ exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small sed Notes)\${NC}"
 exx ""
 exx "\${BYELLOW}***** Useful AWK One-Liners to Keep Handy, work in progress\${NC}"
-exx "Excellent sed tutorial https://linuxhint.com/newline_replace_sed/"
+exx "Good sed tutorial https://linuxhint.com/newline_replace_sed/"
+exx "Remove whitespace https://linuxhint.com/sed_remove_whitespace/"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -3266,3 +3267,70 @@ fi
 #   Put into .bashrc or .bash_profile and then do not need to run unix2dos
 # - This error:   -bash: syntax error near unexpected token `('
 #   This happens when you try to define a function that is already aliased. To fix, 'unalias' the existing alias and try again
+
+# Finding duplicate alias / function declarations.
+# https://unix.stackexchange.com/questions/673454/finding-duplicate-aliases-and-functions-in-a-script-bashrc-etc
+### #!/usr/bin/perl
+### 
+### use strict;
+### #use Data::Dump qw(dd);
+### 
+### my $f_re = qr/(?:^|&&|\|\||;|&)\s*(?:(?:function\s+)?([-\w.]+)\s*\(\)|function\s+([-\w.]+)\s+(?:\(\))?\s*\{)/;
+### 
+### my $a_re = qr/(?:^|&&|\|\||;|&)(?:\s*alias\s*)([-\w.]+)=/;
+### 
+### # Hash-of-Hashes (HoH) to hold function/alias names and the files/lines they
+### # were found on.  i.e an associative array where each element is another
+### # associative array.  Search for HoH in the perldsc man page.
+### my %fa;
+### 
+### while(<>) {
+###   while(/$f_re/g) {
+###       my $match = $1 // $2;
+###       #print "found: '$match':'$&':$ARGV:$.\n";
+###       $fa{$match}{"function $ARGV:$."}++;
+###   };
+###   while(/$a_re/g) {
+###       #print "found: '$1':'$&':$ARGV:$.\n";
+###       $fa{$1}{"alias $ARGV:$."}++;
+###   };
+### 
+###   close(ARGV) if eof; # this resets the line counter to zero for every input file
+### };
+### 
+### #dd \%fa;
+### 
+### foreach my $key (sort keys %fa) {
+###   my $p = 0;
+###   $p = 1 if keys %{ $fa{$key} } > 1;
+###   foreach my $k (keys %{ $fa{$key} }) {
+###     if ($fa{$key}{$k} > 1) {
+###       $p = 1;
+###     };
+###   };
+###   print join("\n\t", "$key:", (keys %{$fa{$key}}) ), "\n\n" if $p;
+### };
+
+# Initial script is simpler and can also do the job if I prep the script first (replace & | then do by newline then remove all whitespace from start of lines)
+# cat .custom | sed 's/&/\n/g' | sed 's/\|/\n/g' | sed 's/then /\n/g' | sed 's/do /\n/g' | sed 's/^[ \t]*//'
+### #!/usr/bin/perl
+### 
+### use strict;
+### 
+### my $header = 1 if $#ARGV > 0;
+### 
+### while(<>) {
+###   if (($. == 1) && $header) {
+###     print "\n" if $header++ > 1;
+###     print "==> $ARGV <==\n"
+###   };
+### 
+###   if (/^\s*(?:function\s+)?([-\w]+)\s*\(\)/ ||
+###       /^\s*function\s+([-\w]+).*\{/) {
+###     printf "%5i\tfunction %s\n", $.,$1
+###   } elsif (/^\s*alias\s+([-\w]+)=/) {
+###     printf "%5i\talias %s\n", $.,$1
+###   };
+### 
+###   close(ARGV) if eof
+### }

@@ -53,12 +53,11 @@ def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined 
 ####################
 # Basic Environment:   ('export' variable are available in all child processes. Without 'export', the variable will not be available outside of this script) https://stackoverflow.com/a/21722203/524587
 ####################
-# If this is an xterm set the title to user@host:dir
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then . /etc/bash_completion; fi
-case "$TERM" in
+case "$TERM" in        # If this is an xterm set the title to user@host:dir
     xterm*|rxvt*|screen*)    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'    ;;
 esac
-# make less more friendly for non-text input files, see lesspipe(1), i.e. man 1 lesspipe
+# make less more friendly for non-text input files, see lesspipe(1) 'man 1 lesspipe'
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion   # Required by exa and various other tools. 
 # Auto-cd (only for bash v4 and above). Type a directory name to cd into it, without needing to prefix it with 'cd'
@@ -67,7 +66,8 @@ shopt -s checkwinsize   # At every prompt check if the window size has changed
 shopt -s histappend;   # Append commands to the bash history (~/.bash_history) instead of overwriting it   # https://www.digitalocean.com/community/tutorials/how-to-use-bash-history-commands-and-expansions-on-a-linux-vps
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"   # -a append immediately, then  -c clear history, then -r read history every time a prompt is shown instead of after closing the session.
 export HISTTIMEFORMAT="%F %T  " HISTCONTROL=ignorespace:ignoreboth:erasedups HISTSIZE=1000000 HISTFILESIZE=1000000000   # make history very big and show date-time when run 'history'
-# history 7 (last 7 lines), !51 (run command 51 in history), !-3 (run 3rd last command), !! (or !-1) run last command, su -c "!!" root,  switch user to root and run last command
+# history 7 (show last 7 history lines), !51 (run command 51 in history), !-3 (run 3rd last command)
+#   !! (or !-1) run last command, su -c "!!" root,  switch user to root and run last command
 #   touch a.txt b.txt c.txt; echo !^; echo !:1; echo !:2; echo !:3; echo !$; echo !*
 #   rm !(abc.txt)   remove everything except abc.txt      rm !(*.pdf)   remove everything except pdf files
 #   !# (retype from current line)    cp /some/long/path/file !#:1 (now press tab and it will expand)
@@ -147,16 +147,14 @@ alias reboot1='echo "Are you sure you want to reboot \"`hostname`\" [y/N]?" && r
 alias shutdown1='echo "Are you sure you want to shutdown host \"`hostname`\" [y/N]?" && read shutdown_answer && if [ "$shutdown_answer" == y ]; then /sbin/shutdown -h now; fi'
 alias tolowercase='tr "[:upper:]" "[:lower:]"'
 alias touppercase='tr "[:lower:]" "[:upper:]"'
-
 alias pbcopy='xclip -selection clipboard'; alias pbpaste='xclip -selection clipboard -o'  # To use xclip for copy/paste
 alias pbcopy='xsel --clipboard --input';   alias pbpaste='xsel --clipboard --output'      # To use xsel for copy/paste    # alias c='xsel --clipboard'   # Copy from cli to clipboard, use like:   cat somefile | c
 alias clipboardtolowercase='pbpaste | tr "[:upper:]" "[:lower:]" | pbcopy'   # whatever is in the X clipboard will be changed to lowercase
 alias clipboardtouppercase='pbpaste | tr "[:lower:]" "[:upper:]" | pbcopy'   # whatever is in the X clipboard will be changed to lowercase
-
 alias hogs='ps uxga | sort --key=3.1 -n'
 alias sdiff='sdiff -w 240'
-pyloc() { egrep -v '^[ ]*(#|$dollar)' $* | wc; };     # count lines in python / shell / powershell files
-loc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; }; # count lines in c, c++ files
+linecount() { egrep -v '^[ ]*(#|$dollar)' $* | wc; };         # count lines in python / shell / powershell files
+lincountc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; };   # count lines in c, c++ files
 
 ####################
 # ls, cd, mkdir, du, df, and permissions
@@ -525,7 +523,7 @@ ask()       # See 'killps' for example of use.
         *) return 1 ;;
     esac
 }
-[ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # Tab completion for ssh hosts
+[ -f ~/.ssh/known_hosts ] && complete -W "$(echo `cat ~/.ssh/known_hosts | cut -f 1 -d ' ' | sed -e s/,.*//g | uniq | grep -v "\["`;)" ssh   # bash-completion (i.e. tab completion) for ssh hosts
 generate-sshkey() {    # generatesshkey ansible
     echo -e "ssh-keygen Setup (rsa 4096 bit)\n\nssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_<name>\n( ssh-keygen -t dsa  ,  ssh-keygen -t ecdsa -b 521  ,  ssh-keygen -t ed25519 )\nssh-copy-id - ~/.ssh/id_rsa_$name 192.168.1.11   # To send to other hosts"
     echo "Enter the name of the Key (no spaces) ? "; read name

@@ -2,7 +2,7 @@
 
 # Quick Install
 The core.autocrlf setting is to prevent any line-end CR/LF related errors.  
-Note that there is no need to `chmod` the scripts, they should only be run dot-sourced so do not require to be executable.  
+Note that the scripts do not required to be executable as should only be run dot-sourced.  
 ```
 git config --global core.autocrlf input
 git clone https://github.com/roysubs/custom_bash

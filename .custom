@@ -32,6 +32,7 @@ fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='
 aaff() { echo -e "\e[1;37m\nAll functions that contain '$1'. For more detail: 'def <function-name>':\n_________________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAll aliases that contain '$1':\n_________________________\n"; aaa $1; }   # Show full line of aliases, but just the names of functions that contain the search-string (use 'def function-name' to see details)
 alias ffaa='aaff'; alias afaf='aaff'; alias fafa='aaff'; alias faaf='aaff'; alias affa='aaff'   # Just alias all variants of aaff combinations, so no chance of getting wronglol.
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
+complete -cf aaa; complete -cf fff; complete -cf aaff; complete -cf def   # Tab complete for commands that come after aaa, fff, aaff, def
 # ToDo: Parse any script for aliases and functions (not possible in general, but could get 80%/90%) :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 # echo -e "\nAll functions that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n";
 # ; echo -e "\nAll aliases that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n"
@@ -103,9 +104,9 @@ On_Black='\e[40m'; On_Red='\e[41m'; On_Green='\e[42m'; On_Yellow='\e[43m'; On_Bl
 NC="\e[m"; ALERT=${BWhite}${On_Red}   # NC for 'No Color' and ALERT for Bold White on red background.
 
 s() { if [[ $# == 0 ]]; then sudo $(history -p '!!'); else sudo "$@"; fi; }   # sudo, *or* sudo the previous command if no argument is given (e.g. handy when do 'vim /etc/bashrc')
-alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
 alias s!='eval "sudo $(fc -ln -1)"'     # "sudo last command", equal to "sudo !!". e.g. "vi /etc/hosts" is run but then see that it is read-only, so drop out, then "s!" to re-run elevated. 'fc' is a shell builtin used to list or edit and re-execute a portion of the history list (man bash for more). https://adamtheautomator.com/bash-fc-command/
-complete -cf sudo    # Tab complete for commands that come after sudo
+alias sudo='sudo '                      # Allows alias expansion even when using sudo, e.g. 'sudo t' will expand 't' to tmux, without this it will not see an alias for 't' https://stackoverflow.com/questions/37209913/how-does-alias-sudo-sudo-work
+complete -cf sudo                       # Tab complete for commands that come after sudo
 
 alias m='man'                                  # Some people alias m to 'more', I think 'man' is much more useful
 alias v='vim'                                  # Quick vim access

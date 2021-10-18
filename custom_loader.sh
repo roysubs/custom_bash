@@ -182,8 +182,8 @@ check_and_install() { type $1 &> /dev/null && printf "\n$1 is already installed"
 
 [[ "$manager" = "apk" ]] && check_and_install sudo sudo   # Just install sudo on Alpine for script compatibility
 
-echo -e "\n\n>>>>>>>>    A variant of '$DISTRO' was found."
-echo -e     ">>>>>>>>    Therefore, will use the '$manager' package manager for setup tasks."
+echo -e "\n\n>>>>>>>>    A variant of '$DISTRO' was found, so will use"
+echo -e     ">>>>>>>>    the '$manager' package manager for setup tasks."
 echo ""
 printf "> sudo $manager update -y\n> sudo $manager upgrade -y\n> sudo $manager dist-upgrade -y\n> sudo $manager install ca-certificates -y\n> sudo $manager autoremove -y\n"
 # Note 'install ca-certificates' to allow SSL-based applications to check for the authenticity of SSL connections
@@ -262,8 +262,8 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
     function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }          # Show a command to run, and then run it, useful for showing progress during scripts
 
     printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, therefore,"
-    echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
+    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, so will"
+    echo -e     ">>>>>>>>    use the '$manager' package manager for setup tasks."
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed

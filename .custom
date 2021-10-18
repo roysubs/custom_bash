@@ -402,8 +402,8 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
     function displayandrun() { echo -e "\$ ${@/eval/}\n"; "$@"; }          # Show a command to run, and then run it, useful for showing progress during scripts
 
     printf "\nCheck updates:"
-    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, therefore,"
-    echo -e     ">>>>>>>>    we will use the '$manager' package manager for setup tasks."
+    echo -e "\n\n>>>>>>>>    The '$DISTRO' package manager was found, so will"
+    echo -e     ">>>>>>>>    use the '$manager' package manager for setup tasks."
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt --fix-broken install -y; fi   # Check and fix any broken installs, do before and after updates
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt dist-upgrade -y; fi
     if [ "$manager" == "apt" ]; then separator; displayandrun sudo apt-get update --ignore-missing -y; fi     # Note sure if this is needed
@@ -669,7 +669,7 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 
 hhliq="$hhtmp/liquid.sh"; [[ -f $hhliq ]] && alias liquid="source $hhliq"   # Can source a script from an alias/function created during .bashrc
-hhdk="$hhtmp/.custom-dk"; [[ -f $hhdk ]] && alias dk="if type docker &> /dev/null; then echo -e 'Docker was found; adding dk aliases from $hhdk\nTo view defined docker aliases and function:   aaff docker'; source $hhdk; else 'Docker is not installed'; fi"     # Not enabled by default, running dk will initialise the .custom-dk aliases/functions, including re-aliasing itself as dk => docker
+hhdk="$hhtmp/.custom-dk"; [[ -f $hhdk ]] && alias dk='if type docker &> /dev/null; then echo -e "Docker was found; adding dk aliases from $hhdk\nTo view defined docker aliases and function:   aaff docker"; source $hhdk; else "Docker is not installed"; fi'     # Not enabled by default, running dk will initialise the .custom-dk aliases/functions, including re-aliasing itself as dk => docker
 # Trivial but can be nice to have (on Ubuntu these are already available in repository)
 type dnf &>/dev/null && install-all-toys() { sudo dnf install ruby install gcc make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-devel rubygems; sudo gem install lolcat; } # https://gist.github.com/mtaziz/d5b2f9ef46b06f04fbbd   g++ ruby-rdoc
 type dnf &>/dev/null && install-acquarium() { echo "run script from /tmp/.custom"; }

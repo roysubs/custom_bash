@@ -186,6 +186,7 @@ set-ls() {
     alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
     alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
     alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
+    alias lla='ls -la'     # long format, -A 'Almost all' to include hidden (dot) files, but not '.' and '..'
     alias lld='ls -FlAd | grep /$'     # Directories only with ls, bad practice to do this, but keep as usually fine for 99% of console work (but don't use in a script)
     alias llfd='find \\. -maxdepth 1 -type d'  # 'long listing, find directories', For any scripting, always use find instead of ls as more reliable (use ls for console, use find for scripting)
     alias lldt='tree . -faild -L 1'    # Directories only, max depth 1

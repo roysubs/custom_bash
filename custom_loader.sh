@@ -423,9 +423,10 @@ pt() {
         echo -e "\nNo selected packages can be installed. Exiting ...\n"
     fi
 }
-
-updateDate="$(stat -c %Y '/tmp/all-repo.txt')"   # %Y  time of last data modification, in seconds since Epoch
 nowDate="$(date +'%s')"                          # %s  seconds since 1970-01-01 00:00:00 UTC
+updateDate=$nowDate
+[ -f /tmp/all-repo.txt ] && updateDate="$(stat -c %Y '/tmp/all-repo.txt')"   # %Y  time of last data modification, in seconds since Epoch
+
 lastUpdate=$((nowDate - updateDate))             # simple arithmetic with $(( ))
 updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, setting to 24 hours in seconds
 updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))

@@ -1085,7 +1085,7 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small GitHub, npm, gem, etc)\${NC}"
 exx ""
-exx "npm i -g movie-cli    # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies"
+exx "npm i -g movie-cli         # mayankchd/movie, access movie database from cli, 'movie Into The Wild', or 'movie Into The Wild :: Wild' to compare two movies"
 exx "npm install -g mediumcli   # djadmin/medium-cli, a cli for reading Medium stories, 'medium -h'"
 exx "npm install hget --save    # bevacqua/hget, A CLI and an API to convert HTML into plain text. npm install hget -g   (to install globally)"
 exx "    # hget ponyfoo.com, hget file.html, cat file.html | hget,   hget echojs.com --root #newslist --ignore \\\"article>:not(h2)\\\""
@@ -1102,6 +1102,9 @@ exx "https://github.com/cmus/cmus     # cli music player"
 exx "npm i -g mdlt               # Metadelta CLI, advanced math utility, https://github.com/metadelta/mdlt"
 exx "sudo apt install hub        # Better GitHub integration than git, https://hub.github.com/   hub clone github/hub"
 exx "go get -v github.com/zquestz/s; cd $GOPATH/src/github.com/zquestz/s; make; make install   # Advanced web search, https://github.com/zquestz/s"
+exx "Terminal Image Viewers:"
+exx "sudo apt install fim   # Fbi IMproved, Linux frame buffer viewer that can also create ASCII art. https://ostechnix.com/how-to-display-images-in-the-terminal/"
+exx "   fim -a dog.jpg   ;   fim -t dog.jpg   # -a auto-zoom, -t render ASCII art"
 exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
@@ -1120,6 +1123,11 @@ echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Console Toys)\${NC}"
+exx ""
+exx "git clone https://gitlab.com/dwt1/shell-color-scripts ~/shell-color-scripts   # Set of simple colour ASCII scripts"
+exx "   sudo cp -rf ~/shell-color-scripts /opt/"
+exx "   alias colorscript='/opt/shell-color-scripts/colorscript.sh'"
+exx "git clone https://gitlab.com/dwt1/wallpapers ~     # Set of wallpapers for desktops or testing ASCII graphics tools"
 exx ""
 exx "git clone https://github.com/pipeseroni/maze.py    # Simple curses pipes written in Python"
 exx "git clone https://github.com/pipeseroni/pipes.sh   # pipes.sh, a pipe screensaver for cli (bash)"
@@ -1585,16 +1593,15 @@ exx "wc !?torn?:2   would also work, selecting argument 2 from the found command
 exx ""
 exx "\${BYELLOW}***** Linux Keyboard Shortcuts\${NC}"
 exx "https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/"
-exx "Ctrl-C      Kill process in the terminal  /  Ctrl-Z    Stop current process   =>   (fg / bg / jobs)"
-exx "Ctrl+R      'Recall', search history of used commands  =>  Ctrl-O Run found command,  Ctrl-G Do not run found command"
-exx "Ctrl+A (or Home) / E (or End)  Move to start / end of current line"
-exx "Alt +F / B  Move forward / backwards one word"
-exx "Ctrl+F / B  Move forward / backwards one character"
-exx "Ctrl-U / K  Cut all line *before* (U) or after (K) cursor into clipboard"
-exx "Ctrl-Y      Paste from clipboard"
-exx "Ctrl+W      Cut the word on the left side of the cursor"
-exx "Ctrl+D      Logout of Terminal or ssh (or tmux) session"
-exx "Ctrl+L      Clear Terminal (note that this is not 'clear' all info is retained, it just nicely scrolls the screen up"
+exx "Ctrl-K (cut to end of line),           Ctrl-U (cut to start of line), these use the kill ring buffer in bash"
+exx "Ctrl-Y (paste from kill ring buffer),  Ctrl-W (cut the word on the left side of the cursor)"
+exx "Ctrl-R (recall: search history of used commands),   Ctrl-O (run found command),  Ctrl-G (do not run found command)"
+exx "Ctrl-C (kill currently running terminal process),   Ctrl-Z (stop current process)  =>  (fg / bg / jobs)"
+exx "Ctrl-D (logout of Terminal or ssh (or tmux) session"
+exx "Ctrl-L (clear Terminal; much more useful than the 'clear' command as all info is retained, just scrolls the screen up)"
+exx "Navigation Bindings:"
+exx "Ctrl-A (or Home) / E (or End)  Move to start / end of current line"
+exx "Alt -F / B  Move forward / backwards one wordCtrl-F / B  Move forward / backwards one character"
 exx ""
 exx "grep \\\`whoami\\\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
@@ -1602,6 +1609,14 @@ exx ""
 exx "\${BYELLOW}***** Breaking a hung SSH session\${NC}"
 exx "Sometimes, SSH sessions hang and Ctrl+c will not work, so that closing the terminal is the only option. There is a little known solution:"
 exx "Hit 'Enter', and '~', and '.' as a sequence and the broken session will be successfully terminated."
+exx ""
+exx "\${BYELLOW}***** Random points to remember\${NC}"
+exx "sudo !!   - re-run previous command with 'sudo' prepended"
+exx "use 'less +F' to view logfiles, instead of 'tail' (ctrl-c, shift-f, q to quit)"
+exx "ctrl-x-e  - continue editing your current shell line in a text editor (uses \$EDITOR)"
+exx "alt-.     - paste previous commands *argument* (useful for running multiple commands on the same resource)"
+exx "reset     - resets/unborks your terminal"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1676,28 +1691,26 @@ zzz '${BYELLOW}Example of splitting a string by another string (quite tricky in 
 zzz '''split() { str=\\"LearnABCtoABCSplitABCaABCString\\"; delimiter=ABC; s=\$str\$delimiter; array=(); while [[ \$s ]]; do array+=( \\"\${s%%%%%%%%\\"\$delimiter\\"*}\\" ); s=\${s#*\\"\$delimiter\\"}; done; declare -p array; echo \$array; }'
 zzz ''
 zzz '${BYELLOW}Some structures to remember:${NC}'
-zzz '[[ \\"\$(read -e -p \\"A ask a question? [y/N]> \\"; echo $REPLY)\\" == [Yy]*: ]]   # One-liner to get input'
-zzz 'for i in {7..18}; do echo \$i; done     # Arbitrary numbers'
-zzz 'for (( counter=1; counter<=10; counter++ )); do echo -n \\"\$counter \\"; done'
-zzz 'for i in \`seq 1 9\`; do echo \$i; done   # Another way'
-zzz 'i=0; while [ \$i -le 2 ]; do echo Number: \$i; ((i++)); done'
-zzz 'if [[ ( $num -lt 10 ) && ( $num%2 -eq 0 ) ]]; then echo \\"Even Number\\"; else echo \\"Odd Number\\"; fi'
-
+zzz '[[ \\"\$(read -e -p \\"Ask a question? [y/N]> \\"; echo $REPLY)\\" == [Yy]*: ]]   # One-liner to get input'
+zzz 'for i in {3..10}; do echo \$i; done     # Arbitrary loop from 3 to 10'
+zzz 'for (( i=3; i<=10; i++ )); do echo -n \\"\$i \\"; done   # Another way using csh loop syntax'
+zzz 'for i in \`seq 3 10\`; do echo \$i; done               # Another way using seq'
+zzz 'i=0; while [ \$i -le 2 ]; do echo Number: \$i; ((i++)); done     # basic while loop based upon test condition'
+zzz 'if [[ ( \$x -lt 10 ) && ( \$y -eq 0 ) ]]; then echo \\"\$x \$y\\"; fi  # if multiple conditions, then do something'
 # BACKUPFILE=backup-$(date +%m-%d-%Y)
 # archive=${1:-$BACKUPFILE}
 # 
 # find . -mtime -1 -type f -print0 | xargs -0 tar rvf "$archive.tar"
 # echo "Directory $PWD backed up in archive file \"$archive.tar.gz\"."
 # exit 0
-
 zzz ''
 zzz '${BYELLOW}Using ls or other commands inside for-loops:${NC}'
 zzz 'It is bad practice to use ls as part of a for-loop, because the output can be uncertain.'
 zzz 'Use ls for console use, but find is generally the right tool to get a set of files into a for-loop.'
-zzz 'for i in $(someCommand) is t always wrong. A much better construct is:'
+zzz 'for i in \$(someCommand) is usually bad (unless the output is certain, such as \$(seq 1 9)). A better construct is:'
 zzz 'someCommand | while read i; do ...; done          # This is much better than for i in \$(someCommand)'
 zzz 'someCommand | while IFS= read -r i; do; ... done  # This is even better'
-zzz 'It is ok to use a command inside a for-loop if the output is certain, e.g. for i in \$(seq 1 9); would be fine.'
+zzz 'It is ok to use a command inside a for-loop if the output is certain, e.g. for i in \$(seq 1 9)   would be fine.'
 zzz 'You can also use the -ls predicate to mimic ls:   find . -maxdepth 1 -type f -ls'
 zzz ''
 zzz 'Some find examples:'
@@ -2206,12 +2219,15 @@ exx ""
 exx "\${BYELLOW}***** PLUGINS, VIM-PLUG\${NC}    https://www.linuxfordevices.com/tutorials/linux/vim-plug-install-plugins"
 exx "First, install vim-plug:"
 exx "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-exx "Then add the following lines to ~/.vimrc ("
-exx "call plug#begin()"
-exx "Plug 'tyru/open-browser.vim' \\\" opens url in browser"
-exx "Plug 'https://github.com/tpope/vim-fugitive' \\\" Surrounding ysw)"
+exx "Then add the following lines to ~/.vimrc"
+exx "call plug#begin('~/.vim/plugged')"
+exx "Plug 'https://github.com/vim-airline/vim-airline' \\\" Status bar"
+exx "Plug 'https://github.com/junegunn/vim-github-dashboard.git'"
+exx "Plug 'junegunn/vim-easy-align' \\\"For GitHub repositories, you can just mention the username and repository"
+exx "Plug 'tyru/open-browser.vim' \\\" Open URLs in browser"
+exx "Plug 'https://github.com/tpope/vim-fugitive' \\\" Git suppoty"
 exx "Plug 'https://github.com/tpope/vim-surround' \\\" Surrounding ysw)"
-exx "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' }"
+exx "Plug 'https://github.com/preservim/nerdtree', { 'on': 'NERDTreeToggle' } \\\" NERDTree file explorer, on-demand loading"
 exx "Plug 'https://github.com/ap/vim-css-color' \\\" CSS Color Preview"
 exx "Plug 'https://github.com/tpope/vim-commentary' \\\" For Commenting gcc & gc"
 exx "call plug#end()"
@@ -2312,7 +2328,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "grep Notes (call with 'help-assorted')"
+echo "Assorted Linux Commands (call with 'help-assorted')"
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
@@ -2498,7 +2514,7 @@ echo "cron Notes (call with 'help-cron')"
 HELPFILE=$hh/help-cron.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
-exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; NC='\\033[0m' # No Color"
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small cron Help)\${NC}"
 exx ""
@@ -2734,56 +2750,7 @@ chmod 755 $HELPFILE
 
 ####################
 #
-echo "Python Server Example on port 8001"
-#
-####################
-HELPFILE=$hh/py3web-example.py
-exx() { echo "$1" >> $HELPFILE; }
-echo "#!/bin/python3" > $HELPFILE
-exx "# Python 3 server example on port 8001"
-exx "# Copy this script into your home folder to work with if required as the"
-exx "# copy in $hh may be overwritten by .custom configuration periodically."
-exx "# The .custom function 'pyweb3example' will look first in ~, then in"
-exx "# $hh only if if there is no working copy in ~."
-exx "# If you open an url like http://127.0.0.1/example the method do_GET() is called."
-exx "# We send the webpage manually in this method, web server in python 3"
-exx "# The variable self.path returns the web browser url requested. In this case it would be /example"
-exx ""
-exx "from http.server import BaseHTTPRequestHandler, HTTPServer"
-exx "import time"
-exx ""
-exx "hostName = \"localhost\""
-exx "serverPort = 8001"
-exx ""
-exx "class MyServer(BaseHTTPRequestHandler):"
-exx "    def do_GET(self):"
-exx "        self.send_response(200)"
-exx "        self.send_header(\"Content-type\", \"text/html\")"
-exx "        self.end_headers()"
-exx "        self.wfile.write(bytes(\"<html><head><title>https://pythonbasics.org</title></head>\", \"utf-8\"))"
-exx "        self.wfile.write(bytes(\"<p>Request: %s</p>\" % self.path, \"utf-8\"))"
-exx "        self.wfile.write(bytes(\"<body>\", \"utf-8\"))"
-exx "        self.wfile.write(bytes(\"<p>This is an example web server.</p>\", \"utf-8\"))"
-exx "        self.wfile.write(bytes(\"</body></html>\", \"utf-8\"))"
-exx ""
-exx "if __name__ == \"__main__\":        "
-exx "    webServer = HTTPServer((hostName, serverPort), MyServer)"
-exx "    print(\"Server started http://%s:%s\" % (hostName, serverPort))"
-exx ""
-exx "    try:"
-exx "        webServer.serve_forever()"
-exx "    except KeyboardInterrupt:"
-exx "        pass"
-exx ""
-exx "    webServer.server_close()"
-exx "    print(\"Server stopped.\")"
-chmod 755 $HELPFILE
-
-
-
-####################
-#
-echo "WSL integration (show with 'help-wsl'), only run this is WSL is detected"
+echo "WSL integration (show with 'help-wsl'), only run this if WSL is detected"
 #
 ####################
 
@@ -3081,7 +3048,62 @@ echo ""
 
 ####################
 #
-echo "Liquid prompt script setup (call with 'start-liquidprompt')"
+echo "Python Server on port 8001 (Script Template, call by 'py3web' from .custom)"
+#
+####################
+HELPFILE=$hh/py3web-example.py
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/python3" > $HELPFILE
+exx "# Python 3 server example on port 8001"
+exx "# Copy this script into your home folder to work with if required as the"
+exx "# copy in $hh may be overwritten by .custom configuration periodically."
+exx "# The .custom function 'pyweb3example' will look first in ~, then in"
+exx "# $hh only if if there is no working copy in ~."
+exx "# If you open an url like http://127.0.0.1/example the method do_GET() is called."
+exx "# We send the webpage manually in this method, web server in python 3"
+exx "# The variable self.path returns the web browser url requested. In this case it would be /example"
+exx ""
+exx "from http.server import BaseHTTPRequestHandler, HTTPServer"
+exx "import time"
+exx ""
+exx "hostName = \"localhost\""
+exx "serverPort = 8001"
+exx ""
+exx "class MyServer(BaseHTTPRequestHandler):"
+exx "    def do_GET(self):"
+exx "        self.send_response(200)"
+exx "        self.send_header(\"Content-type\", \"text/html\")"
+exx "        self.end_headers()"
+exx "        self.wfile.write(bytes(\"<html><head><title>https://pythonbasics.org</title></head>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<p>Request: %s</p>\" % self.path, \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<body>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"<p>This is an example web server.</p>\", \"utf-8\"))"
+exx "        self.wfile.write(bytes(\"</body></html>\", \"utf-8\"))"
+exx ""
+exx "if __name__ == \"__main__\":        "
+exx "    webServer = HTTPServer((hostName, serverPort), MyServer)"
+exx "    print(\"Server started http://%s:%s\" % (hostName, serverPort))"
+exx ""
+exx "    try:"
+exx "        webServer.serve_forever()"
+exx "    except KeyboardInterrupt:"
+exx "        pass"
+exx ""
+exx "    webServer.server_close()"
+exx "    print(\"Server stopped.\")"
+chmod 755 $HELPFILE
+
+
+
+echo ""
+echo ""
+echo ""
+
+
+
+####################
+#
+echo "Liquid prompt script setup (call by 'start-liquidprompt' in .custom)"
 #
 ####################
 # https://blog.infoitech.co.uk/linux-liquidprompt-an-adaptive-prompt-for-bash/
@@ -3116,6 +3138,10 @@ exx "echo LiquidPrompt requires a NerdFont to display icons correctly:"
 exx "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
 exx "echo ''"
 chmod 755 $HELPFILE
+
+
+
+echo ""
 
 
 

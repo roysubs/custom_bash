@@ -17,6 +17,7 @@
 # Do not replace built-in commands as would impact expected output in pipeline and scripts. Exceptions: 'cat' and 'more' in the below).
 # Simple abbreviations/mnemonics for most aliases, ii => 'sudo apt install' / 'sudo dnf install' depending on environment, tn='t'mux 'n'ew -s <session>, myip, etc
 # Many aliases will not be created if the component that they rely upon is missing (i.e. standalone, can drop into a server and will work).
+# Download 'shellcheck' and run against this and other scripts
 
 ####################
 # Using .custom tools: search for and show full definitions of any alias or function
@@ -36,6 +37,9 @@ complete -cf aaa; complete -cf fff; complete -cf aaff; complete -cf def   # Tab 
 # ToDo: Parse any script for aliases and functions (not possible in general, but could get 80%/90%) :  paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 # echo -e "\nAll functions that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n";
 # ; echo -e "\nAll aliases that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n"
+# Template to pass variables to an alias; creates a temporary function wrapper, which is passed the arguments, Alias arguments are only passed at the end. Note that wrapper is called, at the very end of the alias. The unset -f removes the function definition as the alias is executed so it doesn't hang around afterwards.
+alias fo='wrapper(){ ~/bin/findAndOpen $1 $2; unset -f wrapper; }; wrapper'   # https://unix.stackexchange.com/questions/3773/how-to-pass-parameters-to-an-alias
+
 ####################
 # Key Bindings: A good read here https://www.howtogeek.com/howto/ubuntu/keyboard-shortcuts-for-bash-command-shell-for-ubuntu-debian-suse-redhat-linux-etc/
 ####################
@@ -110,11 +114,12 @@ complete -cf sudo                       # Tab complete for commands that come af
 
 alias m='man'                                  # Some people alias m to 'more', I think 'man' is much more useful
 alias v='vim'                                  # Quick vim access
-type tmux  &> /dev/null && alias t='tmux'      # Quick tmux access
+type nvim &> /dev/null && alias vim='nvim' && alias v='nvim'   # default to nvim if present
+type tmux &> /dev/null && alias t='tmux'      # Quick tmux access
 type byobu &> /dev/null && alias b='byobu'     # Quick byobu access
-type nnn   &> /dev/null && alias n='nnn -Rd'   # Quick nnn access -R stop rollover at bottom/top, -d detail
-type nnn   &> /dev/null && alias ndu='n -RdS'  # Add 'du mode' to calculate sizes of every folder, slower, but useful
-type code  &> /dev/null && alias c='code'      # Quick VS Code access
+type nnn &> /dev/null && alias n='nnn -Rd'   # Quick nnn access -R stop rollover at bottom/top, -d detail
+type nnn &> /dev/null && alias ndu='n -RdS'  # Add 'du mode' to calculate sizes of every folder, slower, but useful
+type code &> /dev/null && alias c='code'      # Quick VS Code access
 alias tn='echo "# tmux new -s <name>"; tmux new -s' # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a -t'     # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'   # Syntax reminder for the -t (short for -target_session)
@@ -172,58 +177,73 @@ lincountc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; };   # count lines in c
 # Expand help-ls to a full file in /tmp/.custom
 help-ls() { echo -e "Several ways to list directories only (but no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, incl hidden), -i (don't show tree), -l (don't follow symbolic links).\nShow additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable)\ntree . -fail --du -h\nlr  # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/"; }
 [[ $(type ls) == *"aliased"* ]] && unalias ls               # Just a general way to testing for commands that are type 'alias' and so to act upon them if aliased
-alias ls='\ls --color=always --group-directories-first'     # l will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
-alias l='ls -AFh --color=always --group-directories-first'  # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
-alias la='ls -Ah'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-alias ll='ls -lAh'     # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
-alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-alias lld='ls -FlAd | grep /$'     # Directories only with ls, bad practice to do this, but keep as usually fine for 99% of console work (but don't use in a script)
-alias llfd='find \\. -maxdepth 1 -type d'  # 'long listing, find directories', For any scripting, always use find instead of ls as more reliable (use ls for console, use find for scripting)
-alias lldt='tree . -faild -L 1'    # Directories only, max depth 1
-alias llt='tree . -fail --du -h'   # All files and directories, recurse by default, with a summary of size in human readable units
-alias llf='ls -FlA | grep -v "/"'  # Files only (no directories)
-alias llv='vdir'                   # From info dir: dir is equivalent to ls -C -b, From info vdir: vdir is equivalent to ls -l -b
-alias ldot="ls -ld .??*"           # Dotfiles only
-alias lnox="find . -maxdepth 1 -type f ! -executable"    # Everything except executable files, increase -maxdepth to search for more   # alias lx="ls -FlA | grep *"; alias lnox="ls -FlA | grep -v *"
-alias lx="find . -maxdepth 1 -type f -executable"        # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
-alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'  # List possible executables and scripts by extensions, discarding error output (as will generate for every type that is not there)
-alias lext='ls -Fla | egrep "\."'                        # Files with extensions only   ".|/"
-alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions
-alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
-alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
-alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
-alias lm='ls -Am'; alias lcsv='lm'         # comma separated view (-m), -A almost all, except '.' and '..'
-alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
-alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
-# replicate 'ls', but using 'stat' to show both normal 'ls' permission flags *and* octal.
+
+set-ls() {
+    alias ls='\ls --color=always --group-directories-first'     # ls will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
+    alias l='ls -AFh'      # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
+    alias la='ls -Ah'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
+    alias ll='ls -lh'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
+    alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
+    alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
+    alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
+    alias lld='ls -FlAd | grep /$'     # Directories only with ls, bad practice to do this, but keep as usually fine for 99% of console work (but don't use in a script)
+    alias llfd='find \\. -maxdepth 1 -type d'  # 'long listing, find directories', For any scripting, always use find instead of ls as more reliable (use ls for console, use find for scripting)
+    alias lldt='tree . -faild -L 1'    # Directories only, max depth 1
+    alias llt='tree . -fail --du -h'   # All files and directories, recurse by default, with a summary of size in human readable units
+    alias llf='ls -FlA | grep -v "/"'  # Files only (no directories)
+    alias llv='vdir'                   # From info dir: dir is equivalent to ls -C -b, From info vdir: vdir is equivalent to ls -l -b
+    alias ldot="ls -ld .??*"           # Dotfiles only
+    alias lnox="find . -maxdepth 1 -type f ! -executable"    # Everything except executable files, increase -maxdepth to search for more   # alias lx="ls -FlA | grep *"; alias lnox="ls -FlA | grep -v *"
+    alias lx="find . -maxdepth 1 -type f -executable"        # Executable files only, below 'lxext' is just trying to find 'executable-like' files by their extension
+    alias lxext='ll *.sh *.csh *.ksh *.c *.cpp *.py *.jar *.exe *.bat *.cmd *.com *.js *.vbs *.wsh *.ahk *.ps1 *.psm1 2> /dev/null'  # List possible executables and scripts by extensions, discarding error output (as will generate for every type that is not there)
+    alias lext='ls -Fla | egrep "\."'                        # Files with extensions only   ".|/"
+    alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions
+    alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
+    alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
+    alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
+    alias lm='ls -Am'; alias lcsv='lm'         # comma separated view (-m), -A almost all, except '.' and '..'
+    alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
+    alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
+    alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
+    lsdu()  { ls -l $* | sort --key=5.1 -n; };          # List by ascending size
+    lsduf() { ls -l | egrep $* | sort --key=5.1 -n; };  # Accepts input to fileter/grep on
+}
+set-ls
+# If 'exa' is present, can override ls with these if required
+type exa &> /dev/null && set-ls-to-exa() {
+    alias ls='\exa --color=always --group-directories-first'  # basic coloured ls view, but with exa, colours each permission item and other useful options
+    alias la='ls -a'      # all files and dirs
+    alias ll='ls -lh'     # long format, 'h' for header line
+    alias lla='ls -la'    # long format, -a 'all' to include hidden (dot) files
+    alias lt='ls -las modified'   # sort by modified time, flag -s needs a value (choices: name, Name, size, extension, Extension, modified, changed, accessed, created, inode, type, none)
+    alias lg='ls -lGh'    # -lG is a useful 2x column long view (grid view), exa has some good alternative options to 'ls', it is in Ubuntu 20.10 repo by default
+    alias ltree='ls -aT' && alias exatree='ls -aT'   # tree listing, not actually very useful, 'tree' is much faster
+    alias l.='ls -a | egrep "^\."'
+}
+# replicate 'ls', using 'stat' (get normal 'ls' permission flags, and octal), and aliases to set permissions
 lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
 lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format) and names
+alias lls='lss'        # 'long listing with security', alias in line with other ls aliases
 sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
-alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'   # Remove permissions: append with file/directory to apply to
-alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'  # Onwer rw, everyone else read-only
+alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'        # Remove permissions: append with file/directory to apply to
+alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'       # Onwer rw, everyone else read-only
 alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
-alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so: all users, add 'x' (executable)
-alias lls='lss'        # Since the 'stat' output is in long format 'll', also use 'lls' for 'long listing with ecurity'
-alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
-alias lg='exa -lG'     # 'ls grid', exa is an interesting potential successor to 'ls', in Ubuntu 20.10 repo by default, colours each permission item and -lG is a useful 2x column long view.
-cl() { cd "$@" && ls; }        # 'cd+ls'   -F --color=auto   # cl() { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
+alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
+
+cl() { cd "$@" && ls; }        # 'cd+ls'   -F --color=auto   # cl)( { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }       # 'cd+ll'
 md() { [ $# = 1 ] && mkdir -pv "$@" && cd "$@" || echo "Error: no directory argument"; }  # 'mkdir' and then 'cd' into that directory
-alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"'
-alias cd-='cd -'; alias cd..='cd ..'; alias u1='cd ..'; alias u2='cd ../..'; alias u3='cd ../../..'; alias u4='cd ../../../../..'; alias u5='cd ../../../../../..'; alias u6='cd ../../../../../../..'
-alias back='cd -'; alias cd-='cd -'; alias .1="cd .."; alias .2="cd ../.."; alias .3="cd ../../.."; alias .4="cd ../../../.."; alias .5="cd ../../../../.."; alias .6='cd ../../../../../../..'
+alias cd.='history | grep cd | grep -v cd$; echo -e "\n$(pwd)\n"';   alias cd..='cd ..'
+alias cd-='cd -';  alias u1='cd ..'; alias u2='cd ../..'; alias u3='cd ../../..'; alias u4='cd ../../../..'; alias u5='cd ../../../../..'; alias u6='cd ../../../../../..'
+alias back='cd -'; alias .1="cd .."; alias .2="cd ../.."; alias .3="cd ../../.."; alias .4="cd ../../../.."; alias .5="cd ../../../../.."; alias .6='cd ../../../../../..'
 alias most='du -hsx * | sort -rh | head -10'     # What is using the most space. Both directories and files. Varies on current directory
 du.t() { du -hsc . ; }         # 'total' Just return a total size for everything under '.' (PWD) (including hidden, i.e. dot config files).
 du.tsu() { sudo du -hsc . ; }  # 'all with sudo' Just return a total size for everything under PWD (including hidden, i.e. dot config files).
-du.() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
-du.m() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
-du.g() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.()   { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # du fixed (du is a broken command in my opinion, as it normally skips .* files/folders (which can often be very large so gives a warped representation of a folder size; this function fixes that).
+du.m()  { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+M; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 MB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
+du.g()  { local dotglob=$(shopt -p dotglob); shopt -s dotglob; printf ""; sudo du -hsc */ | sort -h | grep -E ^[0-9]+?\.?[0-9]+G; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; } # To further refine this e.g. to find only *folders* bigger than 1 GB, add to the du line: | grep -E ^[0-9]+?\.?[0-9]+G
 du.su() { local dotglob=$(shopt -p dotglob); shopt -s dotglob; sudo du -hsc */ | sort -h; eval $dotglob; printf "\nSize of files in current directory only: $(ls -alc | grep ^total)\n\n"; }    # As for dufix(), but includes also inaccessible folders, so requiring 'sudo'
-dus () { du --max-depth=0 -k * | sort -nr | awk '{ if($1>=1024*1024) {size=$1/1024/1024; unit="G"} else if($1>=1024) {size=$1/1024; unit="M"} else {size=$1; unit="K"}; if(size<10) format="%.1f%s"; else format="%.0f%s"; res=sprintf(format,size,unit); printf "%-4s %sn, ",res,$2 }'; echo; }
-lsdu() { ls -l $* | sort --key=5.1 -n; };           # List by ascending size
-lsduf() { ls -l | egrep $* | sort --key=5.1 -n; };  # Accepts input to fileter/grep on
+dus ()  { du --max-depth=0 -k * | sort -nr | awk '{ if($1>=1024*1024) {size=$1/1024/1024; unit="G"} else if($1>=1024) {size=$1/1024; unit="M"} else {size=$1; unit="K"}; if(size<10) format="%.1f%s"; else format="%.0f%s"; res=sprintf(format,size,unit); printf "%-4s %sn, ",res,$2 }'; echo; }
 alias duh='du -h --max-depth=1 | sort -h'
 alias ducks='du -ck | sort -nr | head'           # Another way to find bloat (people say this link is 'shooting ducks' to find large size, silly name)
 alias ducky='find . -maxdepth 1 -mindepth 1 -print0  | xargs -0 -n1 du -ks | sort -rn | head -16 | cut -f2 | xargs -i du -hs {}'   # An even more complex way to find bloat
@@ -300,7 +320,8 @@ fi
 if type apk &> /dev/null 2>&1; then
     alias ii='apk add'; alias rr='apk del'; alias uu='apk del'
     alias irepos='vi /etc/apk/repositories'
-fi   
+fi
+
 # ToDo: Alpine is incomplete, also have to do further distros (mainly SLES and Alpine to complete, possibly others)
 
 # Create some additional generic aliases that are variations on the above:
@@ -437,6 +458,7 @@ updistro() {    # Self-contained function, no arguments, perform all update/upgr
 # i.e. \cat is a *lot* faster, but in real world usage it usually doesn't matter. By default, bat is on, bat-off to go back to GNU cat, bat-on to enable bat.
 # It might be posible to do everything in 'bat' with 'less', possibly use this in future:   https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
 type bat >/dev/null 2>&1 && alias cat='bat -pp' && alias ca='\cat' && alias ba='\bat' # If 'bat' exists on the system, replace 'cat' by 'bat -pp'. If you don't want this, 'unalias cat' to revert to normal 'cat'
+type highlight >/dev/null 2>&1 && alias ccat='highligth --out-format=ansi'   # Alternative to 'bat'
 alias bat-off='unalias cat'; alias bat-on='alias cat="bat -pp"'
 [ ! -f /usr/bin/bat ] && unalias cat 2>/dev/null && unalias ca 2>/dev/null && unalias ba 2>/dev/null   # Don't really need this, just how to remove if bat is uninstalled
 # When using bat as a cat replacement, 'cat .custom | more' is fine, but less requires the -R (or -r) switch to maintain colour syntax highlighting
@@ -461,6 +483,12 @@ type espeak >/dev/null 2>&1 && alias espeak-wav-file='espeak -s 150 -w voice.wav
 type mogrify >/dev/null 2>&1 && alias webify="mogrify -resize 690 *.png"   # resize all PNG in current folder only if wider than 690px using ImageMagick
 alias tastatur="setxkbmap -model cherryblue -layout de -variant ,nodeadkeys"   # for changing keyboards, sample
 type notify-send >/dev/null 2>&1 && alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+if type youtube-dl >/dev/null 2>&1; then
+    for i in aac best flac m4a mp3 opus vorbis wav; do alias "yta-${i}"="youtube-dl --add-metadata -ic --extract-audio --audio-format ${i}"; done
+    alias ytv-best="youtube-dl --add-metadata -ic -f bestvideo+bestaudio "
+    alias yt='youtube-dl --add-metadata -ic' # Download video links -i ignore errors, -c continue
+    alias yta='youtube-dl --add-metadata -xic' # Download only audio
+fi
 
 extract () {   # Extract any archive type into a folder
     local x
@@ -554,6 +582,26 @@ runfromurl() { curl -s $2 > $1; chmod a+x $1; ls -l $1; if [ $3 = "print" ]; the
 ver() { [ -f /etc/redhat-release ] && RELEASE=$(cat /etc/redhat-release); [ -f /etc/lsb-release ] && RELEASE="$(cat /etc/lsb-release | grep DESCRIPTION | sed 's/^.*=//g' | sed 's/\"//g') "; printf "$RELEASE: $(uname -msr)\n"; }
 sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(hostname -I),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
 type apk &> /dev/null && sys() { awk -F": " '/^model name/ { mod=$2 } /^cpu MHz/ { mhz=$2 } /^cpu core/ {core=$2} /^flags/ { virt="No Virtualisation";match($0,"svm");if (RSTART!=0) { virt="SVM-Virtualisation" };match($0,"vmx");if (RSTART!=0) { virt="VMX-Virtualisation" } } /^Mem:/ {split($2,arr," ");tot=arr[1];free=arr[2]} END { printf "%s, %dMHz, %s core(s), %s, %sB Memory (%sB Used)\n",mod,mhz,core,virt,tot,free }' /proc/cpuinfo <(free -mh); printf "$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | sed 'H;1h;$!d;x;y/\n/,/'),$(uptime)\n"; }   # Excellent sed tutorial https://linuxhint.com/newline_replace_sed/
+cpuspeed() { grep "cpu MHz" /proc/cpuinfo | awk -F':' '{printf "\033[34mCPU %2d\033[0m %s\033[36m%s Mhz\033[0m\n",NR,"→",$2;}'; }
+cpuspeed_watch() {
+    if [[ $1 == "watch" ]]; then
+        watchint=2
+        test -n "$2" && watchint=$2
+        watch --color -n"$watchint" "$0"
+    else
+        cpuspeed
+    fi
+}
+
+color_test() {
+    phrase='the quick brown fox jumps over the lazy dog'
+    ## Pretty Colors! For easy sourcing in other scripts.
+    red='[31m'; export red; green='[32m'; export green; yellow='[33m'; export yellow
+    blue='[34m'; export blue; magenta='[35m'; export magenta; cyan='[36m'; export cyan
+    b='[1m'; export b; u='[4m'; export u; endfmt='[0m'; export endfmt   # NOTE: 'endfmt' def purposefully left at end here for when $(cat) used on terminal to prevent mangling.
+    # See full color list and 5; settings vs 2; or nil: https://gist.github.com/blueyed/c8470c2aad3381c33ea3
+    for ((i=0;i<256;i++)); do printf '^[[38;5;%03dm: ' "$i"; printf '[38;5;%03dm%s%s\n' "$i" "$phrase" "$endfmt"; done
+}
 
 # Vim and useful text file discovery tools
 alias vimlast="vim -c \"normal '0\""    # Open last file (even if you changed directory)
@@ -582,10 +630,13 @@ type toilet  &> /dev/null && toiletgayclock() { echo "$(date '+%D %T' | toilet -
 type toilet  &> /dev/null && toiletmetalclock() { echo "$(date '+%D %T' | toilet -f `figrandom` -F border --metal)"; }
 type toilet  &> /dev/null && tom() { toilet -f term --metal; } && tog() { toilet -f term --gay; }  # pipe anything to these for the --metal / --gay effect
 type lolcat  &> /dev/null && alias lcat='lolcat' && alias lcata='lolcat -a -d 9'    # pip to lol to colour anything, more advanced than toilet effect
-# figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
-# figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
+# figclock)( { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f univers" || local opts="-f big"; printf "\e[94m$(figlet -k -t $opts $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+# figclock)( { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -13 | tail -11; printf "\e[33m$(figrnd $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrnd $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35mRefreshes every 5 seconds (Ctrl-C to quit).\e[00m"; sleep 5; done; }
 artscene() { curl -s http://artscene.textfiles.com/vt100/$1.vt --limit-rate 9600; echo -e "\n\n\nAvailable art-files at http://artscene.textfiles.com/vt100/:\n"; lynx -dump http://artscene.textfiles.com/vt100/ | cut -d'.' -f4 | cut -d'/' -f3 | grep -v -e '^ ' -e 'References' -e '^[[:space:]]*$' | tr '\n' ','; }   #  Alternative way to slow rate:  | pv -q -L 9600
 knights() { URL=https://genius.com/Monty-python-the-knights-who-say-ni-annotated; content=$(wget $URL -q -O -); lynx -dump $URL | sed -n '/HEAD/,/Aaaaugh/p' | pv -qL 50; }
+alias rroll='curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/master/roll.sh | bash'
+alias starwars='telnet towel.blinkenlights.nl'
+shdl() { curl -O $(curl -s http://sci-hub.tw/"$0" | grep location.href | grep -o http.*pdf) ;}   # Download an article from sci-hub
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
 colortail() { tail -F $*|ccze -A; }
 alias ct='colortail'
@@ -607,6 +658,7 @@ alias r.="route"
 alias ip.="type ifconfig &>/dev/null && ifconfig; ip addr show -c"
 alias ip4="ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'      ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"
 alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
+alias ipdevs="ip -o link show | awk '{print \$2,\$9}'"
 alias ipexternam='dig +short myip.opendns.com @resolver1.opendns.com'
 ipup-ping() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
 ipup-nmap() { nmap -n -sn 192.168.1.0/24 -oG - | awk '/Up$/{print $2}'; }   # Very fast # -n turns off reverse name resolution, as on local LAN this is probably the slowest step, -sn means "Don't do a port scan.", -oG - sends "grepable" output to stdout, which gets piped to awk.
@@ -635,6 +687,8 @@ alias limpets='nmap -sP $(ip -o addr show | grep inet  | grep eth | cut -d  -f 7
 alias lsof.='sudo lsof -i'
 alias iptlistfw='sudo /sbin/iptables -L FORWARD -n -v –line-numbers'   # iptables might be redundant
 alias what-port='echo -e "See /etc/services for complete list\n20 FTP data transfer\n21 FTP session\n22 SSH\n23 Telnet\n25 SMTP email\n43 WHOIS\n53 DNS\n67 DHCP server\n68 DHCP client\n80 HTTP\n110 POP3 email\n119 NNTP\n123 NTP\n137 NETBIOS nameservice\n138 NETBIOS datagram\n139 NETBIOS session\n143 IMAP email\n161 SNMP\n162 SNMP trap\n194 IRC\n443 HTTPS over TLS/SSL\n587 SMTP email\n873 rsync"'
+alias ethspeed="for i in ( $(ip -o link show | awk '{print $2,$9}' | grep UP$ | awk -F: '{print $1}') ); do speedometer -r $i; done"   # https://askubuntu.com/questions/396837/detecting-the-name-of-a-network-device-in-bash
+# alias wifispeed='speedometer -r wlp3s0'
 
 ####################
 # Personal Settings:   # Personal settings that will be overwritten by "~/.custom-me' if that file is present
@@ -650,11 +704,16 @@ alias hp2="ssh boss@192.168.1.31"      # CentOS home server, create other quick 
 alias upload="sftp username@server.com:/path/to/upload/directory"   # Adjust this alias to suit upload needs
 alias myip="curl http://ipecho.net/plain; echo"   # Alternatively, alias myip='curl -s http://whatismyip.akamai.com/'   # get public IP address when behind a router using NAT
 alias play='nvlc /path/to/music/ -Z'   # Requires VLC, plays a random collection of music from your music library.
-alias weather-ams='curl -4 http://wttr.in/Amsterdam'
+alias usnews='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'   # To update: use 'foreach i in arry-of-news-sites, prefix https://archive.ph/ and then open that'
+alias uknews='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.spectator.co.uk/; chrome https://archive.ph/https://www.telegraph.co.uk/; chrome https://archive.ph/http://thetimes.co.uk/; chrome https://archive.ph/https://www.scotsman.com/; chrome https://archive.ph/https://www.newscientist.com/'
+alias weather-amsx="curl -s 'http://rss.accuweather.com/rss/liveweather_rss.asp?metric=1&locCode=en|nl|amsterdam|11215' | sed -n '/Currently:/ s/.*: \(.*\): \([0-9]*\)\([CF]\).*/\2°\3, \1/p'"   # Needs work
+alias weather-ams='curl -4 http://wttr.in/Amsterdam'   # Works quite well generally
 alias weather-ny='curl -4 http://wttr.in/NewYork'
+# weather() { lynx -dump http://www.google.com/search?q=weather+$1+$2+$3 | grep -E "($1|°)" | grep -v '\[' | head -3; }
+# weather7() { for (( i=0; i<7; ++i)); do day=$(date --date="+$i day" +"%a"); weather $1 $2 $i; done; }
 # defverb() { lynx -dump "http://www.google.com/search?hl=en&q=define%3A+${1}&btnG=Google+Search" | sed -n '/^   verb$/,${p;/^$/q}'; }   # https://ubuntuforums.org/showthread.php?t=679762&page=2
 # defwiki() { lynx -dump "http://en.wikipedia.org/wiki/${1} | head -50"; }
-me="~/.custom-me"; [[ -f $me ]] && source $me   
+me="~/.custom-me"; [[ -f $me ]] && source $me   # Personal settings that will be overwritten by "~/.custom-me' if that file is present
 
 ####################
 # Help Topics:   Created at /tmp/.custom by custom_loader.sh and then aliased
@@ -714,22 +773,18 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
     yy() { phrase=$(echo "$@" | sed 's/[ ][ ]*/\+/g'); url="https://www.youtube.com/results?search_query=$phrase"; echo $url; chrome $url; } 
     ym() { if [[ -z "$1" ]]; then echo "Enter a search string!"; else mpv "$(youtube-dl --default-search 'ytsearch1:' \"$1\" --get-url | tail -1)"; fi }
     # transw() { phrase=$(echo $1 | sed 's/[ ][ ]*/%20/g');  [ type trans ] && trans -t en -b "$@"; chrome "https://translate.google.com/?sl=auto&tl=en&text=${phrase}&op=translate"; }
-    # weather() { lynx -dump http://www.google.com/search?q=weather+$1+$2+$3 | grep -E "($1|°)" | grep -v '\[' | head -3; }
-    # weather7() { for (( i=0; i<7; ++i)); do day=$(date --date="+$i day" +"%a"); weather $1 $2 $i; done; }
     # lynx -dump https://www.thomascook.com/holidays/weather/amsterdam/forecast/ | awk '/1\./{y=1;next}y' | sed '/View weather for/,$d'
     # '1' stands for 'one-liners', useful as an entry point to looking up info, also note 'gg grep delete all lines after match' free form searches from terminal
-    alias awk1='chrome https://duckduckgo.com/?q=awk+one+liners; chrome https://catonmat.net/awk-one-liners-explained-part-one; chrome http://softpanorama.org/Tools/Awk/awk_one_liners.shtml; chrome https://www.shebanglinux.com/best-awk-one-liners/'
-    alias grep1='chrome https://duckduckgo.com/?q=grep+one+liners; chrome https://www.richud.com/wiki/Grep_one_liners; chrome https://lagooko.blogspot.com/2015/12/grep-handy-one-liner.html; chrome https://adminoneliner.blogspot.com/2015/12/grep-command-one-liners.html'
-    alias sed1='chrome https://duckduckgo.com/?q=sed+one+liners; chrome https://edoras.sdsu.edu/doc/sed-oneliners.html; chrome http://www.unixguide.net/unix/sedoneliner.shtml; chrome https://catonmat.net/sed-one-liners-explained-part-one'
-    alias python1='chrome https://duckduckgo.com/?q=python+one-liners; chrome https://pythonbooks.org/free-books/; chrome https://automatetheboringstuff.com/; chrome https://www.geeksforgeeks.org/powerful-one-liner-python-codes/; chrome https://blog.finxter.com/10-python-one-liners/'
-    alias perl1='chrome https://duckduckgo.com/?q=perl+one+liners; chrome https://devtut.github.io/perl/perl-one-liners.html#execute-some-perl-code-from-command-line; chrome http://www.softpanorama.org/Scripting/Perlorama/perl_one_liners.shtml; chrome https://www.socher.org/perloneliners; chrome https://gist.github.com/joyrexus/7328094; chrome https://perl1liner.sourceforge.io/;'
-    alias bash1='chrome https://duckduckgo.com/?q=bash+one+liners; chrome https://onceupon.github.io/Bash-Oneliner/; chrome http://www.bashoneliners.com/; chrome https://catonmat.net/bash-one-liners-explained-part-one'
-    alias mygit='chrome https://github.com/roysubs/custom_bash; chrome https://github.com/roysubs/Custom-Tools; chrome https://github.com/roysubs/Basics-AHK'
-    alias cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
-    alias usnews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.nytimes.com/; chrome https://archive.ph/https://www.washingtonpost.com/; chrome https://archive.ph/https://www.newyorker.com/'   # To update: use 'foreach i in arry-of-news-sites, prefix https://archive.ph/ and then open that'
-    alias uknews-subs='echo "Subscription paywall sites, using archive.ph"; chrome https://archive.ph/https://www.spectator.co.uk/; chrome https://archive.ph/https://www.telegraph.co.uk/; chrome https://archive.ph/http://thetimes.co.uk/; chrome https://archive.ph/https://www.scotsman.com/; chrome https://archive.ph/https://www.newscientist.com/'
-    alias weatherxx="curl -s 'http://rss.accuweather.com/rss/liveweather_rss.asp?metric=1&locCode=en|nl|amsterdam|11215' | sed -n '/Currently:/ s/.*: \(.*\): \([0-9]*\)\([CF]\).*/\2°\3, \1/p'"   # might not work
-
+    alias web-awk1='chrome https://duckduckgo.com/?q=awk+one+liners; chrome https://catonmat.net/awk-one-liners-explained-part-one; chrome http://softpanorama.org/Tools/Awk/awk_one_liners.shtml; chrome https://www.shebanglinux.com/best-awk-one-liners/'
+    alias web-awk2='chrome https://linuxhandbook.com/awk-command-tutorial/; chrome hhttps://www.tutorialspoint.com/awk/awk_user_defined_functions.htm; chrome https://www.ubuntupit.com/useful-awk-command-in-linux-and-bsd/; chrome https://likegeeks.com/awk-command/'
+    alias web-grep1='chrome https://duckduckgo.com/?q=grep+one+liners; chrome https://www.richud.com/wiki/Grep_one_liners; chrome https://lagooko.blogspot.com/2015/12/grep-handy-one-liner.html; chrome https://adminoneliner.blogspot.com/2015/12/grep-command-one-liners.html'
+    alias web-sed1='chrome https://duckduckgo.com/?q=sed+one+liners; chrome https://edoras.sdsu.edu/doc/sed-oneliners.html; chrome http://www.unixguide.net/unix/sedoneliner.shtml; chrome https://catonmat.net/sed-one-liners-explained-part-one'
+    alias web-python1='chrome https://duckduckgo.com/?q=python+one-liners; chrome https://pythonbooks.org/free-books/; chrome https://automatetheboringstuff.com/; chrome https://www.geeksforgeeks.org/powerful-one-liner-python-codes/; chrome https://blog.finxter.com/10-python-one-liners/'
+    alias web-perl1='chrome https://duckduckgo.com/?q=perl+one+liners; chrome https://devtut.github.io/perl/perl-one-liners.html#execute-some-perl-code-from-command-line; chrome http://www.softpanorama.org/Scripting/Perlorama/perl_one_liners.shtml; chrome https://www.socher.org/perloneliners; chrome https://gist.github.com/joyrexus/7328094; chrome https://perl1liner.sourceforge.io/;'
+    alias web-bash1='chrome https://duckduckgo.com/?q=bash+one+liners; chrome https://onceupon.github.io/Bash-Oneliner/; chrome http://www.bashoneliners.com/; chrome https://catonmat.net/bash-one-liners-explained-part-one'
+    alias web-mygit='chrome https://github.com/roysubs/custom_bash; chrome https://github.com/roysubs/Custom-Tools; chrome https://github.com/roysubs/Basics-AHK'
+    alias web-cartoons="chrome https://xkcd.com; chrome https://townhall.com/political-cartoons; chrome http://stonetoss.com/comic/"
+    
     # Map common Windows locations to navigate to from within WSL. Use ':' on these mappings to identify as WSL mappings to Windows
     # Map c: to /mnt/c, d: to /mnt/d, e: to /mnt/e etc but only if those paths exist   # [ -d /mnt/c ] && alias c:='cd /mnt/c'
     for d in /mnt/[a-z]; do [ -d /mnt/$(basename ${d}) ] && alias "$(basename ${d}):"="cd $d"; done         #  "d:" => cd to /mnt/d

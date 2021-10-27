@@ -123,7 +123,8 @@ type code &> /dev/null && alias c='code'      # Quick VS Code access
 alias tn='echo "# tmux new -s <name>"; tmux new -s' # Syntax reminder for the -s (short for -session_name)
 alias ta='echo "# tmux a -t <name>"; tmux a -t'     # Syntax reminder, using -t (for -target_session)
 alias td='echo "# tmux d or detach"; tmux detach'   # Syntax reminder for the -t (short for -target_session)
-alias cls='clear'                       # DOS equivalent
+alias clear='clear -x'                  # Stop the default behaviour that wipes out all previous terminal session output, use \clear to blast all session information
+alias cls='clear'                       # DOS equivalent for muscle memory, also with clear -x
 alias cp.='rsync -ah --info=progress2'  # Use similar to 'cp' but with progress bar during copy (alternatively, install 'pv')
 alias fhere="find . -name "             # Basic find syntax
 ff() { find . -type f -iname '*'"$*"'*' -ls ; }   # 'Find in filename', return files with pattern in the filename
@@ -162,6 +163,7 @@ alias hogs='ps uxga | sort --key=3.1 -n'
 alias sdiff='sdiff -w 240'
 linecount() { egrep -v '^[ ]*(#|$dollar)' $* | wc; };         # count lines in python / shell / powershell files
 lincountc() { egrep -v '^[ ]*(//|/*|*|$dollar)' $* | wc; };   # count lines in c, c++ files
+countdown() { total=$1; for ((i=total; i>0; i--)); do sleep 1; printf "Time remaining $i secs \r"; done; echo -e "\a"; }   # countdown timer, https://www.quora.com/What-is-the-most-useful-bash-script-that-you-have-ever-written?share=1
 
 ####################
 # ls, cd, mkdir, du, df, and permissions
@@ -512,6 +514,8 @@ mkzip() { zip -r "${1%%/}.zip" "$1" ; }                 # Create zip archive of 
 gzipsize() { echo $((`gzip -c $1 | wc -c`/1024))"KB"; } # Calculates the gzip compression of a file
 help-zip() { echo -e "Common 'zip and '7z/7za' archive examples:\n\n7z a -y -r -t7z -mx9 repo * '-xr!.git' -x@READ*   # recurse with 7z output and max compression, exclude a file\nzip -r repo ./ -x '*.git*' '*README.md'    # recurse and exclude files/folders"; }
 
+# Backup system over SSH
+alias backup_system='rsync -av ~/Documents user@domain.com: --delete --delete-excluded --exclude-from=/Users/myusername/.rsync/exclude --rsh="ssh"'
 # Bash profile loading is as follows: /etc/profile (which often calls /etc/bash.bashrc), then ~/.bash_profile, then ~/.bash_login, then ~/.profile (which often calls ~/.bashrc)
 backup_profile() {
     ARCHIVE="$HOME/bash_dotfiles_$(date +%Y%m%d_%H%M%S).tar.gz"; 

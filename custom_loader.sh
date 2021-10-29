@@ -921,15 +921,14 @@ if ! [ -f /etc/sudoers.d/customrules ]; then
     echo "See all options with 'man sudoers'"
     echo ""
     echo "Add a 10 hr timeout for sudo passwords to be re-entered for home systems:"
-    echo "Add 'Defaults timestamp_timeout=600' to '/etc/sudoers.d/timeout'"
+    echo "Add 'Defaults timestamp_timeout=600' to '/etc/sudoers.d/custom-rules'"
     echo "Note that mutiple Default statements on different lines/files will all be added."
     if [ ! -f $custom_rules ]; then
         sudo touch $custom_rules
         sudo chmod 0440 $custom_rules
     else
-        if ! sudo grep -q '^Defaults timestamp_timeout=600' $custom_rules; then
-            echo 'Defaults timestamp_timeout=600' | sudo tee --append $custom_rules
-        fi
+        if ! sudo grep -q '^# Defaults can be comma separated, or on multiple statements one per line' $custom_rules; then echo '# Defaults can be comma separated, or on multiple statements one per line' | sudo tee --append $custom_rules; fi
+        if ! sudo grep -q '^Defaults timestamp_timeout=600' $custom_rules; then echo 'Defaults timestamp_timeout=600' | sudo tee --append $custom_rules; fi
     fi
     echo ""
 fi
@@ -2290,11 +2289,13 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small grep Notes)\${NC}"
 exx ""
-exx "\${BYELLOW}***** Finding files with 'grep' instead of 'find'\${NC}   # https://stackoverflow.com/a/16957078/524587"
+exx "\${BYELLOW}***** Finding contents with grep\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
 exx "Optional: -l (not 1, but lower-case L) can be added to only return the file name of matching files."
 exx "Optional: --exclude, --include, --exclude-dir flags can be used to refine searches."
+exx ""
+exx "\${BYELLOW}***** Finding files with grep\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnwl '/' -e 'python'   # Find all files that contain 'python' and return only filenames (-l)."
 exx "grep --include=\*.{c,h} -rnw '/path/to/somewhere/' -e 'pattern'   # Only search files .c or .h extensions, show every matching line."
 exx "grep --exclude=\*.o -rnw '/path/to/somewhere/' -e 'pattern'   # Exclude searching all the files ending with .o extension"
@@ -2326,6 +2327,27 @@ exx "grep --only-matching \\\"search_pattern\\\" path/to/file"
 exx ""
 exx "Search stdin for lines that do not match a pattern:"
 exx "cat path/to/file | grep --invert-match \\\"search_pattern\\\""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "find Notes (call with 'help-find')"
+#
+####################
+# https://www.richud.com/wiki/Grep_one_liners
+HELPFILE=$hh/help-grep.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small find Notes)\${NC}"
+exx ""
+exx "\${BYELLOW}***** find is a complex app, but important and useful\${NC}"
+exx "sudo find / -mount -name 'git-credential-manager*'   # -mount will ignore mounts, e.g. /mnt/c, /mnt/d, etc in WSL"
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2856,9 +2878,10 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "\${BYELLOW}***** Run X-Display GUI from WSL\${NC}"
     exx "https://ripon-banik.medium.com/run-x-display-from-wsl-f94791795376"
     exx "https://github.com/microsoft/WSL/issues/4793#issuecomment-577232999"
-    exx "Can use for various login apps (aws-azure-login) from WSL"
-    exx "Since WSL distro does not come with GUI, we need to install an X-Server on Windows."
-    exx "1. Install VcXsrv Windows X Server from https://sourceforge.net/projects/vcxsrv/"
+    exx "https://blog.nimamoh.net/wsl2-and-vcxsrv/"
+    exx "https://github.com/cascadium/wsl-windows-toolbar-launcher"
+    exx "Require to run X apps as WSL distro does not come with GUI, so we need to install an X-Server on Windows."
+    exx "1. Install VcXsrv Windows X Server: choco install vcxsrv -y   or   https://sourceforge.net/projects/vcxsrv/"
     exx "2. Configure: Multiple Windows, Start no client, Clipboard, Primary Selection, Native OpenGL, Disable access control"
     exx "3. Enable Outgoing Connection from Windows Firewall:"
     exx "   Windows Security -> Firewall & network protection -> Allow an app through firewall -> make sure VcXsrv has both public and private checked."
@@ -2869,6 +2892,14 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "6. Test by running xeyes"
     exx "   sudo apt install x11-apps"
     exx "Now run 'xeyes' and you should be able to see the the xeyes application"
+    exx "After reboots, can run XLaunch from Start:"
+    exx "   Multiple Windows, Start no client, Clipboard, Primary Selection, Native OpenGL, and also: Disable access control"
+    exx "Can also auto start VcXsrv with Win+R then:   shell:startup"
+    exx "Right click > new > shortcut"
+    exx "Enter shortcut location to \\\"C:\\Program Files\\VcXsrv\\\\\\vcxsrv.exe\\\" -ac -multiwindow"
+    exx "-ac : accept any client connection, ok for a home desktop, but be careful of these kind of options on a mobile device like a laptop."
+    exx "Troubleshooting: can check that no blocking rule exist for VcXsrv windows xserver in your firewall configuration:"
+    exx "   Win+R then:   wf.msc  , Click on inbound rule. Delete each blocking rule for VcXsrv windows xserver"
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -2923,6 +2954,8 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz ''
     zzz '${BYELLOW}***** To enable sound (PulseAudio) on WSL2:${NC}'
     zzz 'https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html'
+    zzz 'https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html'
+    zzz 'https://x410.dev/cookbook/wsl/enabling-sound-in-wsl-ubuntu-let-it-sing/'
     zzz 'Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/'
     zzz 'Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)'
     zzz 'Copy the \\"bin\\" folder from there to C:\\\\\\bin and rename to C:\pulse (this contains the pulseaudio.exe)'
@@ -2939,7 +2972,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz '#export DISPLAY=\\"\$HOST_IP:0.0\\"'
     zzz 'Get NSSM (non-sucking service manager) from https://nssm.cc/download'
     zzz 'Copy nssm.exe to C:\pulse\nssm.exe, then run:'
-    zzz 'C:\pulse\nssm.exe install PulseAudio'
+    zzz 'C:\\\\\\pulse\\\\\\nssm.exe install PulseAudio'
     zzz 'Application path:  C:\pulse\pulseaudio.exe'
     zzz 'Startup directory: C:\pulse'
     zzz 'Arguments:         -F C:\pulse\config.pa --exit-idle-time=-1'
@@ -3197,7 +3230,7 @@ fi
 
 echo "Note the above configuration details for any useful additional manual actions."
 echo "'updistro' to run through all update/upgrade actions (use 'def updistro' to see commands)."
-echo "sudo visudo, set sudo timeout to 10 hours =>  Defaults env_reset,timestamp_timeout=600"
+echo "sudo visudo, set sudo timeout to 10 hours, additional line:   Defaults timestamp_timeout=600"
 echo ""
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then

@@ -272,6 +272,8 @@ alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpu
 alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these as use so much
 getgituser() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
 gitbranch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'; }   # Parse a git branch
+# e.g.   githubnew() roysubs my-project <~/.token    # Create a new fully authorised github project
+githubnew() { gh auth login --with-token < $3; git init $2; cd $2; gh repo create $2 --confirm --public; cd ..; rm -rfi $2; git clone --depth=1 https://$1:$3@github.com/$1/$2; }
 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
@@ -723,10 +725,12 @@ me="~/.custom-me"; [[ -f $me ]] && source $me   # Personal settings that will be
 ####################
 # Help Topics:   Created at /tmp/.custom by custom_loader.sh and then aliased
 ####################
-hhtmp='/tmp/.custom'             # could replace 'help' with '?', as this is allowed in bash, 'grep?' etc is a valid alias name
+hhtmp='/tmp/.custom'; mkdir -p $hhtmp >/dev/null   # help-<name>, h-<name>, h<name>, ?<name>, <name>? all work, e.g. ?grep
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1); alias "$aliasname"="$helpfile"; done
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h-/'); alias "$aliasname"="$helpfile"; done
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h/'); alias "$aliasname"="$helpfile"; done
+for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/\?/'); alias "$aliasname"="$helpfile"; done
+for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-//' | sed 's/$/?/'); alias "$aliasname"="$helpfile"; done
 help-cron-intro-1999()    { URL=http://www.unixgeeks.org/security/newbie/unix/cron-1.html;               content=$(wget $URL -q -O -); lynx -dump $URL | less; }   # Just a uawdul demonstration to read a web page
 help-cron-intro-karatos() { URL=https://blog.karatos.in/a?ID=00850-8984d093-c8c8-4bc7-a7c4-c4bfa805d59a; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9-489c-842c-02e9179cfcb6; content=$(wget $URL -q -O -); lynx -dump $URL | less; }

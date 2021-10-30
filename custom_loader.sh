@@ -1067,6 +1067,7 @@ exx "\${BYELLOW}***** Adjust Sleep Settings for the VM\${NC}"
 exx "systemctl status sleep.target   # Show current sleep settings"
 exx "sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Disable sleep settings"
 exx "sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target   # Enable sleep settings again"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1224,6 +1225,7 @@ exx "tar -zxvf asciiquarium.tar.gz"
 exx "cd asciiquarium_1.1/"
 exx "sudo cp asciiquarium /usr/local/bin"
 exx "sudo chmod 0755 /usr/local/bin/asciiquarium"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1311,6 +1313,7 @@ exx "Shift-F6 (detach the current, leaving session running in background, but do
 exx "F6 (detach session and logout), Shift-F6 (detach session and do not logout)"
 exx "Alt-F6 (detach ALL clients but this one), Ctrl-F6 (kill pane that is in focus)"
 exx "F8 (rename window)"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1381,6 +1384,7 @@ exx "-  Delete the most recently copied buffer of text."
 exx "C-Up, C-Down"
 exx "M-Up, M-Down"
 exx "Key bindings may be changed with the bind-key and unbind-key commands."
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1448,6 +1452,7 @@ exx ""
 exx "# paste using 'p'"
 exx "unbind p"
 exx "bind p paste-buffer"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1489,6 +1494,7 @@ exx "Print only the name of PID 42:"
 exx "   ps -q 42 -o comm="
 exx ""
 exx "https://www.ubuntupit.com/useful-examples-of-linux-ps-command-for-aspiring-sysadmins/"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1535,6 +1541,7 @@ exx ""
 exx "Enjoy your new RHEL8 under WSL2 and install whatever software you need."
 exx ""
 exx "See: https://www.sport-touring.eu/old/stuff/rhel83-2.png"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1665,6 +1672,7 @@ exx "and the previous job with a -. A single % (with no accompanying job specifi
 exx "current job."
 exx ""
 exx "Also note 'skill' and 'killall' (though 'killall' is quite dangerous)."
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1718,9 +1726,6 @@ zzz 'someCommand | while IFS= read -r i; do; ... done  # This is even better'
 zzz 'It is ok to use a command inside a for-loop if the output is certain, e.g. for i in \$(seq 1 9)   would be fine.'
 zzz 'You can also use the -ls predicate to mimic ls:   find . -maxdepth 1 -type f -ls'
 zzz ''
-zzz 'Some find examples:'
-zzz ''
-zzz ''
 zzz '"'   # require final line with a single " to end the multi-line text variable
 zzz 'printf "$HELPNOTES"'
 chmod 755 $HELPFILE
@@ -1770,6 +1775,7 @@ exx "debtree dpkg > dpkg.dot               # Generate the dependency graph for p
 exx "dot -Tsvg -o dpkg.svg dpkg.dot        # Use dot to generate an SVG image from the '.dot' file."
 exx "debtree dpkg | dot -Tpng > dpkg.png   # Generate the dependency graph for package dpkg as PNG image and save the resulting output to a file."
 exx "debtree -b dpkg | dot -Tps | kghostview - &     # Generate the build dependency graph for package dpkg in postscript format and view the result using KDE's kghostview(1)"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1834,6 +1840,7 @@ exx "manly --help       # help"
 exx ""
 exx "\${BYELLOW}***** kb\${NC}"
 exx "pip install -U kb-manager"
+exx ""
 exx "\${BYELLOW}***** tldr\${NC}"
 exx "sudo $manager install tldr   # Works on CentOS, but might not on Ubuntu"
 exx "sudo $manager install npm"
@@ -1865,6 +1872,7 @@ exx "like man, but you can query it using natural language"
 exx "sudo $manager install npm"
 exx "npm install -g how-2"
 exx "how2 how do I unzip a .gz?"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -1901,6 +1909,7 @@ exx "Perform a command with different arguments:"
 exx "for argument in 1 2 3; do command \$argument; done"
 exx "Perform a command in every directory:"
 exx "for d in *; do (cd \$d; command); done"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2071,6 +2080,7 @@ exx "Dunnet: emacs -nw at the terminal and then entering M-x dunnet. Similar to 
 exx "emacs -batch -l dunnet"
 exx ""
 exx "\${BYELLOW}sudo $manager install fractalnow\${NC} Fractal creation tool (fractalnow and qfractalnow GUI)"
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2270,6 +2280,7 @@ exx "You normally only need :set paste in terminals, not in GUI gVim etc."
 exx ""
 exx "dos2unix can change line-endings in a file, or in Vim we can use  :%s/^M//g  (but use Ctrl-v Ctrl-m to generate the ^M)."
 exx "you can also use   :set ff=unix   and vim will do it for you. 'fileformat' help  :h ff,  vim wiki: https://vim.fandom.com/wiki/File_format."
+exx ""
 exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2289,7 +2300,9 @@ exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small grep Notes)\${NC}"
 exx ""
-exx "\${BYELLOW}***** Finding contents with grep\${NC}   # https://stackoverflow.com/a/16957078/524587"
+exx "https://manned.org/grep, https://tldr.ostera.io/grep"
+exx ""
+exx "\${BYELLOW}***** Useful content search with grep\${NC}   # https://stackoverflow.com/a/16957078/524587"
 exx "grep -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "-r or -R is recursive, -n is line number, -w to match the whole word, -e is the pattern used during the search."
 exx "Optional: -l (not 1, but lower-case L) can be added to only return the file name of matching files."
@@ -2304,29 +2317,15 @@ exx "e.g. exclude the dirs dir1/, dir2/ and all of them matching *.dst/"
 exx "grep --exclude-dir={dir1,dir2,*.dst} -rnw '/path/to/somewhere/' -e 'pattern'"
 exx "https://www.tecmint.com/find-a-specific-string-or-word-in-files-and-directories/"
 exx ""
-exx "Search for a pattern within a file:"
-exx "grep \\\"search_pattern\\\" path/to/file"
+exx "grep \\\"search_pattern\\\" path/to/file   # Search for a pattern within a file"
+exx "grep --fixed-strings \\\"exact_string\\\" path/to/file   # Search for an exact string (disables regular expressions)"
+exx "grep --recursive --line-number --binary-files=without-match \\\"search_pattern\\\" path/to/directory   # all files recursively, showing line numbers and ignoring binary files"
+exx "grep --extended-regexp --ignore-case \\\"search_pattern\\\" path/to/file   # extended regular expressions (supports ?, +, {}, () and |), in case-insensitive mode"
+exx "grep --context|before-context|after-context=3 \\\"search_pattern\\\" path/to/file   # Print 3 lines of context around, before, or after each match"
+exx "grep --with-filename --line-number \\\"search_pattern\\\" path/to/file   # Print file name and line number for each match"
+exx "grep --only-matching \\\"search_pattern\\\" path/to/file   # Search for lines matching a pattern, printing only the matched text"
+exx "cat path/to/file | grep --invert-match \\\"search_pattern\\\"   # Search stdin for lines that do not match a pattern"
 exx ""
-exx "Search for an exact string (disables regular expressions):"
-exx "grep --fixed-strings \\\"exact_string\\\" path/to/file"
-exx ""
-exx "Search for a pattern in all files recursively in a directory, showing line numbers of matches, ignoring binary files:"
-exx "grep --recursive --line-number --binary-files=without-match \\\"search_pattern\\\" path/to/directory"
-exx ""
-exx "Use extended regular expressions (supports ?, +, {}, () and |), in case-insensitive mode:"
-exx "grep --extended-regexp --ignore-case \\\"search_pattern\\\" path/to/file"
-exx ""
-exx "Print 3 lines of context around, before, or after each match:"
-exx "grep --context|before-context|after-context=3 \\\"search_pattern\\\" path/to/file"
-exx ""
-exx "Print file name and line number for each match:"
-exx "grep --with-filename --line-number \\\"search_pattern\\\" path/to/file"
-exx ""
-exx "Search for lines matching a pattern, printing only the matched text:"
-exx "grep --only-matching \\\"search_pattern\\\" path/to/file"
-exx ""
-exx "Search stdin for lines that do not match a pattern:"
-exx "cat path/to/file | grep --invert-match \\\"search_pattern\\\""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2339,15 +2338,24 @@ echo "find Notes (call with 'help-find')"
 #
 ####################
 # https://www.richud.com/wiki/Grep_one_liners
-HELPFILE=$hh/help-grep.sh
+HELPFILE=$hh/help-find.sh
 exx() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
 exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small find Notes)\${NC}"
 exx ""
-exx "\${BYELLOW}***** find is a complex app, but important and useful\${NC}"
-exx "sudo find / -mount -name 'git-credential-manager*'   # -mount will ignore mounts, e.g. /mnt/c, /mnt/d, etc in WSL"
+exx "\${BYELLOW}***** Find files and directories (complex app, https://manned.org/find, https://tldr.ostera.io/find\${NC}"
+exx "sudo find / -mount -name 'git-credential-manager*'            # -mount will ignore mounts, e.g. /mnt/c, /mnt/d, etc in WSL"
+exx "find root_path -name '*.ext'                                  # files by extension"
+exx "find root_path -path '**/path/**/*.ext' -or -name '*pattern*' # files matching multiple path/name patterns"
+exx "find root_path -type d -iname '*lib*'                         # directories matching a given name, in case-insensitive mode"
+exx "find root_path -name '*.py' -not -path '*/site-packages/*'    # files matching a given pattern, excluding specific paths"
+exx "find root_path -size +500k -size -10M                         # files matching a given size range"
+exx "find root_path -name '*.ext' -exec wc -l {} \;                # run a command for each file ({} within the command referends the filename)"
+exx "# find root_path -daystart -mtime -7 -delete                  # files modified in the last 7 days and delete them"
+exx "# find root_path -type f -empty -delete                       # Find empty (0 byte) files and delete them"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2447,6 +2455,7 @@ exx "dig -x host       # Do a reverse lookup on domain"
 exx "dig -x [ip_address]   # Do reverse lookup of an IP address"
 exx "host [domain]     # Perform an IP lookup for a domain"
 exx "hostname -I       # Show the local IP address"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2514,6 +2523,7 @@ exx "netstat --numeric-ports    # Display Numerical Port Numbers"
 exx "netstat --numeric-users    # Display Numerical User Ids"
 exx "netstat -an | grep ':[port number]'   # Find a Process That Is Using a Particular Port"
 exx "netstat -an | grep ':80'   # e.g. What process is using port 80?"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2657,6 +2667,7 @@ exx "Sample job which runs a certain script at 02:30 every Friday:"
 exx "30 2 * * Fri /absolute/path/to/script.sh"
 exx ""
 exx "https://stackoverflow.com/questions/9619362/running-a-cron-every-30-seconds"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
@@ -2748,6 +2759,7 @@ exx "awk '(\\\$10 == value)'"
 exx ""
 exx "Print all the lines which the 10th column value is between a min and a max :"
 exx "awk '(\\\$10 >= min_value && \\\$10 <= max_value)'"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -2770,6 +2782,7 @@ exx ""
 exx "\${BYELLOW}***** Useful AWK One-Liners to Keep Handy, work in progress\${NC}"
 exx "Good sed tutorial https://linuxhint.com/newline_replace_sed/"
 exx "Remove whitespace https://linuxhint.com/sed_remove_whitespace/"
+exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -2856,6 +2869,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "This guide required more to get working https://www.windowscentral.com/how-upgrade-ubuntu-2010-wsl-windows-10"
     exx "sudo vi /etc/update-manager/release-upgrades   # Change lts to normal on last line"
     exx "sudo do-release-upgrade -d"
+    exx ""
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -2900,6 +2914,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "-ac : accept any client connection, ok for a home desktop, but be careful of these kind of options on a mobile device like a laptop."
     exx "Troubleshooting: can check that no blocking rule exist for VcXsrv windows xserver in your firewall configuration:"
     exx "   Win+R then:   wf.msc  , Click on inbound rule. Delete each blocking rule for VcXsrv windows xserver"
+    exx ""
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -2930,6 +2945,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "# sudo ln -s /opt/sublime/sublime_text /usr/bin/subl"
     exx "Start Sublime from console (with & to prevent holding console):"
     exx "subl file.ext &"
+    exx ""
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE
@@ -2958,19 +2974,27 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz 'https://x410.dev/cookbook/wsl/enabling-sound-in-wsl-ubuntu-let-it-sing/'
     zzz 'Download the zipfile with preview binaries https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/'
     zzz 'Current is: http://bosmans.ch/pulseaudio/pulseaudio-1.1.zip (but check for newer from above)'
-    zzz 'Copy the \\"bin\\" folder from there to C:\\\\\\bin and rename to C:\pulse (this contains the pulseaudio.exe)'
+    zzz ''
+    zzz '${BYELLOW}***** Setup PulseAudio:${NC}'
+    zzz 'Copy the \\"bin\\" folder from pulseaudio zip file to C:\\\\\\bin'
+    zzz 'Rename bin folder to C:\pulse (this contains the pulseaudio.exe)'
     zzz 'Create C:\pulse\config.pa and add the following to that file:'
     zzz 'load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12'
     zzz 'load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12'
     zzz 'load-module module-waveout sink_name=output source_name=input record=0'
-    zzz 'This allows connections from 127.0.0.1 which is the local IP address, and 172.16.0.0/12 which is the default space (172.16.0.0 - 172.31.255.255) for WSL2.'
+    zzz 'This allows connections from 127.0.0.1 which is the local IP address'
+    zzz '172.16.0.0/12 is the default WSL2 space (172.16.0.0 - 172.31.255.255)'
+    zzz ''
+    zzz '${BYELLOW}***** WSL settings:${NC}'
     zzz 'On WSL Linux, install libpulse0 (available on Ubuntu, but not CentOS):'
     zzz 'sudo apt install libpulse0'
     zzz 'Add the following to ~/.bashrc:'
     zzz "export HOST_IP=\\\\\"\\\$(ip route |awk '/^default/{print \\\\\$3}')\\\\\""
     zzz 'export PULSE_SERVER=\\"tcp:\$HOST_IP\\"'
-    zzz '#export DISPLAY=\\"\$HOST_IP:0.0\\"'
-    zzz 'Get NSSM (non-sucking service manager) from https://nssm.cc/download'
+    zzz '# export DISPLAY=\\"\$HOST_IP:0.0\\"   # This format if certain you are on 0:0'
+    zzz ''
+    zzz '${BYELLOW}***** NSSM (non-sucking service manager):${NC}'
+    zzz 'Get NSSM from https://nssm.cc/download'
     zzz 'Copy nssm.exe to C:\pulse\nssm.exe, then run:'
     zzz 'C:\\\\\\pulse\\\\\\nssm.exe install PulseAudio'
     zzz 'Application path:  C:\pulse\pulseaudio.exe'
@@ -2978,9 +3002,13 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     zzz 'Arguments:         -F C:\pulse\config.pa --exit-idle-time=-1'
     zzz 'Service name should be automatically filled when the NSSM dialog opens: PulseAudio'
     zzz 'On the Details tab, enter PulseAudio in the Display name field'
-    zzz 'The Arguments field uses -F, to tells PulseAudio to run the specified script on startup; --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity.'
+    zzz 'pulseaudio -F, to run the specified script on startup'
+    zzz 'pulseaudio --exit-idle-time=-1 disables the option to terminate the daemon after a number of seconds of inactivity.'
+    zzz ''
+    zzz '${BYELLOW}***** Remove NSSM and Troubleshooting:${NC}'
     zzz 'If you want to remove this service at some point:   C:\pulse\nssm.exe remove PulseAudio'
-    zzz 'PulseAudio is installed as a service (in Windows), so once started, it will start at every login, so need to start manually again.'
+    zzz 'PulseAudio is installed as a service (in Windows), so starts at every login (no need to start manually).'
+    zzz ''
     zzz '"'   # require final line with a single " to end the multi-line text variable
     zzz 'printf "$HELPNOTES"'
     chmod 755 $HELPFILE
@@ -3071,6 +3099,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
     exx "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAhGF6GIuMY8FJ1+CNApnSY1N2YSlkYz72Yvwua6N1nFpBklz1+dsIMg4rcTLcF34M/tW5Yz+NUDAw2AEbxQ32FPgw7sAOIXktkYOHtr7mmimiTjkoSCrJh1kqalPSpi8rglT/Bp67Ql2SZwvUFfMzHISryR0EZC4rXP/uvObrJe8= rsa-key-20121022"
     exx ""
     exx "Paste this into authorized_keys then it should work."
+    exx ""
     exx "\""   # require final line with a single " to end the multi-line text variable
     exx "echo -e \"\$HELPNOTES\\n\""
     chmod 755 $HELPFILE

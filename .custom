@@ -180,15 +180,16 @@ countdown() { total=$1; for ((i=total; i>0; i--)); do sleep 1; printf "Time rema
 help-ls() { echo -e "Several ways to list directories only (but no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, incl hidden), -i (don't show tree), -l (don't follow symbolic links).\nShow additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable)\ntree . -fail --du -h\nlr  # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/"; }
 [[ $(type ls) == *"aliased"* ]] && unalias ls               # Just a general way to testing for commands that are type 'alias' and so to act upon them if aliased
 
-set-ls() {
-    alias ls='\ls --color=always --group-directories-first'     # ls will print the normal ls in most distros (i.e. will not show .* files!). Note that "\"" before a command revets a command back its non-aliased form
-    alias l='ls -AFh'      # Using -A (almost all, ignores ./ and ../, but show all .* files, putting this to 'ls' as almost always wnat to see .* files)
-    alias la='ls -Ah'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-    alias ll='ls -lh'      # long format (-AFh and also -l)     # Note that the above "l" alias uses "\ls" to run ls bare without flags (to remove "-A" mainly)
-    alias l.='ls -d .*'    # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, -d list directories themselves, not their contents
-    alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-    alias ll.='ls -dl .*'  # Explicitly list just .* files, so ./ and ../ are shown, overriding the A flag, long format, -d list directories themselves, not their contents
-    alias lla='ls -la'     # long format, -A 'Almost all' to include hidden (dot) files, but not '.' and '..'
+set-ls() {    # Start by redefining 'ls' to '\ls' to run bare ls without flags
+    alias ls='\ls --color=always --group-directories-first'     # ls will print the normal ls in most distros (i.e. will not show .* files). Note that "\"" before a command revets a command back its non-aliased form
+    alias la='ls -AFh'     # ls, all files, -F classify append */=>@| for object types, -A (almost all, ignore ./ and ../, but shows .* files, important to see both normal and hidden .* in many views)
+    alias ll='ls -lh'      # Same as basic 'ls' but long format
+    alias lla='ls -AFhl'   # Long format, but with -AFh also
+    alias lll='ls -AFhl'     # Same as lla, just other options
+    alias L='ls --human-readable --size -1 -S --classify'  # Compressed long format with just size and name and total size summary line
+    alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown), -d list directories themselves, not their contents, to prevent recusion
+    alias l.='ls -d .*'    # Same as ls., just another option
+    alias ll.='ls -dl .*'  # Explicitly list just .* files, but in long format
     alias lld='ls -FlAd | grep /$'     # Directories only with ls, bad practice to do this, but keep as usually fine for 99% of console work (but don't use in a script)
     alias llfd='find \\. -maxdepth 1 -type d'  # 'long listing, find directories', For any scripting, always use find instead of ls as more reliable (use ls for console, use find for scripting)
     alias lldt='tree . -faild -L 1'    # Directories only, max depth 1
@@ -203,13 +204,23 @@ set-ls() {
     alias lnoext='ls -Fla | egrep -v "\."'                   # Files without extensions
     alias lsp='find . -maxdepth 1 -perm -111 -type f'        # List executable by permissions.   ls -lsa | grep -E "[d\-](([rw\-]{2})x){1,3}"   https://stackoverflow.com/q/7812324
     alias lsum="ls -Fla \$1 \$2 \$3 \$4 \$5  | awk '{ print; x=x+\$5 } END { print \"total bytes = \",x }'"   # ls on required info then awk will sum the sizes
-    alias lll='ls --human-readable --size -1 -S --classify'  # Long-list with just size and name and total size summary line
     alias lm='ls -Am'; alias lcsv='lm'         # comma separated view (-m), -A almost all, except '.' and '..'
     alias lsz='ls -lAshSr'; alias lsize='lsz'  # -s size, -h human readable, -S by size, -r reverse so largest are easily visible at end
     alias lt='ls -lAth'  ; alias ltime='lt'; alias ldate='lt'; alias lst='lt'   # sort by -t time/date, hhuman readable
     alias sl='ls'          # Common typo, also just overwrite the 'Steam Locotomive' toy, as that gets boring
     lsdu()  { ls -l $* | sort --key=5.1 -n; };          # List by ascending size
     lsduf() { ls -l | egrep $* | sort --key=5.1 -n; };  # Accepts input to fileter/grep on
+    # replicate 'ls', using 'stat' (get normal 'ls' permission flags, and octal), and aliases to set permissions
+    lsec() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" . .* | awk 'BEGIN { FS = "\t" }; { for (i=1; i<=NF; i++) { width[i] = ( length($i) > width[i] ? length($i) : width[i] ); align[i] = ( $i ~ /^[0-9]+$/ ? "" : "-" ); vals[NR,i] = $i; } }; END { for (n=1; n<=NR; n++) { for (i=1; i<NF; i++) { printf "%" align[i] width[i] "s ", vals[n,i]; }; print vals[n,NF]; } }'; }   # Could also use  ' | column -t'
+    type apk &> /dev/null && lsec() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" . .* | column -t; }  # simpler version for Alpine with column -t
+    alias lstat='lsec';
+    lperm() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args | column -t; };   # Just permissions, %A (ls format), %a (Octal format) and names
+    alias lls='lss'        # 'long listing with security', alias in line with other ls aliases
+    sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
+    alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'        # Remove permissions: append with file/directory to apply to
+    alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'       # Onwer rw, everyone else read-only
+    alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
+    alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
 }
 set-ls
 # If 'exa' is present, can override ls with these if required
@@ -223,15 +234,6 @@ type exa &> /dev/null && set-ls-to-exa() {
     alias ltree='ls -aT' && alias exatree='ls -aT'   # tree listing, not actually very useful, 'tree' is much faster
     alias l.='ls -a | egrep "^\."'
 }
-# replicate 'ls', using 'stat' (get normal 'ls' permission flags, and octal), and aliases to set permissions
-lsec() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" $args; };   alias lstat='lsec';
-lperm() { if [ -z "$@" ]; then args='. .*'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args; };   # Just permissions, %A (ls format), %a (Octal format) and names
-alias lls='lss'        # 'long listing with security', alias in line with other ls aliases
-sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
-alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'        # Remove permissions: append with file/directory to apply to
-alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'       # Onwer rw, everyone else read-only
-alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
-alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
 
 cl() { cd "$@" && ls; }        # 'cd+ls'   -F --color=auto   # cl)( { DIR="$*"; if [ $# -lt 1 ]; then DIR=$HOME; fi; builtin cd "${DIR}" && ls -F --color=auto; } # 'cd' into folder then 'ls' the contents
 cll() { cd "$@" && ll; }       # 'cd+ll'
@@ -270,10 +272,6 @@ gclone1() { git clone $1 --depth=1; project=$(echo $1 | rev | cut -d'/' -f1 | re
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\n\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; echo -e "\n"; fi; }
 alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'
 alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these as use so much
-getgituser() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
-gitbranch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'; }   # Parse a git branch
-# e.g.   githubnew() roysubs my-project <~/.token    # Create a new fully authorised github project
-githubnew() { gh auth login --with-token < $3; git init $2; cd $2; gh repo create $2 --confirm --public; cd ..; rm -rfi $2; git clone --depth=1 https://$1:$3@github.com/$1/$2; }
 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)
@@ -645,12 +643,11 @@ alias rroll='curl -s -L https://raw.githubusercontent.com/keroserene/rickrollrc/
 alias starwars='telnet towel.blinkenlights.nl'
 shdl() { curl -O $(curl -s http://sci-hub.tw/"$0" | grep location.href | grep -o http.*pdf) ;}   # Download an article from sci-hub
 RGB() { awk 'BEGIN{ s="          "; s=s s s s s s s s; for (colnum = 0; colnum<77; colnum++) { r = 255-(colnum*255/76); g = (colnum*510/76); b = (colnum*255/76); if (g>255) g = 510-g; printf "\033[48;2;%d;%d;%dm", r,g,b; printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b; printf "%s\033[0m", substr(s,colnum+1,1); } printf "\n";}'; }   # test-rgb awk script
-colortail() { tail -F $*|ccze -A; }
-alias ct='colortail'
-alias userinfo='getent passwd|column  -t -s: -n'
-alias groupinfo='getent group|column  -t -s: -n'
-alias rsync.='rsync -ravz'
-alias rsync.ssh='rsync -e ssh'
+colortail() { tail -F $*|ccze -A; }; alias ct='colortail'
+alias userinfo='getent passwd | column -t -s: -n'
+alias groupinfo='getent group | column -t -s: -n'
+alias rsync.='rsync -ravz'      # -r -a -v -z
+alias rsync.ssh='rsync -e ssh'  # -e
 setup-starship-prompt() { sh -c "$(curl -fsSL https://starship.rs/install.sh)"; }   # https://github.com/starship/starship
 setup-angel-PS1-prompt() { wget https://github.com/dolmen/angel-PS1/raw/release/angel-PS1; eval `./angel-PS1`; }
 # https://github.com/chris-marsh/pureline   https://github.com/powerline/powerline   https://github.com/dolmen/angel-PS1
@@ -704,6 +701,7 @@ alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd
 alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
 alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
 alias cd2="cd ~/custom_tools; ls"      # Another peronal project location
+alias cd3="cd /mnt/d/0\ Cloud/OneDrive/0_Scripts_AutoHotKey/Basics-AHK"
 alias cdssh="cd ~/.ssh; ls"            # Another peronal project location
 alias cd0edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias cd1edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
@@ -725,7 +723,7 @@ me="~/.custom-me"; [[ -f $me ]] && source $me   # Personal settings that will be
 ####################
 # Help Topics:   Created at /tmp/.custom by custom_loader.sh and then aliased
 ####################
-hhtmp='/tmp/.custom'; mkdir -p $hhtmp >/dev/null   # help-<name>, h-<name>, h<name>, ?<name>, <name>? all work, e.g. ?grep
+hhtmp='/tmp/.custom'; [ ! -d $hhtmp ] && mkdir -p $hhtmp   # help-<name>, h-<name>, h<name>, ?<name>, <name>? all work, e.g. ?grep
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1); alias "$aliasname"="$helpfile"; done
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h-/'); alias "$aliasname"="$helpfile"; done
 for helpfile in $hhtmp/help-*.sh; do aliasname=$(echo $helpfile | cut -d'/' -f4 | cut -d'.' -f1 | sed 's/help-/h/'); alias "$aliasname"="$helpfile"; done

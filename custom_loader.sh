@@ -1615,6 +1615,14 @@ exx "Navigation Bindings:"
 exx "Ctrl-A (or Home) / E (or End)  Move to start / end of current line"
 exx "Alt -F / B  Move forward / backwards one wordCtrl-F / B  Move forward / backwards one character"
 exx ""
+exx "\${BYELLOW}***** Use AutoHotkey to enable Ctrl-Shift-PgUp/PgDn to control WSL console scrolling\${NC}"
+exx "; Console scrolling with keyboard. The default in Linux is usually +PgUp, but as Windows Terminal"
+exx "; already uses Ctrl-Shift-PgUp, use that also for Cmd / WSL windows."
+exx "#IfWinActive ahk_class ConsoleWindowClass"
+exx "^+PgUp:: Send {WheelUp}"
+exx "^+PgDn:: Send {WheelDown}"
+exx "#IfWinActive"
+exx ""
 exx "grep \\\`whoami\\\` /etc/passwd   # show current shell,   cat /etc/shells   # show available shells"
 exx "sudo usermod --shell /bin/bash boss   , or ,   chsh -s /bin/bash   , or ,   vi /etc/passwd  # change default shell for user 'boss'"
 exx ""
@@ -2785,6 +2793,41 @@ exx "Remove whitespace https://linuxhint.com/sed_remove_whitespace/"
 exx ""
 exx "\""   # require final line with a single " to end the multi-line text variable
 exx "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo "find Notes (call with 'help-git')"
+#
+####################
+# https://www.richud.com/wiki/Grep_one_liners
+HELPFILE=$hh/help-git.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small git & GitHub Notes)\${NC}"
+exx ""
+exx "\${BYELLOW}***** Various git & GitHub notes\${NC}"
+exx "Passwords to access GitHub were banned in August 2021, you must generate a token on your account and use that"
+exx "Two ways to create a new GitHub project"
+exx "gh auth login --with-token < ~/.mytoken   # login to GitHub account"
+exx "git init my-project                       # create a new project normally with git, creates the folder and .git subfolder"
+exx "cd my-project"
+exx "gh repo create my-project --confirm --public   # change to --private if required"
+exx "cd ..; rm -rf my-project                  # Delete the project locally so that we can clone it with authentication"
+exx "git clone --depth=1 https://roysubs:my-project@github.com/roysubs/my-project; }"
+# This function is a work in progress, to automate the above, only problem is deleting folders can be risky if an existing project is there, have to make it check if the folder exists or if the project exists on GitHub already
+# githubnew() { [ $# -ne 3 ] && echo "123" && return; gh auth login --with-token < $3; git init $2; cd $2; gh repo create $2 --confirm --public; cd ..; rm -rfi $2; git clone --depth=1 https://$1:$3@github.com/$1/$2; }
+# This function shows all public projects for a given username
+# getgituser() { curl -s https://api.github.com/users/$1/repos?per_page=1000 | grep git_url | awk '{print $2}'| sed 's/"\(.*\)",/\1/'; }   # Get all visible repositories for a given git account $1 https://stackoverflow.com/questions/42832359/how-to-search-repositories-with-github-api-v3-based-on-language-and-user-name
+# Parse a git branch. Have taken these 3 functions out of .custom as trying to reduce the size there.
+# gitbranch() { git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'; }   
+exx ""
+exx "\""   # require final line with a single " to end the multi-line text variable
+exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
 

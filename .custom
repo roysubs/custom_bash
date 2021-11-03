@@ -180,7 +180,7 @@ countdown() { total=$1; for ((i=total; i>0; i--)); do sleep 1; printf "Time rema
 help-ls() { echo -e "Several ways to list directories only (but no files):\n\nls -d */ | cut -f1 -d '/'\nfind \\. -maxdepth 1 -type d\necho */\ntree /etc -faild   # -d (dirs only), -f (full path), -a (all, incl hidden), -i (don't show tree), -l (don't follow symbolic links).\nShow additional info with -p (permissions), -u (user/UID), --du (disk usage) -h (human readable)\ntree . -fail --du -h\nlr  # list files and directories recursively, equivalent to 'tree -fail'\nNote dir/vdir/ls differences https://askubuntu.com/questions/103913/"; }
 [[ $(type ls) == *"aliased"* ]] && unalias ls               # Just a general way to testing for commands that are type 'alias' and so to act upon them if aliased
 
-set-ls() {    # Start by redefining 'ls' to '\ls' to run bare ls without flags
+set-ls() {    # Have this as a function baseline that can always go back to if modify with set-ls-to-exa etc
     alias ls='\ls --color=always --group-directories-first'     # ls will print the normal ls in most distros (i.e. will not show .* files). Note that "\"" before a command revets a command back its non-aliased form
     alias la='ls -AFh'     # ls, all files, -F classify append */=>@| for object types, -A (almost all, ignore ./ and ../, but shows .* files, important to see both normal and hidden .* in many views)
     alias ll='ls -lh'      # Same as basic 'ls' but long format
@@ -222,9 +222,9 @@ set-ls() {    # Start by redefining 'ls' to '\ls' to run bare ls without flags
     alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
     alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
 }
-set-ls
-# If 'exa' is present, can override ls with these if required
-type exa &> /dev/null && set-ls-to-exa() {
+set-ls   # Enable the base ls and related aliases/functions
+
+type exa &> /dev/null && set-ls-to-exa() {   # 'exa' function will only be enabled if 'exa' is present on system
     alias ls='\exa --color=always --group-directories-first'  # basic coloured ls view, but with exa, colours each permission item and other useful options
     alias la='ls -a'      # all files and dirs
     alias ll='ls -lh'     # long format, 'h' for header line
@@ -663,7 +663,7 @@ alias ip.="type ifconfig &>/dev/null && ifconfig; ip addr show -c"
 alias ip4="ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'"   # need to escape $2 when putting in alias. Alternatively:   ifconfig | grep "inet" | awk '{print $2}' | grep -v '::' | grep -v '127.0.0.1'      ip addr show | grep inet | grep -v inet6 | grep -v 127.0.0.1 | awk '{print \$2}' | cut -d/ -f1"
 alias ip6="ip addr show | grep inet | grep -v 'inet ' | grep -v ::1/ | awk '{print \$2}' | cut -d/ -f1"   # need to escape $2 when putting in alias
 alias ipdevs="ip -o link show | awk '{print \$2,\$9}'"
-alias ipexternam='dig +short myip.opendns.com @resolver1.opendns.com'
+alias ipexternal='dig +short myip.opendns.com @resolver1.opendns.com'
 ipup-ping() { for ip in $(seq 1 254); do ping -c 1 192.168.1.$ip>/dev/null; [ $? -eq 0 ] && echo "192.168.1.$ip UP" || : ; done; }
 ipup-nmap() { nmap -n -sn 192.168.1.0/24 -oG - | awk '/Up$/{print $2}'; }   # Very fast # -n turns off reverse name resolution, as on local LAN this is probably the slowest step, -sn means "Don't do a port scan.", -oG - sends "grepable" output to stdout, which gets piped to awk.
 alias pong='ping -i 0.2 -s 2'

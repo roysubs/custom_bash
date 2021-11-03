@@ -688,21 +688,23 @@ HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 rc=~/.bashrc
 rctmp=$hh/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp
-grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && sudo cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
-grep -vxF "$RUNCUSTOM" $rc > $rctmp.3    && sudo cp $rctmp.3 $rc
-# If doing this with a system file (e.g. /etc/bashrc), just sudo the 'cp' part. i.e. grep <> /etc/bashrc > $rctmp && sudo cp /etc/bashrc
+if [ -f $rc ]; then
+    grep -vxF "$HEADERCUSTOM" $rc > $rctmp.1 && sudo cp $rctmp.1 $rc   # grep to a .tmp file, then copy it back to the original
+    grep -vxF "$RUNCUSTOM" $rc > $rctmp.3    && sudo cp $rctmp.3 $rc
+    # If doing this with a system file (e.g. /etc/bashrc), just sudo the 'cp' part. i.e. grep <> /etc/bashrc > $rctmp && sudo cp /etc/bashrc
 
-# After removing our lines, make sure no empty lines at end of file, except for one required before our lines
-# Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
-sed -i 's/[ \t]*$//' ~/.bashrc     # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
-# Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
-sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc
-echo "" | tee --append ~/.bashrc   # Finally, add an empty line back in as a separator before our .custom call lines
+    # After removing our lines, make sure no empty lines at end of file, except for one required before our lines
+    # Remove trailing whitepsace: https://stackoverflow.com/questions/4438306/how-to-remove-trailing-whitespaces-with-sed
+    sed -i 's/[ \t]*$//' ~/.bashrc     # -i is in place, [ \t] applies to any number of spaces and tabs before the end of the file "*$"
+    # Removes also any empty lines from the end of a file. https://unix.stackexchange.com/questions/81685/how-to-remove-multiple-newlines-at-eof/81687#81687
+    sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' ~/.bashrc
+    echo "" | tee --append ~/.bashrc   # Finally, add an empty line back in as a separator before our .custom call lines
 
-# Add lines to trigger .custom to end of .bashrc (-q silent show no output, -x full line match, -F fixed string / no regexp)
-echo $HEADERCUSTOM | tee --append ~/.bashrc
-echo $GETCUSTOM    | tee --append ~/.bashrc
-echo $RUNCUSTOM    | tee --append ~/.bashrc
+    # Add lines to trigger .custom to end of .bashrc (-q silent show no output, -x full line match, -F fixed string / no regexp)
+    echo $HEADERCUSTOM | tee --append ~/.bashrc
+    echo $GETCUSTOM    | tee --append ~/.bashrc
+    echo $RUNCUSTOM    | tee --append ~/.bashrc
+fi
 
 ### .bash_profile checks ###
 # In practice, the usage of the .bash_profile file is the same as the usage for the .bashrc file.
@@ -731,7 +733,7 @@ if [ -s ~/.bash_profile ]; then   # Only do this if a greater than zero size fil
     grep -qxF "$FIXBASHPROFLIE" ~/.bash_profile || echo "$FIXBASHPROFILE" | tee --append ~/.bash_profile
 fi
 
-if [ -s ~/.bash_profile ] && [ ! ~/.bashrc ]; then   # Only do this if a greater than zero size file exists
+if [ -s ~/.bash_profile ] && [ ! -f ~/.bashrc ]; then   # Only do this if a greater than zero size file exists
     echo "Existing ~/.bash_profile is not empty, but ~/.bashrc does not exist. Ensure lines are in ~/.bash_profile to load ~/.custom"
     grep -qxF "$HEADERCUSTOM" ~/.bash_profile || echo "$HEADERCUSTOM" | tee --append ~/.bash_profile
     grep -qxF "$GETCUSTOM" ~/.bash_profile || echo "$GETCUSTOM" | tee --append ~/.bash_profile

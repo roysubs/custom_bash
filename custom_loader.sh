@@ -370,77 +370,28 @@ print_header "Check and install small/essential packages"
 
 # I could 'source .custom' at the top of this script and then call 'pt'.
 # Decided not to do this though, as if there is a bug in '.custom', then this script will fail, so just
-# keep a copy of the 'pt' function in this script also.
-pt() {
-    # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
-    # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
-    # If '-auto' or '--auto' is in the list, will install without prompts. e.g. pt -auto vlc emacs
-    # Package names can be different in Debian/Ubuntu vs RedHat/Fedora/CentOS. e.g. python3.9 in Ubuntu is python39 in CentOS
-    arguments="$@"; isinrepo=(); isinstalled=(); caninstall=(); notinrepo=(); toinstall=""; packauto=0; endloop=0
-    [[ $arguments == *"--auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/--auto//')   # enable switch and remove switch from arguments
-    [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')     # must do '--auto' before '-auto' or will be left with a '-' fragment
-    mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
-    # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
-    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
-    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
-    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
-    # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
-    for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
-    notinrepo+=(`echo ${mylist[@]} ${isinrepo[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays, jave have to consider the right arrays to use here # different answer here: https://stackoverflow.com/a/2315459/524587
-    echo ""
-    [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
-    [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
-    [[ ${notinrepo[@]} != "" ]]   && echo "These packages do not exist in the repository:         ${notinrepo[@]}"     # $(for x in ${isinstalled[@]}
+# keep a copy of the 'pt' function in this script also (has been added in previous section).
 
-    caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays (use "${}" if spaces in array elements) # https://stackoverflow.com/a/28161520/524587
-    if [ $packauto = 1 ]; then
-        if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
-        else echo -e "\nNo selected packages can be installed. Exiting ...\n"
-        fi
-        return
-    fi
-    
-    while [ $endloop = 0 ]; do
-        caninstall=(Install-and-Exit)
-        caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff # https://stackoverflow.com/questions/2312762/compare-difference-of-two-arrays-in-bash#comment52200489_28161520
-        if [[ ${caninstall[@]} = "Install-and-Exit" ]]; then echo -e "\nNo new packages exist in the repository to be installed. Exiting ...\n"; return; fi
-        COLUMNS=12
-        [[ $toinstall != "" ]] && echo -e "\n\nCurrently selected packages:   $toinstall"
-        echo -e "\n\nSelect a package number to add to the install list.\nTo install the selected packages and exit the tool, select '1'.\n"
-        printf -v PS3 '\n%s ' 'Enter number of package to install: '
-        select x in ${caninstall[@]}; do
-            toinstall+=" $x "
-            toinstall=$(echo $toinstall | sed 's/Install-and-Exit//' | tr ' ' '\n' | sort -u | xargs)   # https://unix.stackexchange.com/a/353328/441685
-            if [ $x == "Install-and-Exit" ]; then endloop=1; fi
-            break
-        done
-    done
-    if [[ $toinstall = *[!\ ]* ]]; then    # https://unix.stackexchange.com/a/147109/441685
-        echo -e "\n\n\nAbout to run:   sudo $manager install $toinstall\n\n"
-        read -p "Press Ctrl-C to skip installation or press any key to install the package(s) ..."
-        sudo $manager install -y $toinstall
-    else
-        echo -e "\nNo selected packages can be installed. Exiting ...\n"
-    fi
-}
-nowDate="$(date +'%s')"                          # %s  seconds since 1970-01-01 00:00:00 UTC
+nowDate="$(date +'%s')"                # %s  seconds since 1970-01-01 00:00:00 UTC
 updateDate=$nowDate
 [ -f /tmp/all-repo.txt ] && updateDate="$(stat -c %Y '/tmp/all-repo.txt')"   # %Y  time of last data modification, in seconds since Epoch
 
-lastUpdate=$((nowDate - updateDate))             # simple arithmetic with $(( ))
-updateInterval="$((24 * 60 * 60))"   # Adjust this to how often to do updates, setting to 24 hours in seconds
+lastUpdate=$((nowDate - updateDate))   # simple arithmetic with $(( ))
+updateInterval="$((24 * 60 * 60))"     # Adjust this to how often to do updates, setting to 24 hours in seconds
 updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
 if [[ "${lastUpdate}" -gt "${updateInterval}" ]]
 then
-    packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
-               python3.9 python3-pip perl \     # Get latest python/pip and perl if not present on this distro
-               cron curl wget pv dos2unix \     # Basic tools, cron is not installed by default on CentOS etc
-               git vim zip unzip mount byobu \
-               nnn dfc pydf ncdu tree  \        # nnn (more useful than mc), dfc, pdf, ncdu variants
-               htop neofetch inxi )             # inxi system information tool
-
-    pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
+    echo Put tasks that should only run once every 24 hours here
 fi
+
+packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
+           python3.9 python3-pip perl \     # Get latest python/pip and perl if not present on this distro
+           cron curl wget pv dos2unix \     # Basic tools, cron is not installed by default on CentOS etc
+           git vim zip unzip mount \
+           nnn dfc pydf ncdu tree  \        # nnn (more useful than mc), dfc, pdf, ncdu variants
+           htop neofetch inxi figlet )      # neofetch/inxi system information tool, apt contains figlet, so try this
+
+pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
 
 echo ""
 echo ""
@@ -2828,14 +2779,17 @@ exx "HELPNOTES=\""
 exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small git & GitHub Notes)\${NC}"
 exx ""
 exx "\${BYELLOW}***** Various git & GitHub notes\${NC}"
-exx "Passwords to access GitHub were banned in August 2021, you must generate a token on your account and use that"
+exx "git config --global user.email emailaddress@yahoo.com"
+exx "git config --global user.name username"
+exx "https://stackoverflow.com/questions/18935539/authenticate-with-github-using-a-token"
+exx "Passwords to access GitHub were disabled on August 2021, you must generate a token on your account and use that"
 exx "Two ways to create a new GitHub project"
 exx "gh auth login --with-token < ~/.mytoken   # login to GitHub account"
 exx "git init my-project                       # create a new project normally with git, creates the folder and .git subfolder"
 exx "cd my-project"
 exx "gh repo create my-project --confirm --public   # change to --private if required"
 exx "cd ..; rm -rf my-project                  # Delete the project locally so that we can clone it with authentication"
-exx "git clone --depth=1 https://roysubs:my-project@github.com/roysubs/my-project; }"
+exx "git clone --depth=1 https://roysubs:my-project@github.com/roysubs/my-project"
 # This function is a work in progress, to automate the above, only problem is deleting folders can be risky if an existing project is there, have to make it check if the folder exists or if the project exists on GitHub already
 # githubnew() { [ $# -ne 3 ] && echo "123" && return; gh auth login --with-token < $3; git init $2; cd $2; gh repo create $2 --confirm --public; cd ..; rm -rfi $2; git clone --depth=1 https://$1:$3@github.com/$1/$2; }
 # This function shows all public projects for a given username

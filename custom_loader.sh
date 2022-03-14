@@ -635,7 +635,7 @@ fi
 # GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 # grep -vxF "$GETCUSTOM" $rc > $rctmp.2    && sudo cp $rctmp.2 $rc
 
-HEADERCUSTOM='# Dotsource .custom download from: git clone https://github.com/roysubs/custom_bash --depth=1'
+HEADERCUSTOM='# Dotsource .custom; download project from: git clone https://github.com/roysubs/custom_bash --depth=1'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 rc=~/.bashrc
 rctmp=$hh/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp

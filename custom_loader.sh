@@ -387,8 +387,8 @@ fi
 packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
            python3.9 python3-pip perl \     # Get latest python/pip and perl if not present on this distro
            cron curl wget pv dos2unix \     # Basic tools, cron is not installed by default on CentOS etc
-           git vim zip unzip mount \
-           nnn dfc pydf ncdu tree  \        # nnn (more useful than mc), dfc, pdf, ncdu variants
+           git vim zip unzip mount \        # Basic tools, git, full vim package, zip/unzip, mount is not on all systems
+           nnn dfc pydf ncdu tree net-tools \   # nnn (more useful than mc), dfc, pdf, ncdu variants
            htop neofetch inxi figlet )      # neofetch/inxi system information tool, apt contains figlet, so try this
 
 pt -auto ${packages[@]}     # 'pt' will create a list of valid packages from those input and then installs those
@@ -635,7 +635,7 @@ fi
 # GETCUSTOM='[ ! -f ~/.custom ] && [[ $- == *"i"* ]] && curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom'
 # grep -vxF "$GETCUSTOM" $rc > $rctmp.2    && sudo cp $rctmp.2 $rc
 
-HEADERCUSTOM='# Dotsource .custom (download from GitHub if required)'
+HEADERCUSTOM='# Dotsource .custom, downloaded from git clone https://github.com/roysubs/custom_bash --depth=1'
 RUNCUSTOM='[ -f ~/.custom ] && [[ $- == *"i"* ]] && source ~/.custom'
 rc=~/.bashrc
 rctmp=$hh/.bashrc_$(date +"%Y-%m-%d__%H-%M-%S").tmp

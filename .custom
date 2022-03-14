@@ -184,8 +184,8 @@ set-ls() {    # Have this as a function baseline that can always go back to if m
     alias ls='\ls --color=always --group-directories-first'     # ls will print the normal ls in most distros (i.e. will not show .* files). Note that "\"" before a command revets a command back its non-aliased form
     alias la='ls -AFh'     # ls, all files, -F classify append */=>@| for object types, -A (almost all, ignore ./ and ../, but shows .* files, important to see both normal and hidden .* in many views)
     alias ll='ls -lh'      # Same as basic 'ls' but long format
-    alias lla='ls -AFhl'   # Long format, but with -AFh also
-    alias lll='ls -AFhl'     # Same as lla, just other options
+    alias lla='ls -AFhl'   # Long format (ll), all (a), but with -A (almost all) and -F (classify append */=>@| for object types) also
+    alias lll='ls -AFhl'   # Same as lla, just another alias option to quickly access it
     alias L='ls --human-readable --size -1 -S --classify'  # Compressed long format with just size and name and total size summary line
     alias ls.='ls -d .*'   # Explicitly list just .* files, so ./ and ../ are shown), -d list directories themselves, not their contents, to prevent recusion
     alias l.='ls -d .*'    # Same as ls., just another option

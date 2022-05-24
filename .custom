@@ -698,10 +698,10 @@ alias ethspeed="for i in ( $(ip -o link show | awk '{print $2,$9}' | grep UP$ | 
 # Personal Settings:   # Personal settings that will be overwritten by "~/.custom-me' if that file is present
 ####################
 alias reload='pushd . > /dev/null; cd ~/custom_bash; source custom_loader.sh; cd - > /dev/null'   # cd - internally does a cd $OLDPWD
-alias cd0="cd ~/custom_bash; ls"       # Adjust to personal main projects for convenience, can set cd1, cd2, etc
-alias cd1="cd /tmp/.custom; ls *.sh"   # Another personal location to jump to (location of .custom backups and help files etc)
-alias cd2="cd ~/custom_tools; ls"      # Another peronal project location
-alias cd3="cd /mnt/d/0\ Cloud/OneDrive/0_Scripts_AutoHotKey/Basics-AHK"
+alias cd0="cd ~/custom_bash; ls"       # Personal location, main projects for convenience, can alter cd1, cd2, etc
+alias cd1="cd /tmp/.custom; ls *.sh"   # Personal jump location to (holds custom backups and help files etc)
+alias cd2="cd /mnt/d/0\ Cloud/OneDrive/0_Scripts_Linux"
+alias cd3="cd /mnt/d/0\ Cloud/OneDrive/git; ls"    # git folder in OneDrive
 alias cdssh="cd ~/.ssh; ls"            # Another peronal project location
 alias cd0edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
 alias cd1edit="pushd . > /dev/null; cd ~/custom_bash; code .custom custom_loader.sh more_apps.sh README.md; cd - > /dev/null"
@@ -735,7 +735,7 @@ help-git-basics()         { URL=https://blog.karatos.in/a?ID=00000-389ae5ea-acc9
 help-git-pro()            { URL=https://blog.karatos.in/a?ID=00000-c9118532-abc2-423f-8b92-a94a740c251e; content=$(wget $URL -q -O -); lynx -dump $URL | less; }
 
 hhliq="$hhtmp/liquid.sh"; [[ -f $hhliq ]] && alias liquid="source $hhliq"   # Can source a script from an alias/function created during .bashrc
-hhdk="$hhtmp/.custom-dk"; [[ -f $hhdk ]] && alias dk='if type docker &> /dev/null; then echo -e "Docker was found; adding dk aliases from $hhdk\nTo view defined docker aliases and function:   aaff docker"; source $hhdk; else "Docker is not installed"; fi'     # Not enabled by default, running dk will initialise the .custom-dk aliases/functions, including re-aliasing itself as dk => docker
+hhdk="$hhtmp/.custom-dk"; [[ -f $hhdk ]] && alias dk='if type docker &> /dev/null; then echo -e "Docker was found; adding dk aliases from $hhdk\nTo view defined docker aliases and function:   aaff docker"; source $hhdk; else echo "Docker is not installed"; fi'     # Not enabled by default, running dk will initialise the .custom-dk aliases/functions, including re-aliasing itself as dk => docker
 # Trivial but can be nice to have (on Ubuntu these are already available in repository)
 type dnf &>/dev/null && install-all-toys() { sudo dnf install ruby install gcc make automake autoconf curl-devel openssl-devel zlib-devel httpd-devel apr-devel apr-util-devel sqlite-devel ruby-devel rubygems; sudo gem install lolcat; } # https://gist.github.com/mtaziz/d5b2f9ef46b06f04fbbd   g++ ruby-rdoc
 type dnf &>/dev/null && install-acquarium() { echo "run script from /tmp/.custom"; }

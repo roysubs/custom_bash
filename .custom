@@ -217,9 +217,11 @@ set-ls() {    # Have this as a function baseline that can always go back to if m
     lperm() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args | column -t; };   # Just permissions, %A (ls format), %a (Octal format) and names
     alias lls='lss'        # 'long listing with security', alias in line with other ls aliases
     sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
-    alias 000='echo "---------- (Owner -, Group -, and Other -)"; chmod 000'        # Remove permissions: append with file/directory to apply to
-    alias 644='echo "-rw-r--r-- (Owner rw, Group r, and Other r)"; chmod 644'       # Onwer rw, everyone else read-only
-    alias 755='echo "-rwxr-xr-x (Owner rwx, Group r-x, and Other r-x)"; chmod 755'  # Make executable, but only Owner has write permissions
+    alias 600='echo "600 -rw------- (Owner rw-, Group ---, Other ---)"; chmod 600'    # Only owner access
+    alias 644='echo "644 -rw-r--r-- (Owner rw-, Group r--, Other r--)"; chmod 644'    # Onwer rw, everyone else read-only
+    alias 744='echo "744 -rwxr--r-- (Owner rwx, Group r--, Other r--)"; chmod 744'    # Onwer rwx, everyone else read-only
+    alias 755='echo "755 -rwxr-xr-x (Owner rwx, Group r-x, Other r-x)"; chmod 755'  # Everyone executable, but only Owner has `write permissions
+    alias 000='755 > /dev/null 2>&1; 744 > /dev/null 2>&1; 644 > /dev/null 2>&1; 600 > /dev/null 2>&1;'       # Only owner access
     alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
 }
 set-ls   # Enable the base ls and related aliases/functions

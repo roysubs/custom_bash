@@ -3264,19 +3264,20 @@ else
 fi
 
 # The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
-echo "If ./.custom exists here and this session is an interactive login and pwd is not "\$HOME", then copy it to the home directory."
+echo "If ./.custom exists here (and this session is an interactive login and pwd is not "\$HOME"), then copy it to the home directory."
 if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    echo "[ -f ./.custom ] && [[ \$- == *"i"* ]] && [[ ! $(pwd) == \$HOME ]] = TRUE"
+    echo "i.e. [ -f ./.custom ] *and* [[ \$- == *"i"* ]] *and* [[ ! $(pwd) == \$HOME ]] are all  TRUE"
     cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
 elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
-    echo "~/.custom is still not in \$HOME, so get latest version from Github."
-    echo "[ ! -f ~/.custom ] && [[ $- == *"i"* ]] = TRUE"
+    echo "As ~/.custom is still not in \$HOME, we must get the latest version from Github."
+    echo "curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom"
     curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
-echo "Note the above configuration details for any useful additional manual actions."
-echo "'updistro' to run through all update/upgrade actions (use 'def updistro' to see commands)."
-echo "sudo visudo, set sudo timeout to 10 hours, additional line:   Defaults timestamp_timeout=600"
+echo "Useful tools in the toolkit:"
+echo "- Run 'updistro' to follow correct update/upgrade actions (use 'def updistro' for full function)."
+echo "- Run 'aaa' / 'fff' / 'aaff' to view all aliases / functions / aliases-and-functions."
+echo "- To set the sudo timeout to 10 hours => sudo visudo, and add the additional line:   Defaults timestamp_timeout=600"
 echo ""
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then

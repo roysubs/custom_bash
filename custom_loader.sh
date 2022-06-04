@@ -3314,7 +3314,7 @@ fi
 # The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
 echo "If ./.custom exists here (and this session is an interactive login and pwd is not "\$HOME"), then copy it to the home directory."
 if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    echo "i.e. [ -f ./.custom ] *and* [[ \$- == *"i"* ]] *and* [[ $(pwd) != \$HOME ]] are all  TRUE"
+    echo "i.e. [ -f ./.custom ] *and* [[ \$- == *"i"* ]] *and* [[ $(pwd) != \$HOME ]] are all TRUE"
     cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
 elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     echo "As ~/.custom is still not in \$HOME, we must get the latest version from Github."

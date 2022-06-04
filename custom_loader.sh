@@ -334,7 +334,7 @@ function runDistroUpdate()
 
     else
         local lastUpdate="$(date -u -d @"${lastUpdate}" +'%-Hh %-Mm %-Ss')"
-        print_header "Skip apt-get update because its last run was ${updateIntervalReadable} ago"
+        print_header "Skip apt-get update because its last run was less than ${updateIntervalReadable} ago" "Last apt-get update run was ${lastUpdate} ago"
     fi
 }
 
@@ -1653,6 +1653,54 @@ exx "\""   # require final line with a single " to close multi-line string
 exx "echo -e \"\$HELPNOTES\""
 chmod 755 $HELPFILE
 
+
+
+####################
+#
+echo "SAMBA / CIFS configuration (call with 'help-networkshare')"
+#
+####################
+# https://stackoverflow.com/questions/1624691/linux-kill-background-task
+HELPFILE=$hh/help-networkshare.sh
+exx() { echo "$1" >> $HELPFILE; }
+echo "#!/bin/bash" > $HELPFILE
+exx "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+exx "HELPNOTES=\""
+exx "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Network Shares, SAMBA-CIFS)\${NC}"
+exx ""
+exx "To setup SAMBA shares so that other systems can connect to this:"
+exx ""
+exx "apt install samba, then use smbpasswd, service smbd restart, /etc/samba/smb.conf" 
+exx "apt install smbclient, then   smbclient -L //hp1   or smbclient -L 192.168.1.10"
+exx ""
+exx "sudo smbpasswd -a boss   # Can set password same as real password for convenience"
+exx "sudo service smbd restart"
+exx ""
+exx "sudo iptables -I INPUT -p all -s 192.168.1.13 -j ACCEPT"
+exx ""
+exx "sudo iptables -A INPUT -p tcp -m tcp  -m multiport --dports 445,139 -m state --state NEW  -j ACCEPT"
+exx "sudo iptables -A INPUT -p udp -m udp  -m multiport --dports 138,137,139 -m state --state NEW  -j ACCEPT"
+exx ""
+exx "sudo cp /etc/samba/smb.conf /home/boss/   # backup"
+exx ""
+exx "sudo vi /etc/samba/smb.conf"
+exx ""
+exx "# 0755 mask allows rw access" 
+exx ""
+exx "[media]"
+exx "   comment = removable media folder"
+exx "   browseable = yes"
+exx "   read only = no"
+exx "   create mask = 0755"
+exx "   directory mask = 0755"
+exx "   guest ok = yes"
+exx "   path = /media/boss"
+exx ""
+exx "sudo service smbd restart   # must restart after above changes. Shares should be browsable now."
+exx ""
+exx "\""   # require final line with a single " to close multi-line string
+exx "echo -e \"\$HELPNOTES\""
+chmod 755 $HELPFILE
 
 
 ####################

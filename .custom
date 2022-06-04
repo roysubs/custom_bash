@@ -221,7 +221,7 @@ set-ls() {    # Have this as a function baseline that can always go back to if m
     alias 644='echo "644 -rw-r--r-- (Owner rw-, Group r--, Other r--)"; chmod 644'    # Onwer rw, everyone else read-only
     alias 744='echo "744 -rwxr--r-- (Owner rwx, Group r--, Other r--)"; chmod 744'    # Onwer rwx, everyone else read-only
     alias 755='echo "755 -rwxr-xr-x (Owner rwx, Group r-x, Other r-x)"; chmod 755'  # Everyone executable, but only Owner has `write permissions
-    alias 000='755 > /dev/null 2>&1; 744 > /dev/null 2>&1; 644 > /dev/null 2>&1; 600 > /dev/null 2>&1;'       # Only owner access
+    alias 000='755 > /dev/null 2>&1; 744 > /dev/null 2>&1; 644 > /dev/null 2>&1; 600 > /dev/null 2>&1'       # Only owner access
     alias mx='chmod a+x'   # Make Executable: 'a' is for 'all users', so, 'for all users, add executable'
 }
 set-ls   # Enable the base ls and related aliases/functions
@@ -272,8 +272,9 @@ alias gsetname='git config --global user.name $1'; alias gsetemail='git config -
 gclone() { git clone $1 $2; project=$(echo $1 | rev | cut -d'/' -f1 | rev | cut -d'.' -f1); [ -d $project ] && cd $project && ls -al; }; alias gc='gclone'   # cd into the cloned project and ls, could be better to use  | grep -o '[^/]*$'  instead of rev/cut/rev/cut
 gclone1() { git clone $1 --depth=1; project=$(echo $1 | rev | cut -d'/' -f1 | rev | cut -d'.' -f1); [ -d $project ] && cd $project && ls -al; }; alias gc1='gclone1'   # Almost never uesful to have more than --depth=1, and can save a lot of space
 gpush() { if [ ! -d .git ]; then echo "Current folder is not a git repository (no .git folder is present)"; else printf "\n\nPush current directory up to git repository.\nWill run the following (if choose to continue):\n\n=>  git status   =>  git add .  [add all files]    =>  git status  [pause to check]\n=>  git commit -m \"Update\"     =>  git status      =>  git push -u origin master \n\n"; read -p "Ctrl-C to quit or press any key to continue ..."; printf "\n"; "git status before adding files:"; git status; git add .; echo "git status after 'git add .'"; git status; git commit -m "Update"; printf "About to upload repository to github\n\n"; read -p "Ctrl-C to quit, or any key to push local project up to remote repository ..."; git push -u origin master; echo -e "\n"; fi; }
-alias gitpush='gpush'; alias g-push='gpush'; alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'
-alias push='gpush'; alias pull='gpull'   # Also just set 'push' and 'pull' to default to these as use so much
+                        alias gitpush='gpush'; alias g-push='gpush'; alias git-push='gpush'
+alias gpull='git pull'; alias gitpull='gpull'; alias g-pull='gpull'; alias git-pull='gpull'
+alias push='gpush'; alias pull='gpull'   # Also setting 'push' and 'pull' to default to using git as it is such a common standard
 
 ####################
 # Package Management: Generic package management syntax for common tasks (apt/yum/dnf/dpkg/apk/zypper/snap/flatpak)

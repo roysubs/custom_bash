@@ -3266,7 +3266,7 @@ fi
 # The test for `pwd` is important as custom_loader.sh should never run from inside $HOME.
 echo "If ./.custom exists here (and this session is an interactive login and pwd is not "\$HOME"), then copy it to the home directory."
 if [ -f ./.custom ] && [[ $- == *"i"* ]] && [[ ! $(pwd) == $HOME ]]; then
-    echo "i.e. [ -f ./.custom ] *and* [[ \$- == *"i"* ]] *and* [[ ! $(pwd) == \$HOME ]] are all  TRUE"
+    echo "i.e. [ -f ./.custom ] *and* [[ \$- == *"i"* ]] *and* [[ $(pwd) != \$HOME ]] are all  TRUE"
     cp ./.custom ~/.custom   # This will overwrite the copy in $HOME
 elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     echo "As ~/.custom is still not in \$HOME, we must get the latest version from Github."
@@ -3274,17 +3274,21 @@ elif [ ! -f ~/.custom ] && [[ $- == *"i"* ]]; then
     curl -s https://raw.githubusercontent.com/roysubs/custom_bash/master/.custom > ~/.custom   # Download new .custom
 fi
 
-echo "Useful tools in the toolkit:"
-echo "- Run 'updistro' to follow correct update/upgrade actions (use 'def updistro' for full function)."
+echo ""
+echo "Useful options in the custom_bash toolkit:"
+echo "- Run 'def <command>' against any function or alias to get it's definition"
+echo "- Run 'updistro' to follow correct update/upgrade actions (use 'def updistro' for full details)."
 echo "- Run 'aaa' / 'fff' / 'aaff' to view all aliases / functions / aliases-and-functions."
 echo "- To set the sudo timeout to 10 hours => sudo visudo, and add the additional line:   Defaults timestamp_timeout=600"
 echo ""
 # Only show the following lines if WSL is detected
 if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    echo "For WSL consoles: Can toggle fullscreen mode with Alt-Enter."
-    echo "For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste'."
-    echo "From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\\\wsl$'."
-    echo "Access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' 'd:', 'e:', 'home:', 'pf:', 'sys32:' etc"
+    echo ""
+    echo "This session is running inside WSL (Windows Subsystem for Linux), so following extended functions apply:"
+    echo "- For WSL consoles (i.e. if not in putty): Can toggle fullscreen mode with Alt-Enter."
+    echo "- For WSL consoles: Right-click on title bar > Properties > Options > 'Use Ctrl+Shift+C/V as Copy/Paste'."
+    echo "- From bash, view WSL folders in Windows Eplorer: 'explorer.exe .' (note the '.exe'), or from Explorer, '\\\\wsl$'."
+    echo "- To access Windows from bash: 'cd /mnt/c' etc, .custom has 'alias c:='cd /mnt/c' (also 'd:', 'e:', 'home:', 'pf:', 'sys32:' etc)"
 fi
 echo ""
 echo ""

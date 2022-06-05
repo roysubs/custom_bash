@@ -19,6 +19,15 @@
 # Many aliases will not be created if the component that they rely upon is missing (i.e. standalone, can drop into a server and will work).
 # Download 'shellcheck' and run against this and other scripts
 
+manager=
+DISTRO=
+type apt    &> /dev/null && manager=apt    && DISTRO="Debian/Ubuntu"
+type yum    &> /dev/null && manager=yum    && DISTRO="RHEL/Fedora/CentOS"
+type dnf    &> /dev/null && manager=dnf    && DISTRO="RHEL/Fedora/CentOS"   # $manager=dnf will be default if both dnf and yum are present
+type zypper &> /dev/null && manager=zypper && DISTRO="SLES"
+type apk    &> /dev/null && manager=apk    && DISTRO="Alpine"
+repos() { if [ "$manager" = "apt" ]; then echo -e ">>>>>>>>  sudo grep -rhE ^deb /etc/apt/sources.list*\n"; sudo \grep -rhE ^deb /etc/apt/sources.list*; echo -e "\n>>>>>>>>  sudo apt-cache policy | grep http\n"; sudo apt-cache policy | \grep http | sed 's/^ //'; echo ""; fi; if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then echo ">>>>>>>>  sudo $manager repolist   (print the repolist using $manager)"; sudo $manager repolist | cat; echo ""; fi }
+
 ####################
 # Using .custom tools: search for and show full definitions of any alias or function
 ####################
@@ -28,8 +37,8 @@
 # Also remember just using command -v, type <aliasname>, grep netstat .custom' to view information, and the grep -A (after) / -B (before) to get context around the search results, bash -xl (load)
 # Use     perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b     to remove color and control characters from output, https://unix.stackexchange.com/q/14684/
 uncolor() { perl -pe 's/\e([^\[\]]|\[.*?[a-zA-Z]|\].*?\a)//g' | col -b; }   # Used by the 'aaff' function below (and generally useful to remove control characters from files or pipeline output)
-aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l python'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAll aliases that contain a match for '$1'"; }
-fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; }
+aaa() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l python'; else PAGER='cat'; fi; if [ -z "$1" ]; then alias | $PAGER; else alias | sed 's/alias //g' | grep "$1" | $PAGER; fi; echo -e "\nAbove shows all aliases that contain the string '$1'"; }
+fff() { if type bat > /dev/null 2>&1; then PAGER='bat -pp -l bash'; else PAGER='cat'; fi; if [ -z "$1" ]; then declare -F | awk '{print $3}' | $PAGER; else declare -f | awk -v srch="$1" 'NF==2 && $2=="()"{if (m) print buf; buf=""; m=0} index($0,srch){m=1} {buf=buf ORS $0} END{if (m) print buf}' | $PAGER; fi; echo -e "\nAbove shows all functions that contain the string '$1'"; }
 aaff() { echo -e "\e[1;37m\nAll functions that contain '$1'. For more detail: 'def <function-name>':\n_________________________\n"; fff $1 | uncolor | grep \(\) | uncolor | grep -v "^[[:space:]]"; echo -e "\e[1;37m\n\nAll aliases that contain '$1':\n_________________________\n"; aaa $1; }   # Show full line of aliases, but just the names of functions that contain the search-string (use 'def function-name' to see details)
 alias ffaa='aaff'; alias afaf='aaff'; alias fafa='aaff'; alias faaf='aaff'; alias affa='aaff'   # Just alias all variants of aaff combinations, so no chance of getting wrong...
 def() { if [ -z "$1" ]; then declare -F; printf "\nAbove listing is all defined functions 'declare -F' (use def <func-name> to show function contents)\nType 'alias' to show all aliases (def <alias-nam> to show alias definition, where 'def' uses 'command -V <name>')\n\n"; elif type bat >/dev/null 2>&1; then command -V $1 | bat -pp -l bash; else command -V $1; fi }
@@ -627,7 +636,7 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
 type figlet  &> /dev/null && figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
 type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f /usr/share/figlet/small.flf $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f /usr/share/figlet/univers.flf" || local opts="-f /usr/share/figlet/big.flf"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
-type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figrandom $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figlet -w -t -f `figrandom` $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
 type cowsay  &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay  &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type cowsay  &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"   # -b Borg, -d dead, -g greedy, -p paranoia, -s stoned, -t tired, -w wired mode, -y youthful

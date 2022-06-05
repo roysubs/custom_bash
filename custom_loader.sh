@@ -3335,26 +3335,6 @@ echo ""
 
 ####################
 #
-print_header "List Installed Repositories"
-#
-####################
-if [ "$manager" = "apt" ]; then
-    echo       ">>>>>>>>  sudo grep -rhE ^deb /etc/apt/sources.list*"
-    echo ""
-    sudo \grep -rhE ^deb /etc/apt/sources.list*
-    echo -e "\n>>>>>>>>  sudo apt-cache policy | grep http\n"
-    sudo apt-cache policy | \grep http | sed 's/^ //'
-    echo ""
-fi
-if [ "$manager" = "dnf" ] || [ "$manager" = "yum" ]; then
-    echo ">>>>>>>>  sudo $manager repolist   (straight print of the repolist from $manager)"
-    sudo $manager repolist | cat
-    echo ""
-fi
-
-
-####################
-#
 print_header "Copy .custom (if present) to ~/.custom, *or* download latest .custom to ~/.custom"
 #
 ####################

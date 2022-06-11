@@ -46,8 +46,6 @@ complete -cf aaa; complete -cf fff; complete -cf aaff; complete -cf def   # enab
 # ToDo: Parse any script for aliases and functions (not possible in general, but could get 80%/90%)
 # paf() { if [ -z "$1" ]; then echo "Require a filename to parse for aliases and functions"; else grep -o '\w*\w\s*\(\)' $1 | sed -E 's/\s*\(\)//'; fi; }
 myfunctions() { declare -F | awk '{print $NF}' | sort | egrep -v "^_"; }   # Functions declared inside this current session that don't start with "_"
-# echo -e "\nAll functions that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n";
-# ; echo -e "\nAll aliases that contain a match for '$1'. For more detail: 'def <alias-or-function-name>'\n"
 # 'fo': Template to pass variables to an alias; creates a temporary function wrapper, which is passed the arguments, Alias arguments are only passed at the end. Note that wrapper is called, at the very end of the alias. 'unset -f' removes the function definition as the alias is executed so it doesn't hang around afterwards.
 alias fo='wrapper(){ ~/bin/findAndOpen $1 $2; unset -f wrapper; }; wrapper'   # https://unix.stackexchange.com/questions/3773/how-to-pass-parameters-to-an-alias
 
@@ -343,8 +341,8 @@ fi
 
 # Create some additional generic aliases that are variations on the above:
 # install, inst, setup => ii     uninstall, uninst, remove, delete => rr   (don't use 'del' as it maps to a Windows command, bad when using WSL)
-if type ii > /dev/null 2>&1; then alias install='ii'; inst='ii'; alias setup='ii'; fi   # map inst / setup to ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
-if type rr > /dev/null 2>&1; then uninstall='rr'; alias uninst='rr'; alias remove='rr'; alias delete='rr'; fi   # map remove / del to rr, but only if ii already exists
+if type ii > /dev/null 2>&1; then alias inst='ii'; alias setup='ii'; fi   # aliases for ii, but only if it already exists (do not use 'install' as it is a built-in on Ubuntu)
+if type rr > /dev/null 2>&1; then alias uninstall='rr'; alias uninst='rr'; alias remove='rr'; alias delete='rr'; fi   # map remove / del to rr, but only if ii already exists
 
 if type aptitude >/dev/null 2>&1; then        # Only create aliases if aptitude is present
     alias tude-install='sudo aptitude install';              alias tude-remove='sudo aptitude remove';
@@ -592,7 +590,8 @@ generate-password() {   # With ability to choose required character sets   # htt
     < /dev/urandom tr -dc a-zA-Z0-9-._~\(\)\'\!\*:@,\; | head -c$1 ; echo -e "   URL-safe characters (\ escapes the ()'!*; for the shell)\n"
 }
 exe() { printf "\n\n"; echo "\$ ${@/eval/}"; "$@"; }  # Show the command to be run before running, useful for outputs when scripting
-square() { v1=$1; n=$(($v1*$v1)); echo $n; }          # Maths function
+square() { num=$1; result=$(($num*$num)); echo $result; }   # get num squared
+sqroot() { num=$1; result=$(echo "scale=4; sqrt($num)" | bc); echo $result; }   # get square root using bc
 expo() { v1=$1; v2=$2; n=$(($v1**$v2)); echo $n; }    # Maths function, also note the built in 'factor' what a number is divisible by
 factorial() { v1=$1; n=1; while [[ $v1 -gt 0 ]]; do n=$(($n*$v1)); v1=$(($v1 - 1)); done; echo $n; }  # Maths function
 color256() { curl -s 0- https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash; }   # Run script from url
@@ -633,10 +632,10 @@ alias datestring='date +"%Y-%m-%d__%H-%M-%S"'                # YYYYY-MM-DD__HHH-
 :h() { vim --cmd ":silent help $@" --cmd "only"; }           # Access help for a vim command from the console
 
 # TOIlet stands for "The Other Implementation's letters", coined after FIGlet’s "Frank, Ian and Glen’s letters".
-type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $fname; done; }
+type figlet  &> /dev/null && figall() { for f in /usr/share/figlet/*.flf; do fs=$(basename $f); fname=${fs%%}; echo "$fname"; figlet -f $fname $(date +"%H:%M:%S"); done; } # Could just have $fname as output
 type figlet  &> /dev/null && figrandom() { rand=$(ls /usr/share/figlet/*.flf | sort -R | tail -1); printf "$(echo $rand | awk -F'/' '{print $NF}')\n"; }   # 'sort -R' is random, also note 'shuf'
-type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f /usr/share/figlet/small.flf $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f /usr/share/figlet/univers.flf" || local opts="-f /usr/share/figlet/big.flf"; printf "\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V"
-type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; printf "\e[94m$(figlet -w -t -f `figrandom` $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 5; done; }
+type figlet  &> /dev/null && fignow() { printf "\e[33m$(figlet -w -t -f /usr/share/figlet/small.flf $(date +"%a, %d %b, wk%V"))"; [ -f /usr/share/figlet/univers.flf ] && local opts="-f /usr/share/figlet/univers.flf" || local opts="-f /usr/share/figlet/big.flf"; printf "\n\e[94m$(figlet -t $opts $(date +"%H:%M"))\e[00m\n"; }   # date "%b %d, week %V", was larry3d.flf
+type figlet  &> /dev/null && figclock() { while [ 1 ]; do clear; printf "\e[33m"; df -kh 2> /dev/null; printf "\e[31m\n"; top -n 1 -b | head -11; printf "\e[33m$(figlet -w -t -f small $(date +"%b %d, week %V"))\n"; font=`figrandom`; printf "$(echo $font)\n\e[94m$(figlet -w -t -f $font $(date +"%H:%M:%S"))\e[00m\n"; printf "\e[35m5 second intervals, Ctrl-C to quit.\e[00m"; sleep 3; done; } # 2> /dev/null suppresses errors from smb shares
 type cowsay  &> /dev/null && cowrandom() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*; else files=/usr/share/cowsay/*; fi; printf "%s\n" "${files[RANDOM % ${#files}]}"; }
 type cowsay  &> /dev/null && cowall() { if [ -d /usr/share/cowsay/cows/ ]; then files=/usr/share/cowsay/cows/*.cow; else files=/usr/share/cowsay/*.cow; fi; echo $files; for f in $files; do printf "\n\n\n\n\n$f\n\n"; fortune | cowsay -f $f; done; }   # https://stackoverflow.com/questions/12320521/simple-bash-for-f-in#12320617
 type cowsay  &> /dev/null && alias fcow="fortune | cowsay -f $(cowrandom)"   # -b Borg, -d dead, -g greedy, -p paranoia, -s stoned, -t tired, -w wired mode, -y youthful

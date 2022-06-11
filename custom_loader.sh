@@ -769,6 +769,13 @@ print_header "Common changes to .inputrc"
 #
 ####################
 
+# To verify which code is sent to your terminal when you press a key or a combination of keys,first
+# press Ctrl+V and then press on the desired key. This can be different depending upon the terminal,
+# such as PuTTY. For example, pressing Ctrl+V then the Home key on my PuTTY terminal:
+#    ^[[1~
+# That means that PuTTY sends the escape character ^[ followed by the string [1~
+# After this, .inputrc codes can be defined for these key codes.
+
 # if [ ! -a ~/.inputrc ]; then echo '$include /etc/inputrc' > ~/.inputrc; fi
 if [ ! -f ~/.inputrc ]; then touch ~/.inputrc; fi
 # Add shell-option to ~/.inputrc to enable case-insensitive tab completion, add this then start a new shell
@@ -787,6 +794,8 @@ addToFile '"\e[5~": history-search-backward # After Ctrl-r, release Ctrl, then P
 addToFile '"\e[6~": history-search-forward # After Ctrl-r, release Ctrl, then PgDn to go forward'
 addToFile '"\C-p": history-search-backward # After Ctrl-r, Ctrl-p to go backward (previous)'
 addToFile '"\C-n": history-search-forward # After Ctrl-r, Ctrl-n to go forward (next)'
+addToFile '"\eOD": backward-word'
+addToFile '"\eOC": forward-word'
 
 # INPUTRC='$include /etc/inputrc'   # include settings from /etc/inputrc
 # grep -qxF "$INPUTRC" ~/.inputrc || echo $INPUTRC | sudo tee --append ~/.inputrc
@@ -1485,7 +1494,7 @@ echo "Putty notes (call with 'help-putty')"
 #
 ####################
 
-HELPFILE=$hh/help-ps.sh
+HELPFILE=$hh/help-putty.sh
 out1() { echo "$1" >> $HELPFILE; }
 echo "#!/bin/bash" > $HELPFILE
 out1 "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
@@ -1493,15 +1502,88 @@ out1 "HELPNOTES=\""
 out1 "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small Putty Help)\${NC}"
 out1 ""
 out1 "Press Ctrl+C or right-click the highlighted text and then left-click on Copy in the context menu."
-out1 " Position the cursor in PuTTY where you want to paste the copied text from Windows, then right-click"
+out1 "Position the cursor in PuTTY where you want to paste the copied text from Windows, then right-click"
 out1 "or press Shift + Insert to paste the copied text at that location."
+out1 ""
+out1 "Window > Lines of scrollback = 99999"
+out1 "Window > Display scroll bar in full screen mode"
+out1 "Window > Appearance > Font Settings > Consolas, 14-point"
+out1 "Window > Appearance > Font quality > Anti-aliased"
+out1 "Connection > Sending of null packets > Enable TCP keep-alives and set to 60 seconds"
+out1 ""
+out1 "Connection > Data > Change 'xterm' to 'putty'"
+out1 "Very often, Ctrl+Left/Right keys, Home/End, PgUp/PgDn keys do not work due to not having PuTTY's terminal type set"
+out1 "correctly, or as the server doesn't have the correct terminfo definitions installed."
+out1 "On Debian/Ubuntu-based systems, the ncurses-term package includes terminfo definition files for putty, putty-256color"
+out1 "and putty-vt100 terminal types. If you have this package installed, set 'Terminal-type string' to 'putty' instead of"
+out1 "the default 'xterm' in Putty's session configuration (under Connection > Data)."
+out1 "https://superuser.com/questions/94436/how-to-configure-putty-so-that-home-end-pgup-pgdn-work-properly-in-bash"
+out1 "Change the Terminal-type String under the Connection > Data tab from the default 'xterm' to 'linux'. It worked for me."
 out1 ""
 out1 "\""   # require final line with a single " to close multi-line string
 out1 "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
 
 
-Press Ctrl+C or right-click the highlighted text and then left-click on Copy in the context menu. Position the cursor in PuTTY where you want to paste the copied text from Windows, then right-click to paste it or press Shift + Insert.
+
+####################
+#
+HELP=maths; HELPFILE=$hh/help-$HELP.sh
+echo "$HELP notes (call with 'help-$HELP')"
+#
+####################
+out1() { echo "$1" >> $HELPFILE; }; echo "#!/bin/bash" > $HELPFILE
+out1 "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+out1 "HELPNOTES=\""
+out1 "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small $HELP help)\${NC}"
+out1 ""
+out1 "((sum=25+35))   # Add two numeric value"
+out1 ""
+out1 "\""   # require final line with a single " to close multi-line string
+out1 "echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+
+
+####################
+#
+echo ".inputrc notes (call with 'help-inputrc')"
+#
+####################
+
+HELPFILE=$hh/help-inputrc.sh
+out1() { echo "$1" >> $HELPFILE; }
+out2() { printf "$1\n" >> $HELPFILE; }   # echo without '-e'
+echo "#!/bin/bash" > $HELPFILE
+out2 "BLUE='\\033[0;34m'; RED='\\033[0;31m'; BCYAN='\\033[1;36m'; BYELLOW='\\033[1;33m'; NC='\\033[0m'"
+out2 'HELPNOTES="'
+out2 '${BCYAN}$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small .inputrc Help)${NC}'
+out2 ''
+out2 'To verify which code is sent to your terminal when you press a key or a combination of keys,first'
+out2 'press Ctrl+V and then press on the desired key. This can be different depending upon the terminal'
+out2 'such as PuTTY. For example, pressing Ctrl+V then the Home key on my PuTTY terminal:"
+out2 '   ^[[1~'
+out2 'That means that PuTTY sends the escape character ^[ followed by the string [1~'
+out2 'After this, .inputrc codes can be defined for these key codes.'
+out2 'Note: Replace every ^[ character by the equivalent \\e string'
+out2 ''
+out2 'For this Home key example to add the beginning-of-line action (bound to Ctrl+A in Bash by default):'
+out2 ''
+out2 '"\\e[1~": beginning-of-line'
+out2 'https://superuser.com/questions/94436/how-to-configure-putty-so-that-home-end-pgup-pgdn-work-properly-in-bash'
+out2 ''
+out2 '\""   # require final line with a single " to close multi-line string
+out2 'echo -e \"\$HELPNOTES\\n\""
+chmod 755 $HELPFILE
+
+# To verify which code is sent to your terminal when you press a key or a combination of keys,first
+# press Ctrl+V and then press on the desired key. This can be different depending upon the terminal,
+# such as PuTTY. For example, pressing Ctrl+V then the Home key on my PuTTY terminal:
+#    ^[[1~
+# That means that PuTTY sends the escape character ^[ followed by the string [1~
+# After this, .inputrc codes can be defined for these key codes.
+
+
 
 
 
@@ -1713,7 +1795,6 @@ out1 ""
 out1 "sudo smbpasswd -a boss    # Can set password here same as Linux password for convenience"
 out1 "service smbd restart      # Need to restart the service between configuration changes"
 out1 "smbclient -L 192.168.011  # (or -L //sysname) Will show the available shares on the remote system"
-out1 "vi /etc/samba/smb.conf" 
 out1 ""
 out1 "sudo iptables -I INPUT -p all -s 192.168.1.13 -j ACCEPT"
 out1 "sudo iptables -A INPUT -p tcp -m tcp  -m multiport --dports 445,139 -m state --state NEW  -j ACCEPT"

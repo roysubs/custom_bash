@@ -224,7 +224,7 @@ set-ls() {    # Have this as a function baseline that can always go back to if m
     type apk &> /dev/null && lsec() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A\t%a\t%h\t%U\t%G\t%s\t%.19y\t%n\n" . .* | column -t; }  # simpler version for Alpine with column -t
     alias lstat='lsec';
     lperm() { if [ -z "$@" ]; then args='.* *'; else args="$@"; fi; stat --printf="%A  %a  %n\n" $args | column -t; };   # Just permissions, %A (ls format), %a (Octal format) and names
-    alias lls='lss'        # 'long listing with security', alias in line with other ls aliases
+    alias lls='lstat'        # 'long listing with security', alias in line with other ls aliases
     sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}   # Make directory and file access rights the same
     alias 600='echo "600 -rw------- (Owner rw-, Group ---, Other ---)"; chmod 600'    # Only owner access
     alias 644='echo "644 -rw-r--r-- (Owner rw-, Group r--, Other r--)"; chmod 644'    # Onwer rw, everyone else read-only

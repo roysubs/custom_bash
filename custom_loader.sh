@@ -207,7 +207,8 @@ fi
 
 # I could 'source .custom' at the top of this script and then call 'pt' and 'updistro'. This is
 # not good though; if there is a bug in '.custom', then this script will fail, and variables from
-# there might interfere here. Just keep a copy of the 'updistro' function in this script also.
+# there might interfere here. Just keep a copy of the 'updistro' function in this script also and
+# make sure both are in sync.
 pt() {
     # 'package tool', arguments are a list of package names to try. e.g. pt vim dfc bpytop htop
     # Determine if packages are already installed, fetch distro package list to see what is available, and then install the difference
@@ -218,9 +219,9 @@ pt() {
     [[ $arguments == *"-auto"* ]] && packauto=1 && arguments=$(echo $arguments | sed 's/-auto//')     # must do '--auto' before '-auto' or will be left with a '-' fragment
     mylist=("$arguments")   # Create array out of the arguments.    mylist=(python3.9 python39 mc translate-shell how2 npm pv nnn alien angband dwarf-fortress nethack-console crawl bsdgames bsdgames-nonfree tldr tldr-py bpytop htop fortune-mod)
     # if declare -p $1 2> /dev/null | grep -q '^declare \-a'; then echo "The input \$1 must be an array"; return; fi   # Test if the input is an array
-    type apt &> /dev/null && manager="apt" && apt list &> /dev/null > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
-    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
-    type dnf &> /dev/null && manager="dnf" && dnf list &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    type apk &> /dev/null && manager="apk" && apk list &> /dev/null    > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
+    type apt &> /dev/null && manager="apt" && apt list &> /dev/null    > /tmp/all-repo.txt && apt list --installed &> /dev/null > /tmp/all-here.txt && divider="/"
+    type dnf &> /dev/null && manager="dnf" && dnf list -y &> /dev/null > /tmp/all-repo.txt && dnf list installed   &> /dev/null > /tmp/all-here.txt && divider=""
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-repo.txt &> /dev/null && isinrepo+=($x); done    # find items available in repo
     # echo -e "These are in the repo: ${isinrepo[@]}\n\n"   # $(for x in ${isinrepo[@]}; do echo $x; done)
     for x in ${mylist[@]}; do grep "^$x$divider" /tmp/all-here.txt &> /dev/null && isinstalled+=($x); done # find items already installed
@@ -229,7 +230,7 @@ pt() {
     [[ ${isinrepo[@]} != "" ]]    && echo "These packages exist in the $manager repository:            ${isinrepo[@]}"   # $(for x in ${isinstalled[@]}
     [[ ${isinstalled[@]} != "" ]] && echo "These packages are already installed on this system:   ${isinstalled[@]}"   # $(for x in ${isinstalled[@]}
     [[ ${notinrepo[@]} != "" ]]   && echo "These packages do not exist in the repository:         ${notinrepo[@]}"     # $(for x in ${isinstalled[@]}
-
+    echo 3
     caninstall+=(`echo ${isinrepo[@]} ${isinstalled[@]} | tr ' ' '\n' | sort | uniq -u `)  # get the diff from two arrays (use "${}" if spaces in array elements) # https://stackoverflow.com/a/28161520/524587
     if [ $packauto = 1 ]; then
         if (( ${#caninstall[@]} )); then sudo $manager install -y ${caninstall[@]}   # Test the number of elements, if non-zero then enter the loop
@@ -389,9 +390,14 @@ updateDate=$nowDate
 lastUpdate=$((nowDate - updateDate))   # simple arithmetic with $(( ))
 updateInterval="$((24 * 60 * 60))"     # Adjust this to how often to do updates, setting to 24 hours in seconds
 updateIntervalReadable=$(printf '%dh:%dm:%ds\n' $((updateInterval/3600)) $((updateInterval%3600/60)) $((updateInterval%60)))
+
+echo $lastUpdate
+echo $updateInterval
+
 if [[ "${lastUpdate}" -gt "${updateInterval}" ]]
 then
-    echo Put tasks that should only run once every 24 hours here
+    echo ""
+    # echo Put tasks that should only run once every 24 hours here
 fi
 
 packages=( dpkg apt-file alien \            # apt-file required for searching on 'what provides a package' searches, alien converts packages
@@ -1539,6 +1545,17 @@ out1 "\${BCYAN}\$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small $HELP 
 out1 ""
 out1 "((sum=25+35))   # Add two numeric value"
 out1 ""
+out1 "For bc, load match library and set scale=20 using '-l'"
+out1 "https://stackoverflow.com/questions/22621488/"
+out1 "Can define variables in .bcrc and call it as follows. e.g. create ~/.bcrc and put scale=3 into it"
+out1 "Then define the following alias to load those variables if available"
+out1 "alias bc='if [ -f ~/.bcrc ]; then bc -l ~/.bcrc; else  bc; fi'"
+out1 "Then can call bc easily with these variables pre-defined:"
+out1 "bc <<< 'sqrt 3'"
+out1 "   1.7320508"
+out1 "bc -l <<< 'scale=10; 4*a(1)'"
+out1 "   3.1415926532"
+out1 ""
 out1 "\""   # require final line with a single " to close multi-line string
 out1 "echo -e \"\$HELPNOTES\\n\""
 chmod 755 $HELPFILE
@@ -1561,7 +1578,7 @@ out2 '${BCYAN}$(type figlet >/dev/null 2>&1 && figlet -w -t -k -f small .inputrc
 out2 ''
 out2 'To verify which code is sent to your terminal when you press a key or a combination of keys,first'
 out2 'press Ctrl+V and then press on the desired key. This can be different depending upon the terminal'
-out2 'such as PuTTY. For example, pressing Ctrl+V then the Home key on my PuTTY terminal:"
+out2 'such as PuTTY. For example, pressing Ctrl+V then the Home key on my PuTTY terminal:'
 out2 '   ^[[1~'
 out2 'That means that PuTTY sends the escape character ^[ followed by the string [1~'
 out2 'After this, .inputrc codes can be defined for these key codes.'
@@ -1572,8 +1589,8 @@ out2 ''
 out2 '"\\e[1~": beginning-of-line'
 out2 'https://superuser.com/questions/94436/how-to-configure-putty-so-that-home-end-pgup-pgdn-work-properly-in-bash'
 out2 ''
-out2 '\""   # require final line with a single " to close multi-line string
-out2 'echo -e \"\$HELPNOTES\\n\""
+out2 '\""   # require final line with a single " to close multi-line string'
+out2 'echo -e \"\$HELPNOTES\\n\"'
 chmod 755 $HELPFILE
 
 # To verify which code is sent to your terminal when you press a key or a combination of keys,first
@@ -1604,7 +1621,7 @@ out1 "https://access.redhat.com/discussions/5398621"
 out1 "https://www.zdnet.com/article/red-hat-introduces-free-rhel-for-small-production-workloads-development-teams/"
 out1 "https://wsl.dev/mobyrhel8/"
 out1 ""
-out1 "1) Install RHEL in a Virtual Machine. Doesn't matter which. I used the boot iso as it is small, and you want to keep the install as minimal as possible to save time. You can always add any package later using dnf"
+out1 "1) Install RHEL in a Virtual Machine. Doesnt matter which. I used the boot iso as it is small, and you want to keep the install as minimal as possible to save time. You can always add any package later using dnf"
 out1 ""
 out1 "2) When installed, reboot into RHEL and login as root."
 out1 ""
@@ -1746,7 +1763,7 @@ out1 "Two main ways to create a background task:"
 out1 "1. Put '&' at the end of a command to start it in background:  sleep 300 &; bg -l; kill %"
 out1 "2. On a running task, press Ctrl-Z to suspend, then type 'bg' to change it to a background job"
 out1 ""
-out1 "Type 'jobs' to see all background jobs, and fg <job-number> to bring a job to the foreground"
+out1 "Type jobs to see all background jobs, and fg <job-number> to bring a job to the foreground"
 out1 ""
 out1 "To kill background jobs, refer to them by:   jobs -l   then use the number of the job"
 out1 "kill %1      # To stop a job (in this case, job [1]). Will NOT kill the job."
@@ -1759,13 +1776,13 @@ out1 "In the bash shell, % introduces a job name. Job number n may be referred t
 out1 "Also refer to a prefix of the name, e.g. %ce refers to a stopped ce job. If a prefix matches more"
 out1 "than one job, bash reports an error. Using %?ce, on the other hand, refers to any job containing"
 out1 "the string ce in its command line. If the substring matches more than one job, bash reports an error."
-out1 "%% and %+ refer to the shell's notion of the current job, which is the last job stopped while it was"
+out1 "%% and %+ refer to the shells notion of the current job, which is the last job stopped while it was"
 out1 "in the foreground or started in the background. The previous job may be referenced using %-. In output"
 out1 "pertaining to jobs (e.g., the output of the jobs command), the current job is always flagged with a +"
 out1 "and the previous job with a -. A single % (with no accompanying job specification) also refers to the"
 out1 "current job."
 out1 ""
-out1 "Also note 'skill' and 'killall' (though 'killall' is quite dangerous)."
+out1 "Also note skill and killall (though killall is quite dangerous)."
 out1 ""
 out1 "\""   # require final line with a single " to close multi-line string
 out1 "echo -e \"\$HELPNOTES\""
@@ -3404,7 +3421,7 @@ out1 "echo '# cp ~/liquidprompt/liquidpromptrc-dist ~/.liquidpromptrc'"
 out1 "echo '# vi ~/.liquidpromptrc'"
 out1 "echo ''"
 out1 "echo LiquidPrompt requires a NerdFont to display icons correctly:"
-out1 "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts"
+out1 "echo https://www.nerdfonts.com/ https://github.com/ryanoasis/nerd-fonts https://morioh.com/p/a313770dba7a"
 out1 "echo ''"
 chmod 755 $HELPFILE
 
